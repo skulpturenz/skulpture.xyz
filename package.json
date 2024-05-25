@@ -1,5 +1,6 @@
 {
 	"name": "skulpture-xyz",
+	"description": "SaaS as a Service",
 	"type": "module",
 	"private": true,
 	"version": "0.0.1",
