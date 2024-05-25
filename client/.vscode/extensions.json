@@ -5,6 +5,8 @@
 		"austenc.tailwind-docs",
 		"SuhelMakkad.shadcn-ui",
 		"esbenp.prettier-vscode",
+		"Gruntfuggly.todo-tree",
+		"IBM.output-colorizer"
 	],
 	"unwantedRecommendations": []
 }
