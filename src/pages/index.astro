@@ -1,0 +1,44 @@
+---
+import "@/styles/globals.css";
+import { AstroFont } from "astro-font";
+import { SEO } from "astro-seo";
+
+const TITLE = "Skulpture";
+const DESCRIPTION = "Software, Delivery, Advisory";
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{TITLE} | {DESCRIPTION}</title>
+		<AstroFont
+			config={[
+				{
+					name: "Teachers",
+					src: [
+						{
+							style: "normal",
+							weight: "400 800",
+							path: "https://fonts.gstatic.com/s/teachers/v1/H4ckBXKVncXVmUGsgRY9yL6SgK62.woff2",
+						},
+						{
+							style: "italic",
+							weight: "400 800",
+							path: "https://fonts.gstatic.com/s/teachers/v1/H4ciBXKVncXVmUGsgRY4-LyYh4y0YzA.woff2",
+						},
+					],
+					preload: true,
+					display: "swap",
+					fallback: "sans-serif",
+				},
+			]}
+		/>
+		<SEO title={TITLE} description={DESCRIPTION} />
+	</head>
+	<body>
+		<h1>Astro</h1>
+	</body>
+</html>

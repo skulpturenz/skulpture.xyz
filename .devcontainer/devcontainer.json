@@ -1,0 +1,7 @@
+{
+	"name": "Alpine Node",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"postStartCommand": "corepack pnpm install"
+}
