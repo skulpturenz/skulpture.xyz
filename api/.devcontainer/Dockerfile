@@ -1,7 +1,8 @@
 FROM golang:alpine as base
 
 RUN go install github.com/mitranim/gow@latest
-RUN apk add git bash shadow gnupg curl python3 py3-pip && echo '/bin/bash' | chsh `whoami`
+RUN apk add git bash shadow gnupg curl python3 py3-pip bash-completion && echo '/bin/bash' | chsh `whoami`
+RUN git config --global pager.branch false
 
 FROM base
 
