@@ -91,12 +91,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 		file, err := fileHeader.Open()
 		if err != nil {
-			response := map[string]string{}
-			response["error"] = err.Error()
-
-			jsonResponse, _ := json.Marshal(response)
-
-			http.Error(w, string(jsonResponse), http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 
 			return
 		}
@@ -142,9 +137,23 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func createGoogleDriveService() *drive.Service {
-	service, err := drive.NewService(context.Background(), option.WithCredentialsFile(os.Getenv("GCLOUD_CREDENTIALS")))
+	if os.Getenv("GO_ENV") != "Production" {
+		service, err := drive.NewService(context.Background(), option.WithCredentialsFile(os.Getenv("GCLOUD_CREDENTIALS")))
+		if err != nil {
+			slog.Error("error", "gdrive dev", err.Error())
+
+			panic(err)
+		}
+
+		return service
+	}
+
+	// Authenticate using client default credentials
+	// see: https://cloud.google.com/docs/authentication/client-libraries
+	ctx := context.Background()
+	service, err := drive.NewService(ctx)
 	if err != nil {
-		slog.Error("error", "gdrive", err.Error())
+		slog.Error("error", "gdrive prod", err.Error())
 
 		panic(err)
 	}
