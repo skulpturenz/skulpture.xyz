@@ -127,8 +127,9 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 			jsonResponse, _ := json.Marshal(response)
 
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(jsonResponse)
+			http.Error(w, string(jsonResponse), http.StatusBadRequest)
+
+			return
 		}
 
 		uploadedFiles = append(uploadedFiles, res)
