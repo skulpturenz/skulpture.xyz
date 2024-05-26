@@ -12,7 +12,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"google.golang.org/api/drive/v3"
-	"google.golang.org/api/googleapi"
 	"google.golang.org/api/option"
 )
 
@@ -26,6 +25,27 @@ func init() {
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Limit max request size to 20 MB
+	const MAX_REQUEST_SIZE = 20 << 20
+	r.Body = http.MaxBytesReader(w, r.Body, MAX_REQUEST_SIZE)
+
+	const MAX_UPLOAD_SIZE = 15 << 20 // 15 MB
+	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+		response := map[string]string{}
+		response["error"] = err.Error()
+
+		jsonResponse, _ := json.Marshal(response)
+
+		http.Error(w, string(jsonResponse), http.StatusInternalServerError)
+
+		return
+	}
+
 	var body struct {
 		uuid      string
 		Email     string `json:"email" validate:"required,email"`
@@ -38,13 +58,12 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		log.Printf("[PostLead] Bad request \"%s\"", err)
 
-		response := make(map[string]string)
+		response := map[string]string{}
 		response["error"] = err.Error()
 
 		jsonResponse, _ := json.Marshal(response)
 
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(jsonResponse)
+		http.Error(w, string(jsonResponse), http.StatusBadRequest)
 
 		return
 	}
@@ -53,11 +72,11 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		validationErrs := err.(validator.ValidationErrors)
 
-		errs := make([]string, len(validationErrs))
+		errs := []string{}
 		for i := range validationErrs {
 			err := validationErrs[i]
 
-			errs[i] = fmt.Sprintf("%s has invalid value '%s': %s", err.Namespace(), err.Value(), err.Error())
+			errs = append(errs, fmt.Sprintf("%s has invalid value '%s': %s", err.Namespace(), err.Value(), err.Error()))
 		}
 
 		response := map[string][]string{
@@ -66,47 +85,53 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 		jsonResponse, _ := json.Marshal(response)
 
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(jsonResponse)
+		http.Error(w, string(jsonResponse), http.StatusBadRequest)
+
+		return
 	}
 
 	body.uuid = uuid.NewString()
 
-	// TODO: Process files
-	files := []*os.File{}
-
-	// TODO: Send to GoogleDrive
 	uploadedFiles := []*drive.File{}
-	if len(files) > 0 {
-		if driveService == nil {
-			driveService = createGoogleDriveService()
+	files := r.MultipartForm.File["file"]
+
+	if driveService == nil {
+		driveService = createGoogleDriveService()
+	}
+	for _, fileHeader := range files {
+		file, err := fileHeader.Open()
+		if err != nil {
+			response := map[string]string{}
+			response["error"] = err.Error()
+
+			jsonResponse, _ := json.Marshal(response)
+
+			http.Error(w, string(jsonResponse), http.StatusInternalServerError)
+
+			return
+		}
+		defer file.Close()
+
+		res, err := driveService.Files.
+			Create(&drive.File{
+				Name: fileHeader.Filename,
+			}).
+			Media(file).
+			Do()
+
+		if err != nil {
+			log.Printf("[PostLead] Error \"%s\" while processing enquiry for \"%s\"", err, body.Email)
+
+			response := make(map[string]string)
+			response["error"] = err.Error()
+
+			jsonResponse, _ := json.Marshal(response)
+
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(jsonResponse)
 		}
 
-		for _, file := range files {
-			stat, _ := file.Stat()
-
-			fileMetadata := &drive.File{
-				Name: file.Name(),
-			}
-
-			res, err := driveService.Files.
-				Create(fileMetadata).Media(file, googleapi.ChunkSize(int(stat.Size()))).
-				Do()
-
-			if err != nil {
-				log.Printf("[PostLead] Error \"%s\" while processing enquiry for \"%s\"", err, body.Email)
-
-				response := make(map[string]string)
-				response["error"] = err.Error()
-
-				jsonResponse, _ := json.Marshal(response)
-
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write(jsonResponse)
-			}
-
-			uploadedFiles = append(uploadedFiles, res)
-		}
+		uploadedFiles = append(uploadedFiles, res)
 	}
 
 	// TODO: POST to CRM
