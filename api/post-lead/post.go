@@ -2,7 +2,6 @@ package post
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -43,23 +42,23 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+	defer r.MultipartForm.RemoveAll()
 
-	var body struct {
+	body := struct {
 		uuid      string
 		Email     string `json:"email" validate:"required,email"`
 		Mobile    string `json:"mobile" validate:"e164"`
 		FirstName string `json:"firstName" validate:"required"`
 		LastName  string `json:"lastName" validate:"required"`
 		Enquiry   string `json:"enquiry" validate:"required"`
-	}
+	}{}
 
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		slog.Error("error", "request", err.Error())
-
-		http.Error(w, err.Error(), http.StatusBadRequest)
-
-		return
-	}
+	body.uuid = uuid.NewString()
+	body.Email = r.FormValue("email")
+	body.Mobile = r.FormValue("mobile")
+	body.FirstName = r.FormValue("firstName")
+	body.LastName = r.FormValue("lastName")
+	body.Enquiry = r.FormValue("enquiry")
 
 	slog.Info("begin", "enquiry", fmt.Sprintf("%+v", body))
 
@@ -71,16 +70,14 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		for i := range validationErrs {
 			err := validationErrs[i]
 
-			errs = append(errs, fmt.Sprintf("- %s has invalid value '%s': %s", err.Namespace(), err.Value(), err.Error()))
+			errs = append(errs, fmt.Sprintf("- %s", err.Error()))
 		}
 
-		slog.Error("error", "request", body, "errors", strings.Join(errs, ", "))
-		http.Error(w, fmt.Sprintf("Invalid field values: %s", strings.Join(errs, "\n")), http.StatusBadRequest)
+		slog.Error("error", "request", body)
+		http.Error(w, fmt.Sprintf("Invalid field values:\n%s", strings.Join(errs, "\n")), http.StatusBadRequest)
 
 		return
 	}
-
-	body.uuid = uuid.NewString()
 
 	uploadedFileLinks := []string{}
 	uploadedFiles := []*drive.File{}
