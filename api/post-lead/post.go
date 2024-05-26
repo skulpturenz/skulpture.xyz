@@ -115,6 +115,13 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		res, err := driveService.Files.
 			Create(&drive.File{
 				Name: fileHeader.Filename,
+				Properties: map[string]string{
+					"leadId":    body.uuid,
+					"email":     body.Email,
+					"firstName": body.FirstName,
+					"lastName":  body.LastName,
+					"mobile":    body.Mobile,
+				},
 			}).
 			Media(file).
 			Do()
@@ -142,7 +149,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 func createGoogleDriveService() *drive.Service {
 	service, err := drive.NewService(context.Background(), option.WithCredentialsFile(os.Getenv("GCLOUD_CREDENTIALS")))
 	if err != nil {
-		log.Fatalf("[PostLead] Unabled to access Drive API %s", err)
+		log.Fatalf("[PostLead] Unable to access Drive API \"%s\"", err)
 	}
 
 	return service
