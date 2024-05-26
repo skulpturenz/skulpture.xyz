@@ -26,6 +26,8 @@ func init() {
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
+	slog.Info(r.Method, "host", r.Host, "path", r.URL.Path)
+
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -80,14 +82,34 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	body.uuid = uuid.NewString()
 
-	uploadedFiles := []string{}
+	uploadedFileLinks := []string{}
+	uploadedFiles := []*drive.File{}
 	files := r.MultipartForm.File["file"]
 
 	if driveService == nil {
 		driveService = createGoogleDriveService()
 	}
+
+	about, err := driveService.About.Get().Do()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+
+		return
+	}
+	limit := about.StorageQuota.Limit
+	currentUsage := about.StorageQuota.UsageInDrive
+
 	for _, fileHeader := range files {
 		slog.Info("begin", "upload", fileHeader.Filename, "size", fileHeader.Size)
+
+		currentUsage += fileHeader.Size
+		slog.Info("stats", "gdrive usage", currentUsage, "gdrive limit", limit)
+
+		if currentUsage == limit {
+			slog.Error("gdrive usage exceeds limit")
+
+			break
+		}
 
 		file, err := fileHeader.Open()
 		if err != nil {
@@ -121,11 +143,22 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 		slog.Info("end", "upload", fileHeader.Filename, "link", res.WebContentLink)
 
-		uploadedFiles = append(uploadedFiles, fmt.Sprintf("- %s", res.WebContentLink))
+		uploadedFiles = append(uploadedFiles, res)
+		uploadedFileLinks = append(uploadedFileLinks, fmt.Sprintf("- %s", res.WebContentLink))
 	}
 
-	if len(uploadedFiles) > 0 {
-		enquiryWithFiles := fmt.Appendf([]byte(body.Enquiry), "\nAttached files:\n%s", strings.Join(uploadedFiles, "\n"))
+	if currentUsage == limit {
+		for _, file := range uploadedFiles {
+			driveService.Files.Delete(file.Id)
+		}
+
+		http.Error(w, "Google Drive quota reached", http.StatusInsufficientStorage)
+
+		return
+	}
+
+	if len(uploadedFileLinks) > 0 {
+		enquiryWithFiles := fmt.Appendf([]byte(body.Enquiry), "\nAttached files:\n%s", strings.Join(uploadedFileLinks, "\n"))
 
 		body.Enquiry = string(enquiryWithFiles)
 	}
