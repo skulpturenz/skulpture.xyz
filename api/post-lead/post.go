@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/go-playground/validator/v10"
@@ -92,7 +93,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	body.uuid = uuid.NewString()
 
-	uploadedFiles := []*drive.File{}
+	uploadedFiles := []string{}
 	files := r.MultipartForm.File["file"]
 
 	if driveService == nil {
@@ -139,8 +140,16 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		uploadedFiles = append(uploadedFiles, res)
+		uploadedFiles = append(uploadedFiles, fmt.Sprintf("- %s", res.WebContentLink))
 	}
+
+	if len(uploadedFiles) > 0 {
+		enquiryWithFiles := fmt.Appendf([]byte(body.Enquiry), "\nAttached files:\n%s", strings.Join(uploadedFiles, "\n"))
+
+		body.Enquiry = string(enquiryWithFiles)
+	}
+
+	log.Printf("%+v", body)
 
 	// TODO: POST to CRM
 	// TODO: Send email
