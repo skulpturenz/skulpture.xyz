@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -145,7 +144,9 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 func createGoogleDriveService() *drive.Service {
 	service, err := drive.NewService(context.Background(), option.WithCredentialsFile(os.Getenv("GCLOUD_CREDENTIALS")))
 	if err != nil {
-		log.Fatalf("[PostLead] Unable to access Drive API \"%s\"", err)
+		slog.Error("error", "gdrive", err.Error())
+
+		panic(err)
 	}
 
 	return service
