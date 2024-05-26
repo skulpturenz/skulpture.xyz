@@ -23,7 +23,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		uuid      string
 		Email     string `json:"email" validate:"required,email"`
-		Mobile    string `json:"mobile" validate:""`
+		Mobile    string `json:"mobile" validate:"e164"`
 		FirstName string `json:"firstName" validate:"required"`
 		LastName  string `json:"lastName" validate:"required"`
 		Enquiry   string `json:"enquiry" validate:"required"`
