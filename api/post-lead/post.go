@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"strings"
@@ -37,12 +38,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	const MAX_UPLOAD_SIZE = 15 << 20 // 15 MB
 	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
-		response := map[string]string{}
-		response["error"] = err.Error()
-
-		jsonResponse, _ := json.Marshal(response)
-
-		http.Error(w, string(jsonResponse), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 
 		return
 	}
@@ -57,17 +53,14 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		log.Printf("[PostLead] Bad request \"%s\"", err)
+		slog.Error("error", "request", err.Error())
 
-		response := map[string]string{}
-		response["error"] = err.Error()
-
-		jsonResponse, _ := json.Marshal(response)
-
-		http.Error(w, string(jsonResponse), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 
 		return
 	}
+
+	slog.Info("begin", "enquiry", fmt.Sprintf("%+v", body))
 
 	err := validate.Struct(body)
 	if err != nil {
@@ -77,16 +70,11 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		for i := range validationErrs {
 			err := validationErrs[i]
 
-			errs = append(errs, fmt.Sprintf("%s has invalid value '%s': %s", err.Namespace(), err.Value(), err.Error()))
+			errs = append(errs, fmt.Sprintf("- %s has invalid value '%s': %s", err.Namespace(), err.Value(), err.Error()))
 		}
 
-		response := map[string][]string{
-			"error": errs,
-		}
-
-		jsonResponse, _ := json.Marshal(response)
-
-		http.Error(w, string(jsonResponse), http.StatusBadRequest)
+		slog.Error("error", "request", body, "errors", strings.Join(errs, ", "))
+		http.Error(w, fmt.Sprintf("Invalid field values: %s", strings.Join(errs, "\n")), http.StatusBadRequest)
 
 		return
 	}
@@ -100,6 +88,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		driveService = createGoogleDriveService()
 	}
 	for _, fileHeader := range files {
+		slog.Info("begin", "upload", fileHeader.Filename, "size", fileHeader.Size)
+
 		file, err := fileHeader.Open()
 		if err != nil {
 			response := map[string]string{}
@@ -128,17 +118,14 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 			Do()
 
 		if err != nil {
-			log.Printf("[PostLead] Error \"%s\" while processing enquiry for \"%s\"", err, body.Email)
+			slog.Error("error", "upload", err.Error(), "email", body.Email)
 
-			response := make(map[string]string)
-			response["error"] = err.Error()
-
-			jsonResponse, _ := json.Marshal(response)
-
-			http.Error(w, string(jsonResponse), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 
 			return
 		}
+
+		slog.Info("end", "upload", fileHeader.Filename, "link", res.WebContentLink)
 
 		uploadedFiles = append(uploadedFiles, fmt.Sprintf("- %s", res.WebContentLink))
 	}
@@ -149,7 +136,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		body.Enquiry = string(enquiryWithFiles)
 	}
 
-	log.Printf("%+v", body)
+	slog.Info("processed", "enquiry", fmt.Sprintf("%+v", body))
 
 	// TODO: POST to CRM
 	// TODO: Send email
