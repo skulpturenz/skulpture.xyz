@@ -8,6 +8,7 @@ require (
 	github.com/agoda-com/opentelemetry-logs-go v0.5.0
 	github.com/go-chi/chi v1.5.5
 	github.com/go-chi/chi/v5 v5.0.12
+	github.com/go-chi/httplog/v2 v2.0.11
 	github.com/go-playground/validator/v10 v10.20.0
 	github.com/google/uuid v1.6.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0

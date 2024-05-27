@@ -15,6 +15,7 @@ import (
 	sdklog "github.com/agoda-com/opentelemetry-logs-go/sdk/logs"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httplog/v2"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -38,10 +39,14 @@ var (
 	serviceName  = os.Getenv("SERVICE_NAME")
 	collectorURL = os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 	insecure     = os.Getenv("INSECURE_MODE")
+	env          = os.Getenv("GO_ENV")
 )
 
 func init() {
 	ctx := context.Background()
+	if os.Getenv("GO_ENV") == "" {
+		env = "Development"
+	}
 
 	cleanup := initOtel()
 	defer cleanup(ctx)
@@ -50,10 +55,17 @@ func init() {
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
+	r.Use(otelhttp.NewMiddleware(serviceName))
+	r.Use(httplog.RequestLogger(httplog.NewLogger(serviceName, httplog.Options{
+		Concise: true,
+		Tags: map[string]string{
+			"env": env,
+		},
+	})))
+	r.Use(middleware.Heartbeat("/ping"))
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	r.Use(otelhttp.NewMiddleware(serviceName))
 	r.Post("/*", Handler)
 
 	validate = validator.New(validator.WithRequiredStructEnabled())
