@@ -25,8 +25,8 @@ const MAX_UPLOAD_SIZE = 15 << 20  // 15 MB
 
 const POSTMARK_TEMPLATE_ENV = "POSTMARK_TEMPLATE"
 const POSTMARK_FROM_ENV = "POSTMARK_FROM_ENV"
-const SERVER_TOKEN_ENV = "POSTMARK_SERVER"
-const ACCOUNT_TOKEN_ENV = "POSTMARK_ACCOUNT"
+const POSTMARK_SERVER_TOKEN_ENV = "POSTMARK_SERVER"
+const POSTMARK_ACCOUNT_TOKEN_ENV = "POSTMARK_ACCOUNT"
 
 func init() {
 	validate = validator.New(validator.WithRequiredStructEnabled())
@@ -224,13 +224,13 @@ func createGoogleDriveService() *drive.Service {
 }
 
 func createPostmarkClient() *postmark.Client {
-	if os.Getenv(SERVER_TOKEN_ENV) == "" || os.Getenv(ACCOUNT_TOKEN_ENV) == "" {
-		slog.Error("error", "unspecified", fmt.Sprintf("%s, %s", SERVER_TOKEN_ENV, ACCOUNT_TOKEN_ENV))
+	if os.Getenv(POSTMARK_SERVER_TOKEN_ENV) == "" || os.Getenv(POSTMARK_ACCOUNT_TOKEN_ENV) == "" {
+		slog.Error("error", "unspecified", fmt.Sprintf("%s, %s", POSTMARK_SERVER_TOKEN_ENV, POSTMARK_ACCOUNT_TOKEN_ENV))
 
-		panic(fmt.Errorf("environment variables `%s` and `%s` must be specified", SERVER_TOKEN_ENV, ACCOUNT_TOKEN_ENV))
+		panic(fmt.Errorf("environment variables `%s` and `%s` must be specified", POSTMARK_SERVER_TOKEN_ENV, POSTMARK_ACCOUNT_TOKEN_ENV))
 	}
 
-	client := postmark.NewClient(os.Getenv("POSTMARK_SERVER"), os.Getenv("POSTMARK_ACCOUNT"))
+	client := postmark.NewClient(os.Getenv(POSTMARK_SERVER_TOKEN_ENV), os.Getenv(POSTMARK_ACCOUNT_TOKEN_ENV))
 
 	return client
 }
