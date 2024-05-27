@@ -121,7 +121,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 				Create(&drive.File{
 					Name: fileHeader.Filename,
 					Properties: map[string]string{
-						"leadId":    body.uuid,
+						"lead":      body.uuid,
 						"email":     body.Email,
 						"firstName": body.FirstName,
 						"lastName":  body.LastName,
@@ -176,7 +176,7 @@ func createGoogleDriveService() *drive.Service {
 	ctx := context.Background()
 	service, err := drive.NewService(ctx)
 	if err != nil {
-		slog.Error("error", "gdrive prod", err.Error())
+		slog.Error("error", "gdrive service", err.Error())
 
 		panic(err)
 	}
