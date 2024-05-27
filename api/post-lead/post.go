@@ -5,19 +5,28 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
+	"strconv"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"github.com/keighl/postmark"
 	"google.golang.org/api/drive/v3"
 )
 
 var validate *validator.Validate
 var driveService *drive.Service
+var postmarkClient *postmark.Client
 
 const MAX_REQUEST_SIZE = 20 << 20 // 20 MB
 const MAX_UPLOAD_SIZE = 15 << 20  // 15 MB
+
+const POSTMARK_TEMPLATE_ENV = "POSTMARK_TEMPLATE"
+const POSTMARK_FROM_ENV = "POSTMARK_FROM_ENV"
+const SERVER_TOKEN_ENV = "POSTMARK_SERVER"
+const ACCOUNT_TOKEN_ENV = "POSTMARK_ACCOUNT"
 
 func init() {
 	validate = validator.New(validator.WithRequiredStructEnabled())
@@ -26,6 +35,10 @@ func init() {
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
+	if postmarkClient == nil {
+		postmarkClient = createPostmarkClient()
+	}
+
 	slog.Info(r.Method, "host", r.Host, "path", r.URL.Path)
 
 	if r.Method != "POST" {
@@ -167,6 +180,32 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: POST to CRM
 	// TODO: Send email
+	templateId, err := strconv.ParseInt(os.Getenv(POSTMARK_TEMPLATE_ENV), 10, 64)
+	if err != nil {
+		slog.Error("error", "env unspecified", POSTMARK_TEMPLATE_ENV)
+
+		panic(fmt.Errorf("environment variable %s must be specified", POSTMARK_TEMPLATE_ENV))
+	}
+
+	postmarkFrom := os.Getenv(POSTMARK_FROM_ENV)
+	if postmarkFrom == "" {
+		slog.Error("error", "env unspecified", POSTMARK_FROM_ENV)
+
+		panic(fmt.Errorf("environment variable %s must be specified", POSTMARK_FROM_ENV))
+	}
+
+	res, err := postmarkClient.SendTemplatedEmail(postmark.TemplatedEmail{
+		TemplateId:    int64(templateId),
+		From:          postmarkFrom,
+		To:            body.Email,
+		TrackOpens:    true,
+		TemplateModel: map[string]interface{}{}, // TODO: Template model
+	})
+	if err != nil {
+		slog.Error("error", "postmark", err.Error())
+	}
+
+	slog.Info("sent", "postmark message id", res.MessageID, "to", res.To, "at", res.SubmittedAt, "lead", body.uuid)
 }
 
 func createGoogleDriveService() *drive.Service {
@@ -182,4 +221,16 @@ func createGoogleDriveService() *drive.Service {
 	}
 
 	return service
+}
+
+func createPostmarkClient() *postmark.Client {
+	if os.Getenv(SERVER_TOKEN_ENV) == "" || os.Getenv(ACCOUNT_TOKEN_ENV) == "" {
+		slog.Error("error", "unspecified", fmt.Sprintf("%s, %s", SERVER_TOKEN_ENV, ACCOUNT_TOKEN_ENV))
+
+		panic(fmt.Errorf("environment variables `%s` and `%s` must be specified", SERVER_TOKEN_ENV, ACCOUNT_TOKEN_ENV))
+	}
+
+	client := postmark.NewClient(os.Getenv("POSTMARK_SERVER"), os.Getenv("POSTMARK_ACCOUNT"))
+
+	return client
 }
