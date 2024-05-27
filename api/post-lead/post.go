@@ -11,6 +11,7 @@ import (
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -44,9 +45,11 @@ func init() {
 
 	r := chi.NewRouter()
 	r.Use(otelhttp.NewMiddleware(OPERATION))
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 	r.MethodFunc("POST", "/*", Handler)
-
-	otelhttp.NewHandler(http.HandlerFunc(Handler), "test")
 
 	validate = validator.New(validator.WithRequiredStructEnabled())
 
@@ -54,13 +57,6 @@ func init() {
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
-	slog.Info(r.Method, "host", r.Host, "path", r.URL.Path)
-
-	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	r.Body = http.MaxBytesReader(w, r.Body, MAX_REQUEST_SIZE)
 	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
