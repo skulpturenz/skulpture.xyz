@@ -16,6 +16,9 @@ import (
 var validate *validator.Validate
 var driveService *drive.Service
 
+const MAX_REQUEST_SIZE = 20 << 20 // 20 MB
+const MAX_UPLOAD_SIZE = 15 << 20  // 15 MB
+
 func init() {
 	validate = validator.New(validator.WithRequiredStructEnabled())
 
@@ -30,11 +33,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Limit max request size to 20 MB
-	const MAX_REQUEST_SIZE = 20 << 20
 	r.Body = http.MaxBytesReader(w, r.Body, MAX_REQUEST_SIZE)
-
-	const MAX_UPLOAD_SIZE = 15 << 20 // 15 MB
 	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 
@@ -42,14 +41,14 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.MultipartForm.RemoveAll()
 
-	body := struct {
+	var body struct {
 		uuid      string
 		Email     string `json:"email" validate:"required,email"`
 		Mobile    string `json:"mobile" validate:"e164"`
 		FirstName string `json:"firstName" validate:"required"`
 		LastName  string `json:"lastName" validate:"required"`
 		Enquiry   string `json:"enquiry" validate:"required"`
-	}{}
+	}
 
 	body.uuid = uuid.NewString()
 	body.Email = r.FormValue("email")
