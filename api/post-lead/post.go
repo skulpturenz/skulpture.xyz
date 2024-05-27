@@ -64,7 +64,6 @@ func init() {
 	})))
 	r.Use(middleware.Heartbeat("/ping"))
 	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Post("/*", Handler)
 
