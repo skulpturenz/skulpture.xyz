@@ -156,7 +156,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 			if err != nil {
 				slog.ErrorContext(r.Context(), "error", "upload", err.Error(), "email", body.Email)
-
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 
 				return
@@ -173,6 +172,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 				driveService.Files.Delete(file.Id)
 			}
 
+			slog.ErrorContext(r.Context(), "error", "upload", "gdrive quota reached")
 			http.Error(w, "Google Drive quota reached", http.StatusInsufficientStorage)
 
 			return
@@ -198,7 +198,6 @@ func createGoogleDriveService(ctx context.Context) *drive.Service {
 	service, err := drive.NewService(ctx)
 	if err != nil {
 		slog.ErrorContext(ctx, "error", "gdrive service", err.Error())
-
 		panic(err)
 	}
 
@@ -225,7 +224,6 @@ func initTracer() func(context.Context) error {
 
 	if err != nil {
 		slog.Error("error", "signoz", fmt.Sprintf("failed to create exporter: %s", err.Error()))
-
 		panic(err)
 	}
 	resources, err := resource.New(
@@ -237,7 +235,6 @@ func initTracer() func(context.Context) error {
 	)
 	if err != nil {
 		slog.Error("error", "signoz", fmt.Sprintf("could not set resources: %s", err.Error()))
-
 		panic(err)
 	}
 
