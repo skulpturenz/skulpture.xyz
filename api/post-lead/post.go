@@ -12,7 +12,7 @@ import (
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
-	"github.com/keighl/postmark"
+	"github.com/mrz1836/postmark"
 	"google.golang.org/api/drive/v3"
 )
 
@@ -194,8 +194,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		panic(fmt.Errorf("environment variable %s must be specified", POSTMARK_FROM_ENV))
 	}
 
-	res, err := postmarkClient.SendTemplatedEmail(postmark.TemplatedEmail{
-		TemplateId:    int64(templateId),
+	res, err := postmarkClient.SendTemplatedEmail(context.Background(), postmark.TemplatedEmail{
+		TemplateID:    int64(templateId),
 		From:          postmarkFrom,
 		To:            body.Email,
 		TrackOpens:    true,
