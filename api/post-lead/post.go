@@ -44,7 +44,7 @@ var (
 
 func init() {
 	ctx := context.Background()
-	if os.Getenv("GO_ENV") == "" {
+	if env == "" {
 		env = "Development"
 	}
 
