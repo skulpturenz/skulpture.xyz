@@ -2,7 +2,7 @@ package main
 
 import (
 	_ "leads/post"
-	"log"
+	"log/slog"
 	"os"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
@@ -15,7 +15,11 @@ func main() {
 		port = envPort
 	}
 
+	slog.Info("start", "port", port)
+
 	if err := funcframework.Start(port); err != nil {
-		log.Fatalf("funcframework.Start: %v\n", err)
+		slog.Error("error", "start", err.Error())
+
+		panic(err)
 	}
 }
