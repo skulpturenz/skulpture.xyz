@@ -9,6 +9,9 @@ import (
 	"strings"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
+	"github.com/agoda-com/opentelemetry-go/otelslog"
+	"github.com/agoda-com/opentelemetry-logs-go/exporters/otlp/otlplogs"
+	sdklog "github.com/agoda-com/opentelemetry-logs-go/sdk/logs"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"
@@ -30,8 +33,6 @@ var driveService *drive.Service
 const MAX_REQUEST_SIZE = 20 << 20 // 20 MB
 const MAX_UPLOAD_SIZE = 15 << 20  // 15 MB
 
-const OPERATION = "SkulptureLandingPostLead"
-
 var (
 	serviceName  = os.Getenv("SERVICE_NAME")
 	collectorURL = os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
@@ -42,14 +43,14 @@ func init() {
 	cleanup := initTracer()
 	defer cleanup(context.Background())
 
-	driveService = createGoogleDriveService()
+	driveService = createGoogleDriveService(context.Background())
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	r.Use(otelhttp.NewMiddleware(OPERATION))
+	r.Use(otelhttp.NewMiddleware(serviceName))
 	r.MethodFunc("POST", "/*", Handler)
 
 	validate = validator.New(validator.WithRequiredStructEnabled())
@@ -82,7 +83,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	body.LastName = r.FormValue("lastName")
 	body.Enquiry = r.FormValue("enquiry")
 
-	slog.Info("begin", "enquiry", fmt.Sprintf("%+v", body))
+	slog.InfoContext(r.Context(), "begin", "enquiry", fmt.Sprintf("%+v", body))
 
 	err := validate.Struct(body)
 	if err != nil {
@@ -95,7 +96,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 			errs = append(errs, fmt.Sprintf("- %s", err.Error()))
 		}
 
-		slog.Error("error", "enquiry", body)
+		slog.ErrorContext(r.Context(), "error", "enquiry", body)
 		http.Error(w, fmt.Sprintf("Invalid field values:\n%s", strings.Join(errs, "\n")), http.StatusBadRequest)
 
 		return
@@ -108,7 +109,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	if len(files) > 0 {
 		about, err := driveService.About.Get().Fields("storageQuota").Do()
 		if err != nil {
-			slog.Error("error", "gdrive about", err.Error())
+			slog.ErrorContext(r.Context(), "error", "gdrive about", err.Error())
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 
 			return
@@ -116,16 +117,16 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		limit := about.StorageQuota.Limit
 		currentUsage := about.StorageQuota.UsageInDrive
 
-		slog.Info("stats", "gdrive usage", currentUsage, "gdrive limit", limit)
+		slog.InfoContext(r.Context(), "stats", "gdrive usage", currentUsage, "gdrive limit", limit)
 
 		for _, fileHeader := range files {
-			slog.Info("begin", "upload", fileHeader.Filename, "size", fileHeader.Size)
+			slog.InfoContext(r.Context(), "begin", "upload", fileHeader.Filename, "size", fileHeader.Size)
 
 			currentUsage += fileHeader.Size
-			slog.Info("stats", "gdrive usage", currentUsage, "gdrive limit", limit)
+			slog.InfoContext(r.Context(), "stats", "gdrive usage", currentUsage, "gdrive limit", limit)
 
 			if currentUsage == limit {
-				slog.Error("gdrive usage exceeds limit")
+				slog.ErrorContext(r.Context(), "gdrive usage exceeds limit")
 
 				break
 			}
@@ -154,14 +155,14 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 				Do()
 
 			if err != nil {
-				slog.Error("error", "upload", err.Error(), "email", body.Email)
+				slog.ErrorContext(r.Context(), "error", "upload", err.Error(), "email", body.Email)
 
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 
 				return
 			}
 
-			slog.Info("end", "upload", fileHeader.Filename, "link", res.WebContentLink)
+			slog.InfoContext(r.Context(), "end", "upload", fileHeader.Filename, "link", res.WebContentLink)
 
 			uploadedFiles = append(uploadedFiles, res)
 			uploadedFileLinks = append(uploadedFileLinks, fmt.Sprintf("- %s", res.WebContentLink))
@@ -184,20 +185,19 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	slog.Info("processed", "enquiry", fmt.Sprintf("%+v", body))
+	slog.InfoContext(r.Context(), "processed", "enquiry", fmt.Sprintf("%+v", body))
 
 	// TODO: POST to CRM
 	// TODO: Send email
 }
 
-func createGoogleDriveService() *drive.Service {
+func createGoogleDriveService(ctx context.Context) *drive.Service {
 	// Authenticate using client default credentials
 	// see: https://cloud.google.com/docs/authentication/client-libraries
 	// Note: Service Account Token Creator IAM role must be granted to the service account
-	ctx := context.Background()
 	service, err := drive.NewService(ctx)
 	if err != nil {
-		slog.Error("error", "gdrive service", err.Error())
+		slog.ErrorContext(ctx, "error", "gdrive service", err.Error())
 
 		panic(err)
 	}
@@ -206,6 +206,7 @@ func createGoogleDriveService() *drive.Service {
 }
 
 func initTracer() func(context.Context) error {
+	ctx := context.Background()
 	var secureOption otlptracegrpc.Option
 
 	if strings.ToLower(insecure) == "false" || insecure == "0" || strings.ToLower(insecure) == "f" {
@@ -215,7 +216,7 @@ func initTracer() func(context.Context) error {
 	}
 
 	exporter, err := otlptrace.New(
-		context.Background(),
+		ctx,
 		otlptracegrpc.NewClient(
 			secureOption,
 			otlptracegrpc.WithEndpoint(collectorURL),
@@ -228,7 +229,7 @@ func initTracer() func(context.Context) error {
 		panic(err)
 	}
 	resources, err := resource.New(
-		context.Background(),
+		ctx,
 		resource.WithAttributes(
 			attribute.String("service.name", serviceName),
 			attribute.String("library.language", "go"),
@@ -247,6 +248,18 @@ func initTracer() func(context.Context) error {
 			sdktrace.WithResource(resources),
 		),
 	)
+
+	logExporter, _ := otlplogs.NewExporter(ctx)
+	loggerProvider := sdklog.NewLoggerProvider(
+		sdklog.WithBatcher(logExporter),
+		sdklog.WithResource(resources),
+	)
+	defer loggerProvider.Shutdown(ctx)
+
+	otelLogger := slog.New(otelslog.NewOtelHandler(loggerProvider, &otelslog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
+	slog.SetDefault(otelLogger)
 
 	return exporter.Shutdown
 }

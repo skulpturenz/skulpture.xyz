@@ -4,6 +4,8 @@ go 1.22.3
 
 require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.8.1
+	github.com/agoda-com/opentelemetry-go/otelslog v0.1.1
+	github.com/agoda-com/opentelemetry-logs-go v0.5.0
 	github.com/go-chi/chi v1.5.5
 	github.com/go-chi/chi/v5 v5.0.12
 	github.com/go-playground/validator/v10 v10.20.0
