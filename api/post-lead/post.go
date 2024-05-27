@@ -51,7 +51,7 @@ func init() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(otelhttp.NewMiddleware(serviceName))
-	r.MethodFunc("POST", "/*", Handler)
+	r.Post("/*", Handler)
 
 	validate = validator.New(validator.WithRequiredStructEnabled())
 
