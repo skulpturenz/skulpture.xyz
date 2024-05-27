@@ -3,7 +3,6 @@ package post
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -226,7 +225,9 @@ func initTracer() func(context.Context) error {
 	)
 
 	if err != nil {
-		log.Fatalf("Failed to create exporter: %v", err)
+		slog.Error("error", "signoz", fmt.Sprintf("failed to create exporter: %s", err.Error()))
+
+		panic(err)
 	}
 	resources, err := resource.New(
 		context.Background(),
@@ -236,7 +237,9 @@ func initTracer() func(context.Context) error {
 		),
 	)
 	if err != nil {
-		log.Fatalf("Could not set resources: %v", err)
+		slog.Error("error", "signoz", fmt.Sprintf("could not set resources: %s", err.Error()))
+
+		panic(err)
 	}
 
 	otel.SetTracerProvider(
