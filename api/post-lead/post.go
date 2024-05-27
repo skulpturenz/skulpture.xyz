@@ -42,6 +42,8 @@ func init() {
 	cleanup := initTracer()
 	defer cleanup(context.Background())
 
+	driveService = createGoogleDriveService()
+
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
@@ -104,10 +106,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	files := r.MultipartForm.File["files"]
 
 	if len(files) > 0 {
-		if driveService == nil {
-			driveService = createGoogleDriveService()
-		}
-
 		about, err := driveService.About.Get().Fields("storageQuota").Do()
 		if err != nil {
 			slog.Error("error", "gdrive about", err.Error())
