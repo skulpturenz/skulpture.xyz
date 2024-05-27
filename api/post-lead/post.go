@@ -2,6 +2,7 @@ package post
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -40,10 +41,12 @@ var (
 )
 
 func init() {
-	cleanup := initTracer()
-	defer cleanup(context.Background())
+	ctx := context.Background()
 
-	driveService = createGoogleDriveService(context.Background())
+	cleanup := initOtel()
+	defer cleanup(ctx)
+
+	driveService = createGoogleDriveService(ctx)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
@@ -204,7 +207,7 @@ func createGoogleDriveService(ctx context.Context) *drive.Service {
 	return service
 }
 
-func initTracer() func(context.Context) error {
+func initOtel() func(context.Context) error {
 	ctx := context.Background()
 	var secureOption otlptracegrpc.Option
 
@@ -251,12 +254,16 @@ func initTracer() func(context.Context) error {
 		sdklog.WithBatcher(logExporter),
 		sdklog.WithResource(resources),
 	)
-	defer loggerProvider.Shutdown(ctx)
 
 	otelLogger := slog.New(otelslog.NewOtelHandler(loggerProvider, &otelslog.HandlerOptions{
 		Level: slog.LevelInfo,
 	}))
 	slog.SetDefault(otelLogger)
 
-	return exporter.Shutdown
+	return func(ctx context.Context) error {
+		loggerErr := loggerProvider.Shutdown((ctx))
+		exporterErr := exporter.Shutdown(ctx)
+
+		return errors.Join(loggerErr, exporterErr)
+	}
 }
