@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"google.golang.org/api/drive/v3"
-	"google.golang.org/api/option"
 )
 
 var validate *validator.Validate
@@ -73,7 +71,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 			errs = append(errs, fmt.Sprintf("- %s", err.Error()))
 		}
 
-		slog.Error("error", "request", body)
+		slog.Error("error", "enquiry", body)
 		http.Error(w, fmt.Sprintf("Invalid field values:\n%s", strings.Join(errs, "\n")), http.StatusBadRequest)
 
 		return
@@ -81,83 +79,89 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	uploadedFileLinks := []string{}
 	uploadedFiles := []*drive.File{}
-	files := r.MultipartForm.File["file"]
+	files := r.MultipartForm.File["files"]
 
-	if driveService == nil {
-		driveService = createGoogleDriveService()
-	}
+	if len(files) > 0 {
+		if driveService == nil {
+			driveService = createGoogleDriveService()
+		}
 
-	about, err := driveService.About.Get().Do()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		about, err := driveService.About.Get().Fields("storageQuota").Do()
+		if err != nil {
+			slog.Error("error", "gdrive about", err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 
-		return
-	}
-	limit := about.StorageQuota.Limit
-	currentUsage := about.StorageQuota.UsageInDrive
+			return
+		}
+		limit := about.StorageQuota.Limit
+		currentUsage := about.StorageQuota.UsageInDrive
 
-	for _, fileHeader := range files {
-		slog.Info("begin", "upload", fileHeader.Filename, "size", fileHeader.Size)
-
-		currentUsage += fileHeader.Size
 		slog.Info("stats", "gdrive usage", currentUsage, "gdrive limit", limit)
 
+		for _, fileHeader := range files {
+			slog.Info("begin", "upload", fileHeader.Filename, "size", fileHeader.Size)
+
+			currentUsage += fileHeader.Size
+			slog.Info("stats", "gdrive usage", currentUsage, "gdrive limit", limit)
+
+			if currentUsage == limit {
+				slog.Error("gdrive usage exceeds limit")
+
+				break
+			}
+
+			file, err := fileHeader.Open()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+
+				return
+			}
+			defer file.Close()
+
+			res, err := driveService.Files.
+				Create(&drive.File{
+					Name: fileHeader.Filename,
+					Properties: map[string]string{
+						"leadId":    body.uuid,
+						"email":     body.Email,
+						"firstName": body.FirstName,
+						"lastName":  body.LastName,
+						"mobile":    body.Mobile,
+					},
+				}).
+				Media(file).
+				Fields("id, webContentLink").
+				Do()
+
+			if err != nil {
+				slog.Error("error", "upload", err.Error(), "email", body.Email)
+
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+
+				return
+			}
+
+			slog.Info("end", "upload", fileHeader.Filename, "link", res.WebContentLink)
+
+			uploadedFiles = append(uploadedFiles, res)
+			uploadedFileLinks = append(uploadedFileLinks, fmt.Sprintf("- %s", res.WebContentLink))
+		}
+
 		if currentUsage == limit {
-			slog.Error("gdrive usage exceeds limit")
+			for _, file := range uploadedFiles {
+				driveService.Files.Delete(file.Id)
+			}
 
-			break
-		}
-
-		file, err := fileHeader.Open()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-
-			return
-		}
-		defer file.Close()
-
-		res, err := driveService.Files.
-			Create(&drive.File{
-				Name: fileHeader.Filename,
-				Properties: map[string]string{
-					"leadId":    body.uuid,
-					"email":     body.Email,
-					"firstName": body.FirstName,
-					"lastName":  body.LastName,
-					"mobile":    body.Mobile,
-				},
-			}).
-			Media(file).
-			Do()
-
-		if err != nil {
-			slog.Error("error", "upload", err.Error(), "email", body.Email)
-
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Google Drive quota reached", http.StatusInsufficientStorage)
 
 			return
 		}
 
-		slog.Info("end", "upload", fileHeader.Filename, "link", res.WebContentLink)
+		if len(uploadedFileLinks) > 0 {
+			enquiryWithFiles := fmt.Appendf([]byte(body.Enquiry), "\nAttached files:\n%s", strings.Join(uploadedFileLinks, "\n"))
 
-		uploadedFiles = append(uploadedFiles, res)
-		uploadedFileLinks = append(uploadedFileLinks, fmt.Sprintf("- %s", res.WebContentLink))
-	}
-
-	if currentUsage == limit {
-		for _, file := range uploadedFiles {
-			driveService.Files.Delete(file.Id)
+			body.Enquiry = string(enquiryWithFiles)
 		}
-
-		http.Error(w, "Google Drive quota reached", http.StatusInsufficientStorage)
-
-		return
-	}
-
-	if len(uploadedFileLinks) > 0 {
-		enquiryWithFiles := fmt.Appendf([]byte(body.Enquiry), "\nAttached files:\n%s", strings.Join(uploadedFileLinks, "\n"))
-
-		body.Enquiry = string(enquiryWithFiles)
 	}
 
 	slog.Info("processed", "enquiry", fmt.Sprintf("%+v", body))
@@ -167,19 +171,9 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func createGoogleDriveService() *drive.Service {
-	if os.Getenv("GO_ENV") != "Production" {
-		service, err := drive.NewService(context.Background(), option.WithCredentialsFile(os.Getenv("GCLOUD_CREDENTIALS")))
-		if err != nil {
-			slog.Error("error", "gdrive dev", err.Error())
-
-			panic(err)
-		}
-
-		return service
-	}
-
 	// Authenticate using client default credentials
 	// see: https://cloud.google.com/docs/authentication/client-libraries
+	// Note: Service Account Token Creator IAM role must be granted to the service account
 	ctx := context.Background()
 	service, err := drive.NewService(ctx)
 	if err != nil {
