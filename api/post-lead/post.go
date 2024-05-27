@@ -3,14 +3,25 @@ package post
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
+	"github.com/go-chi/chi"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/api/drive/v3"
+	"google.golang.org/grpc/credentials"
 )
 
 var validate *validator.Validate
@@ -19,10 +30,27 @@ var driveService *drive.Service
 const MAX_REQUEST_SIZE = 20 << 20 // 20 MB
 const MAX_UPLOAD_SIZE = 15 << 20  // 15 MB
 
+const OPERATION = "SkulptureLandingPostLead"
+
+var (
+	serviceName  = os.Getenv("SERVICE_NAME")
+	collectorURL = os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	insecure     = os.Getenv("INSECURE_MODE")
+)
+
 func init() {
+	cleanup := initTracer()
+	defer cleanup(context.Background())
+
+	r := chi.NewRouter()
+	r.Use(otelhttp.NewMiddleware(OPERATION))
+	r.MethodFunc("POST", "/*", Handler)
+
+	otelhttp.NewHandler(http.HandlerFunc(Handler), "test")
+
 	validate = validator.New(validator.WithRequiredStructEnabled())
 
-	functions.HTTP("Handler", Handler)
+	functions.HTTP("Handler", r.ServeHTTP)
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
@@ -182,4 +210,46 @@ func createGoogleDriveService() *drive.Service {
 	}
 
 	return service
+}
+
+func initTracer() func(context.Context) error {
+	var secureOption otlptracegrpc.Option
+
+	if strings.ToLower(insecure) == "false" || insecure == "0" || strings.ToLower(insecure) == "f" {
+		secureOption = otlptracegrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))
+	} else {
+		secureOption = otlptracegrpc.WithInsecure()
+	}
+
+	exporter, err := otlptrace.New(
+		context.Background(),
+		otlptracegrpc.NewClient(
+			secureOption,
+			otlptracegrpc.WithEndpoint(collectorURL),
+		),
+	)
+
+	if err != nil {
+		log.Fatalf("Failed to create exporter: %v", err)
+	}
+	resources, err := resource.New(
+		context.Background(),
+		resource.WithAttributes(
+			attribute.String("service.name", serviceName),
+			attribute.String("library.language", "go"),
+		),
+	)
+	if err != nil {
+		log.Fatalf("Could not set resources: %v", err)
+	}
+
+	otel.SetTracerProvider(
+		sdktrace.NewTracerProvider(
+			sdktrace.WithSampler(sdktrace.AlwaysSample()),
+			sdktrace.WithBatcher(exporter),
+			sdktrace.WithResource(resources),
+		),
+	)
+
+	return exporter.Shutdown
 }
