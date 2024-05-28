@@ -166,6 +166,36 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("processed", "enquiry", fmt.Sprintf("%+v", body))
 
 	// TODO: POST to CRM
+	type leadDetails struct {
+		id           string `json:"id"`
+		firstName    string `json:"first_name"`
+		lastName     string `json:"last_name"`
+		mobileNumber string `json:"mobile_number"`
+	}
+	type postLeadReq struct {
+		uniqueIdentifier string      `json:"unique_identifier"`
+		lead             leadDetails `json:"lead"`
+	}
+	type postLeadRes struct {
+		lead leadDetails `json:"lead"`
+	}
+
+	type taskDetails struct {
+		id             string `json:"id"`
+		title          string `json:"title"`
+		description    string `json:"description"`
+		dueDate        string `json:"due_date"`
+		targetableId   string `json:"targetable_id"`
+		targetableType string `json:"targetable_type"` // Lead always
+		ownerId        string `json:"owner_id"`        // TODO
+	}
+	type postTaskReq struct {
+		task taskDetails `json:"task"`
+	}
+	type postTaskRes struct {
+		task taskDetails `json:"task"`
+	}
+
 	// TODO: Send email
 }
 
