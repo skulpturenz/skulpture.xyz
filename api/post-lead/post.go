@@ -48,7 +48,7 @@ func init() {
 		env = "Development"
 	}
 
-	cleanup := initOtel()
+	cleanup := initOtel(ctx)
 	defer cleanup(ctx)
 
 	driveService = createGoogleDriveService(ctx)
@@ -218,8 +218,7 @@ func createGoogleDriveService(ctx context.Context) *drive.Service {
 	return service
 }
 
-func initOtel() func(context.Context) error {
-	ctx := context.Background()
+func initOtel(ctx context.Context) func(context.Context) error {
 	var secureOption otlptracegrpc.Option
 
 	if strings.ToLower(insecure) == "false" || insecure == "0" || strings.ToLower(insecure) == "f" {
