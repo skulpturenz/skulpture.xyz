@@ -5,21 +5,28 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
+	"strconv"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
+	"github.com/imroc/req/v3"
 	"google.golang.org/api/drive/v3"
 )
 
 var validate *validator.Validate
 var driveService *drive.Service
+var httpClient *req.Client
 
 const MAX_REQUEST_SIZE = 20 << 20 // 20 MB
 const MAX_UPLOAD_SIZE = 15 << 20  // 15 MB
 
 func init() {
+	httpClient = req.C().SetBaseURL(os.Getenv("FRESHSALES_API")).
+		EnableDebugLog().
+		SetCommonHeader("Authorization", os.Getenv("FRESHSALES_API_KEY")).
+		SetCommonHeader("Content-Type", "application/json")
 	validate = validator.New(validator.WithRequiredStructEnabled())
 
 	functions.HTTP("Handler", Handler)
@@ -42,15 +49,14 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	defer r.MultipartForm.RemoveAll()
 
 	var body struct {
-		uuid      string
-		Email     string `json:"email" validate:"required,email"`
-		Mobile    string `json:"mobile" validate:"e164"`
-		FirstName string `json:"firstName" validate:"required"`
-		LastName  string `json:"lastName" validate:"required"`
-		Enquiry   string `json:"enquiry" validate:"required"`
+		freshsalesId int
+		Email        string `json:"email" validate:"required,email"`
+		Mobile       string `json:"mobile" validate:"e164"`
+		FirstName    string `json:"firstName" validate:"required"`
+		LastName     string `json:"lastName" validate:"required"`
+		Enquiry      string `json:"enquiry" validate:"required"`
 	}
 
-	body.uuid = uuid.NewString()
 	body.Email = r.FormValue("email")
 	body.Mobile = r.FormValue("mobile")
 	body.FirstName = r.FormValue("firstName")
@@ -79,6 +85,39 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	uploadedFileLinks := []string{}
 	uploadedFiles := []*drive.File{}
 	files := r.MultipartForm.File["files"]
+
+	type lead struct {
+		Id           int               `json:"id"`
+		FirstName    string            `json:"first_name"`
+		LastName     string            `json:"last_name"`
+		Email        string            `json:"email"`
+		MobileNumber string            `json:"mobile_number"`
+		CustomField  map[string]string `json:"custom_field"`
+	}
+	type postLead struct {
+		UniqueIdentifier string `json:"unique_identifier"`
+		Lead             *lead  `json:"lead"`
+	}
+
+	var postLeadRes postLead
+	postLeadErr := httpClient.Post("/leads/upsert").
+		SetBody(&postLead{
+			UniqueIdentifier: body.Email,
+			Lead: &lead{
+				FirstName:    body.FirstName,
+				LastName:     body.LastName,
+				Email:        body.Email,
+				MobileNumber: body.Mobile,
+			},
+		}).
+		Do().
+		Into(&postLeadRes)
+	if postLeadErr != nil {
+		slog.Error("error", "freshsales lead", postLeadErr.Error()) // TODO ctx
+	}
+	slog.Info("upsert", "freshsales lead", fmt.Sprintf("%v+", postLeadRes)) // TODO ctx
+
+	body.freshsalesId = postLeadRes.Lead.Id
 
 	if len(files) > 0 {
 		if driveService == nil {
@@ -121,7 +160,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 				Create(&drive.File{
 					Name: fileHeader.Filename,
 					Properties: map[string]string{
-						"lead":      body.uuid,
+						"lead":      strconv.Itoa(body.freshsalesId),
 						"email":     body.Email,
 						"firstName": body.FirstName,
 						"lastName":  body.LastName,
@@ -163,10 +202,34 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	slog.Info("processed", "enquiry", fmt.Sprintf("%+v", body))
+	type note struct {
+		Description      string `json:"description"`
+		TargetableType   string `json:"targetable_type"`
+		TargetableTypeId int    `json:"targetable_type_id"`
+	}
+	type postNote struct {
+		Note *note `json:"note"`
+	}
 
-	// TODO: POST to CRM
+	var postNoteRes postNote
+	postNoteErr := httpClient.Post("/notes").
+		SetBody(&postNote{
+			Note: &note{
+				Description:      body.Enquiry,
+				TargetableType:   "Lead",
+				TargetableTypeId: postLeadRes.Lead.Id,
+			},
+		}).
+		Do().
+		Into(&postNoteRes)
+	if postNoteErr != nil {
+		slog.Error("error", "freshsales create note", postLeadErr.Error()) // TODO ctx
+	}
+	slog.Info("created", "freshsales create note", fmt.Sprintf("%v+", postNoteRes))
+
 	// TODO: Send email
+
+	slog.Info("processed", "enquiry", fmt.Sprintf("%+v", body))
 }
 
 func createGoogleDriveService() *drive.Service {
