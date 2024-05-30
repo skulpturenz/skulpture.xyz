@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/agoda-com/opentelemetry-go/otelslog"
 	"github.com/agoda-com/opentelemetry-logs-go/exporters/otlp/otlplogs"
 	sdklog "github.com/agoda-com/opentelemetry-logs-go/sdk/logs"
+	"github.com/dogmatiq/ferrite"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httplog/v2"
@@ -36,17 +36,29 @@ const MAX_REQUEST_SIZE = 20 << 20 // 20 MB
 const MAX_UPLOAD_SIZE = 15 << 20  // 15 MB
 
 var (
-	serviceName  = os.Getenv("SERVICE_NAME")
-	collectorURL = os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
-	insecure     = os.Getenv("INSECURE_MODE")
-	env          = os.Getenv("GO_ENV")
+	LOG_LEVEL = ferrite.EnumAs[slog.Level]("LOG_LEVEL", "Log level").
+			WithMembers(slog.LevelDebug, slog.LevelError, slog.LevelInfo, slog.LevelWarn).
+			WithDefault(slog.LevelInfo).
+			Required()
+	SERVICE_NAME = ferrite.
+			String("SERVICE_NAME", "OpenTelemetry service name").
+			Required()
+	COLLECTOR_URL = ferrite.
+			String("OTEL_EXPORTER_OTLP_ENDPOINT", "OpenTelemetry exporter endpoint").
+			Required()
+	SIGNOZ_INSECURE = ferrite.
+			Bool("SIGNOZ_INSECURE_MODE", "SigNoz insecure mode").
+			Required()
+	GO_ENV = ferrite.
+		String("GO_ENV", "Golang environment").
+		WithDefault("Development").
+		Required()
 )
 
 func init() {
+	ferrite.Init()
+
 	ctx := context.Background()
-	if env == "" {
-		env = "Development"
-	}
 
 	cleanup := initOtel(ctx)
 	defer cleanup(ctx)
@@ -55,11 +67,11 @@ func init() {
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
-	r.Use(otelhttp.NewMiddleware(serviceName))
-	r.Use(httplog.RequestLogger(httplog.NewLogger(serviceName, httplog.Options{
+	r.Use(otelhttp.NewMiddleware(SERVICE_NAME.Value()))
+	r.Use(httplog.RequestLogger(httplog.NewLogger(SERVICE_NAME.Value(), httplog.Options{
 		Concise: true,
 		Tags: map[string]string{
-			"env": env,
+			"env": GO_ENV.Value(),
 		},
 	})))
 	r.Use(middleware.Heartbeat("/ping"))
@@ -221,7 +233,7 @@ func createGoogleDriveService(ctx context.Context) *drive.Service {
 func initOtel(ctx context.Context) func(context.Context) error {
 	var secureOption otlptracegrpc.Option
 
-	if strings.ToLower(insecure) == "false" || insecure == "0" || strings.ToLower(insecure) == "f" {
+	if !SIGNOZ_INSECURE.Value() {
 		secureOption = otlptracegrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))
 	} else {
 		secureOption = otlptracegrpc.WithInsecure()
@@ -231,7 +243,7 @@ func initOtel(ctx context.Context) func(context.Context) error {
 		ctx,
 		otlptracegrpc.NewClient(
 			secureOption,
-			otlptracegrpc.WithEndpoint(collectorURL),
+			otlptracegrpc.WithEndpoint(COLLECTOR_URL.Value()),
 		),
 	)
 
@@ -242,7 +254,7 @@ func initOtel(ctx context.Context) func(context.Context) error {
 	resources, err := resource.New(
 		ctx,
 		resource.WithAttributes(
-			attribute.String("service.name", serviceName),
+			attribute.String("service.name", SERVICE_NAME.Value()),
 			attribute.String("library.language", "go"),
 		),
 	)
@@ -266,7 +278,7 @@ func initOtel(ctx context.Context) func(context.Context) error {
 	)
 
 	otelLogger := slog.New(otelslog.NewOtelHandler(loggerProvider, &otelslog.HandlerOptions{
-		Level: slog.LevelInfo,
+		Level: LOG_LEVEL.Value(),
 	}))
 	slog.SetDefault(otelLogger)
 
