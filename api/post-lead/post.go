@@ -103,7 +103,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		failedToUpload := make(chan int)
 
 		uploadCtx, cancel := context.WithCancel(r.Context())
-		defer cancel()
 
 		var fileUploadWg sync.WaitGroup
 		uploadFile := func(fileHeader *multipart.FileHeader, idx int, wg *sync.WaitGroup) {
