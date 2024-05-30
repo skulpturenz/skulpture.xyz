@@ -97,10 +97,18 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 		slog.Info("stats", "gdrive usage", about.StorageQuota.UsageInDrive, "gdrive limit", about.StorageQuota.Limit)
 
+		uploadCtx, cancel := context.WithCancel(r.Context())
+		defer cancel()
 		var fileUploadWg sync.WaitGroup
 		fileUploadWg.Add(len(files))
 		uploadFile := func(fileHeader *multipart.FileHeader, idx int, wg *sync.WaitGroup) {
 			defer wg.Done()
+
+			select {
+			case <-uploadCtx.Done():
+				return
+			default:
+			}
 
 			slog.Info("begin", "upload", fileHeader.Filename, "size", fileHeader.Size)
 
@@ -110,6 +118,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 				failedToUpload <- idx
 				slog.Error("error", "open file", fileHeader.Filename, "email", body.Email)
 
+				cancel()
 				return
 			}
 			defer file.Close()
@@ -127,12 +136,14 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 				}).
 				Media(file).
 				Fields("id, webContentLink").
+				Context(uploadCtx).
 				Do()
 
 			if err != nil {
 				failedToUpload <- idx
 				slog.Error("error", "upload", err.Error(), "email", body.Email)
 
+				cancel()
 				return
 			}
 
@@ -168,7 +179,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if len(uploadedFiles) > 0 {
-			consumeFileLinks := func() []string {
+			collectFileLinks := func() []string {
 				fileLinks := []string{}
 
 				for file := range uploadedFiles {
@@ -177,7 +188,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 				return fileLinks
 			}
-			enquiryWithFiles := fmt.Appendf([]byte(body.Enquiry), "\nAttached files:\n%s", strings.Join(consumeFileLinks(), "\n"))
+			enquiryWithFiles := fmt.Appendf([]byte(body.Enquiry), "\nAttached files:\n%s", strings.Join(collectFileLinks(), "\n"))
 
 			body.Enquiry = string(enquiryWithFiles)
 		}
