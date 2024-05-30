@@ -169,7 +169,9 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		select {
 		case <-uploadCtx.Done():
 			for file := range uploadedFiles {
-				driveService.Files.Delete(file.Id).Do()
+				go driveService.Files.
+					Delete(file.Id).
+					Do()
 			}
 
 			http.Error(w, "Failed to upload", http.StatusInternalServerError)
