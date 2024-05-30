@@ -99,13 +99,13 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 		slog.Info("stats", "gdrive usage", about.StorageQuota.UsageInDrive, "gdrive limit", about.StorageQuota.Limit)
 
-		uploadedFiles := make(chan drive.File, len(files))
+		uploadedFiles := make(chan drive.File)
 		failedToUpload := make(chan int)
 
 		uploadCtx, cancel := context.WithCancel(r.Context())
 		defer cancel()
+
 		var fileUploadWg sync.WaitGroup
-		fileUploadWg.Add(len(files))
 		uploadFile := func(fileHeader *multipart.FileHeader, idx int, wg *sync.WaitGroup) {
 			defer wg.Done()
 
@@ -154,51 +154,37 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 			slog.Info("end", "upload", fileHeader.Filename, "link", res.WebContentLink)
 
-			// TODO: hanging here when trying to send to channel unsure why
-			test := *res
-			slog.Info(test.Id)
-			uploadedFiles <- test
+			uploadedFiles <- *res
 		}
 		for idx, fileHeader := range files {
+			fileUploadWg.Add(1)
 			go uploadFile(fileHeader, idx, &fileUploadWg)
-
 		}
 
-		fileUploadWg.Wait()
+		go func() {
+			fileUploadWg.Wait()
+			close(uploadedFiles)
+			close(failedToUpload)
+		}()
 
-		if len(failedToUpload) > 0 {
-			var fileDeleteWg sync.WaitGroup
-			fileDeleteWg.Add(len(uploadedFiles))
-			deleteFile := func(file *drive.File, wg *sync.WaitGroup) {
-				defer wg.Done()
-
+		select {
+		case <-uploadCtx.Done():
+			for file := range uploadedFiles {
 				driveService.Files.Delete(file.Id).Do()
 			}
 
-			for file := range uploadedFiles {
-				go deleteFile(&file, &fileDeleteWg)
-			}
-
-			fileDeleteWg.Wait()
 			http.Error(w, "Failed to upload", http.StatusInternalServerError)
 
 			return
+		default:
 		}
 
-		if len(uploadedFiles) > 0 {
-			collectFileLinks := func() []string {
-				fileLinks := []string{}
-
-				for file := range uploadedFiles {
-					fileLinks = append(fileLinks, fmt.Sprintf("- %s", file.WebContentLink))
-				}
-
-				return fileLinks
-			}
-			enquiryWithFiles := fmt.Appendf([]byte(body.Enquiry), "\nAttached files:\n%s", strings.Join(collectFileLinks(), "\n"))
-
-			body.Enquiry = string(enquiryWithFiles)
+		attachedFiles := []string{}
+		for file := range uploadedFiles {
+			attachedFiles = append(attachedFiles, fmt.Sprintf("- %s", file.WebContentLink))
 		}
+		enquiryWithFiles := fmt.Appendf([]byte(body.Enquiry), "\nAttached files:\n%s", strings.Join(attachedFiles, "\n"))
+		body.Enquiry = string(enquiryWithFiles)
 	}
 
 	slog.Info("processed", "enquiry", fmt.Sprintf("%+v", body))
