@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"mime/multipart"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/go-playground/validator/v10"
@@ -76,8 +78,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uploadedFileLinks := []string{}
-	uploadedFiles := []*drive.File{}
+	uploadedFiles := make(chan *drive.File)
+	failedToUpload := make(chan int)
 	files := r.MultipartForm.File["files"]
 
 	if len(files) > 0 {
@@ -92,26 +94,21 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 			return
 		}
-		limit := about.StorageQuota.Limit
-		currentUsage := about.StorageQuota.UsageInDrive
 
-		slog.Info("stats", "gdrive usage", currentUsage, "gdrive limit", limit)
+		slog.Info("stats", "gdrive usage", about.StorageQuota.UsageInDrive, "gdrive limit", about.StorageQuota.Limit)
 
-		for _, fileHeader := range files {
+		var fileUploadWg sync.WaitGroup
+		fileUploadWg.Add(len(files))
+		uploadFile := func(fileHeader *multipart.FileHeader, idx int, wg *sync.WaitGroup) {
+			defer wg.Done()
+
 			slog.Info("begin", "upload", fileHeader.Filename, "size", fileHeader.Size)
-
-			currentUsage += fileHeader.Size
-			slog.Info("stats", "gdrive usage", currentUsage, "gdrive limit", limit)
-
-			if currentUsage == limit {
-				slog.Error("gdrive usage exceeds limit")
-
-				break
-			}
 
 			file, err := fileHeader.Open()
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+
+				failedToUpload <- idx
+				slog.Error("error", "open file", fileHeader.Filename, "email", body.Email)
 
 				return
 			}
@@ -133,31 +130,54 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 				Do()
 
 			if err != nil {
+				failedToUpload <- idx
 				slog.Error("error", "upload", err.Error(), "email", body.Email)
-
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 
 				return
 			}
 
 			slog.Info("end", "upload", fileHeader.Filename, "link", res.WebContentLink)
 
-			uploadedFiles = append(uploadedFiles, res)
-			uploadedFileLinks = append(uploadedFileLinks, fmt.Sprintf("- %s", res.WebContentLink))
+			uploadedFiles <- res
+		}
+		for idx, fileHeader := range files {
+			go uploadFile(fileHeader, idx, &fileUploadWg)
 		}
 
-		if currentUsage == limit {
-			for _, file := range uploadedFiles {
-				driveService.Files.Delete(file.Id)
+		fileUploadWg.Wait()
+		close(uploadedFiles)
+		close(failedToUpload)
+
+		if len(failedToUpload) > 0 {
+			var fileDeleteWg sync.WaitGroup
+			fileDeleteWg.Add(len(uploadedFiles))
+			deleteFile := func(file *drive.File, wg *sync.WaitGroup) {
+				defer wg.Done()
+
+				driveService.Files.Delete(file.Id).Do()
 			}
 
-			http.Error(w, "Google Drive quota reached", http.StatusInsufficientStorage)
+			for file := range uploadedFiles {
+				go deleteFile(file, &fileDeleteWg)
+			}
+
+			fileDeleteWg.Wait()
+			http.Error(w, "Failed to upload", http.StatusInternalServerError)
 
 			return
 		}
 
-		if len(uploadedFileLinks) > 0 {
-			enquiryWithFiles := fmt.Appendf([]byte(body.Enquiry), "\nAttached files:\n%s", strings.Join(uploadedFileLinks, "\n"))
+		if len(uploadedFiles) > 0 {
+			consumeFileLinks := func() []string {
+				fileLinks := []string{}
+
+				for file := range uploadedFiles {
+					fileLinks = append(fileLinks, fmt.Sprintf("- %s", file.WebContentLink))
+				}
+
+				return fileLinks
+			}
+			enquiryWithFiles := fmt.Appendf([]byte(body.Enquiry), "\nAttached files:\n%s", strings.Join(consumeFileLinks(), "\n"))
 
 			body.Enquiry = string(enquiryWithFiles)
 		}
