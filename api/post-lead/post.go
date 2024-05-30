@@ -78,8 +78,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uploadedFiles := make(chan *drive.File)
-	failedToUpload := make(chan int)
 	files := r.MultipartForm.File["files"]
 
 	if len(files) > 0 {
@@ -87,7 +85,11 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 			driveService = createGoogleDriveService()
 		}
 
-		about, err := driveService.About.Get().Fields("storageQuota").Do()
+		about, err := driveService.About.
+			Get().
+			Fields("storageQuota").
+			Context(r.Context()).
+			Do()
 		if err != nil {
 			slog.Error("error", "gdrive about", err.Error())
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -96,6 +98,9 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		slog.Info("stats", "gdrive usage", about.StorageQuota.UsageInDrive, "gdrive limit", about.StorageQuota.Limit)
+
+		uploadedFiles := make(chan drive.File, len(files))
+		failedToUpload := make(chan int)
 
 		uploadCtx, cancel := context.WithCancel(r.Context())
 		defer cancel()
@@ -149,15 +154,17 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 			slog.Info("end", "upload", fileHeader.Filename, "link", res.WebContentLink)
 
-			uploadedFiles <- res
+			// TODO: hanging here when trying to send to channel unsure why
+			test := *res
+			slog.Info(test.Id)
+			uploadedFiles <- test
 		}
 		for idx, fileHeader := range files {
 			go uploadFile(fileHeader, idx, &fileUploadWg)
+
 		}
 
 		fileUploadWg.Wait()
-		close(uploadedFiles)
-		close(failedToUpload)
 
 		if len(failedToUpload) > 0 {
 			var fileDeleteWg sync.WaitGroup
@@ -169,7 +176,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			for file := range uploadedFiles {
-				go deleteFile(file, &fileDeleteWg)
+				go deleteFile(&file, &fileDeleteWg)
 			}
 
 			fileDeleteWg.Wait()
