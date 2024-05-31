@@ -5,6 +5,12 @@
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
+	"containerEnv": {
+		"SERVICE_NAME": "PostLead",
+		"GO_ENV": "Development",
+		"OTEL_EXPORTER_OTLP_ENDPOINT": "", // TODO
+		"SIGNOZ_INSECURE_MODE": "" // TODO
+	},
 	"customizations": {
 		"settings": {
 			"go.buildTags": "",
