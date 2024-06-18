@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/agoda-com/opentelemetry-go/otelslog"
@@ -19,6 +20,10 @@ import (
 	"github.com/go-chi/httplog/v2"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"github.com/sethvargo/go-limiter"
+	"github.com/sethvargo/go-limiter/httplimit"
+	"github.com/sethvargo/go-limiter/memorystore"
+	"github.com/sethvargo/go-limiter/noopstore"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -83,6 +88,37 @@ func init() {
 	r.Use(middleware.Heartbeat("/ping"))
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Recoverer)
+
+	var store limiter.Store
+	if GO_ENV.Value() == "Development" {
+		noopStore, err := noopstore.New()
+		if err != nil {
+			slog.Error("error", "init", err.Error())
+			panic(err)
+		}
+
+		store = noopStore
+	} else {
+		memoryStore, err := memorystore.New(&memorystore.Config{
+			Tokens:   5,
+			Interval: time.Minute,
+		})
+		if err != nil {
+			slog.Error("error", "init", err.Error())
+			panic(err)
+		}
+
+		store = memoryStore
+	}
+
+	middleware, err := httplimit.NewMiddleware(store, httplimit.IPKeyFunc())
+	if err != nil {
+		slog.Error("error", "init", err.Error())
+		panic(err)
+	}
+
+	r.Use(middleware.Handle)
+
 	r.Post("/*", Handler)
 
 	validate = validator.New(validator.WithRequiredStructEnabled())
