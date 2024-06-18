@@ -11,6 +11,7 @@ import (
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/agoda-com/opentelemetry-go/otelslog"
 	"github.com/agoda-com/opentelemetry-logs-go/exporters/otlp/otlplogs"
+	"github.com/agoda-com/opentelemetry-logs-go/exporters/otlp/otlplogs/otlplogshttp"
 	sdklog "github.com/agoda-com/opentelemetry-logs-go/sdk/logs"
 	"github.com/dogmatiq/ferrite"
 	"github.com/go-chi/chi"
@@ -22,11 +23,10 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/api/drive/v3"
-	"google.golang.org/grpc/credentials"
 )
 
 var validate *validator.Validate
@@ -43,12 +43,18 @@ var (
 	SERVICE_NAME = ferrite.
 			String("SERVICE_NAME", "OpenTelemetry service name").
 			Required()
-	COLLECTOR_URL = ferrite.
-			String("OTEL_EXPORTER_OTLP_ENDPOINT", "OpenTelemetry exporter endpoint").
-			Required()
-	SIGNOZ_INSECURE = ferrite.
-			Bool("SIGNOZ_INSECURE_MODE", "SigNoz insecure mode").
-			Required()
+	OTEL_EXPORTER_OTLP_ENDPOINT = ferrite.
+					String("OTEL_EXPORTER_OTLP_ENDPOINT", "OpenTelemetry exporter endpoint").
+					Required()
+	OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = ferrite.
+						String("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "OpenTelemetry traces exporter endpoint").
+						Required()
+	OTEL_EXPORTER_OTLP_HEADERS = ferrite.
+					String("OTEL_EXPORTER_OTLP_HEADERS", "OpenTelemetry exporter headers").
+					Required()
+	OTEL_EXPORTER_OTLP_TRACES_HEADERS = ferrite.
+						String("OTEL_EXPORTER_OTLP_TRACES_HEADERS", "OpenTelemetry exporter headers").
+						Required()
 	GO_ENV = ferrite.
 		String("GO_ENV", "Golang environment").
 		WithDefault("Development").
@@ -231,24 +237,13 @@ func createGoogleDriveService(ctx context.Context) *drive.Service {
 }
 
 func initOtel(ctx context.Context) func(context.Context) error {
-	var secureOption otlptracegrpc.Option
-
-	if !SIGNOZ_INSECURE.Value() {
-		secureOption = otlptracegrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))
-	} else {
-		secureOption = otlptracegrpc.WithInsecure()
-	}
-
 	exporter, err := otlptrace.New(
 		ctx,
-		otlptracegrpc.NewClient(
-			secureOption,
-			otlptracegrpc.WithEndpoint(COLLECTOR_URL.Value()),
-		),
+		otlptracehttp.NewClient(),
 	)
 
 	if err != nil {
-		slog.Error("error", "signoz", fmt.Sprintf("failed to create exporter: %s", err.Error()))
+		slog.Error("error", "otel", fmt.Sprintf("failed to create exporter: %s", err.Error()))
 		panic(err)
 	}
 	resources, err := resource.New(
@@ -259,7 +254,7 @@ func initOtel(ctx context.Context) func(context.Context) error {
 		),
 	)
 	if err != nil {
-		slog.Error("error", "signoz", fmt.Sprintf("could not set resources: %s", err.Error()))
+		slog.Error("error", "otel", fmt.Sprintf("could not set resources: %s", err.Error()))
 		panic(err)
 	}
 
@@ -271,7 +266,7 @@ func initOtel(ctx context.Context) func(context.Context) error {
 		),
 	)
 
-	logExporter, _ := otlplogs.NewExporter(ctx)
+	logExporter, _ := otlplogs.NewExporter(ctx, otlplogs.WithClient(otlplogshttp.NewClient()))
 	loggerProvider := sdklog.NewLoggerProvider(
 		sdklog.WithBatcher(logExporter),
 		sdklog.WithResource(resources),
