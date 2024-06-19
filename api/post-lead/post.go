@@ -5,28 +5,25 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/go-playground/validator/v10"
-	"github.com/imroc/req/v3"
 	"google.golang.org/api/drive/v3"
+	"google.golang.org/api/sheets/v4"
 )
 
 var validate *validator.Validate
 var driveService *drive.Service
-var httpClient *req.Client
+var sheetsService *sheets.Service
 
 const MAX_REQUEST_SIZE = 20 << 20 // 20 MB
 const MAX_UPLOAD_SIZE = 15 << 20  // 15 MB
 
 func init() {
-	httpClient = req.C().SetBaseURL(os.Getenv("FRESHSALES_API")).
-		EnableDebugLog().
-		SetCommonHeader("Authorization", os.Getenv("FRESHSALES_API_KEY")).
-		SetCommonHeader("Content-Type", "application/json")
+	createGoogleSheetsService(context.TODO())
+
 	validate = validator.New(validator.WithRequiredStructEnabled())
 
 	functions.HTTP("Handler", Handler)
@@ -85,39 +82,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	uploadedFileLinks := []string{}
 	uploadedFiles := []*drive.File{}
 	files := r.MultipartForm.File["files"]
-
-	type lead struct {
-		Id           int               `json:"id"`
-		FirstName    string            `json:"first_name"`
-		LastName     string            `json:"last_name"`
-		Email        string            `json:"email"`
-		MobileNumber string            `json:"mobile_number"`
-		CustomField  map[string]string `json:"custom_field"`
-	}
-	type postLead struct {
-		UniqueIdentifier string `json:"unique_identifier"`
-		Lead             *lead  `json:"lead"`
-	}
-
-	var postLeadRes postLead
-	postLeadErr := httpClient.Post("/leads/upsert").
-		SetBody(&postLead{
-			UniqueIdentifier: body.Email,
-			Lead: &lead{
-				FirstName:    body.FirstName,
-				LastName:     body.LastName,
-				Email:        body.Email,
-				MobileNumber: body.Mobile,
-			},
-		}).
-		Do().
-		Into(&postLeadRes)
-	if postLeadErr != nil {
-		slog.Error("error", "freshsales lead", postLeadErr.Error()) // TODO ctx
-	}
-	slog.Info("upsert", "freshsales lead", fmt.Sprintf("%v+", postLeadRes)) // TODO ctx
-
-	body.freshsalesId = postLeadRes.Lead.Id
 
 	if len(files) > 0 {
 		if driveService == nil {
@@ -202,30 +166,30 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	type note struct {
-		Description      string `json:"description"`
-		TargetableType   string `json:"targetable_type"`
-		TargetableTypeId int    `json:"targetable_type_id"`
-	}
-	type postNote struct {
-		Note *note `json:"note"`
-	}
-
-	var postNoteRes postNote
-	postNoteErr := httpClient.Post("/notes").
-		SetBody(&postNote{
-			Note: &note{
-				Description:      body.Enquiry,
-				TargetableType:   "Lead",
-				TargetableTypeId: postLeadRes.Lead.Id,
+	sheetName := ""     // ENV
+	spreadsheetId := "" // ENV
+	res, err := sheetsService.Spreadsheets.Values.
+		Append(spreadsheetId, sheetName, &sheets.ValueRange{
+			Values: [][]interface{}{
+				{
+					body.FirstName, body.LastName,
+					body.Enquiry, body.Email,
+					body.Mobile,
+				},
 			},
 		}).
-		Do().
-		Into(&postNoteRes)
-	if postNoteErr != nil {
-		slog.Error("error", "freshsales create note", postLeadErr.Error()) // TODO ctx
+		InsertDataOption("INSERT_ROWS").
+		Context(r.Context()).
+		Fields("spreadsheetId, tableRange, updates").
+		Do()
+	if err != nil {
+		slog.ErrorContext(r.Context(), "error", "gsheets", err.Error())
 	}
-	slog.Info("created", "freshsales create note", fmt.Sprintf("%v+", postNoteRes))
+	if res.HTTPStatusCode < 200 || res.HTTPStatusCode >= 300 {
+		slog.ErrorContext(r.Context(), "error", "gsheets", fmt.Sprintf("%+v", res))
+	}
+
+	slog.Info("appended", "gsheets", fmt.Sprintf("%v+", res))
 
 	// TODO: Send email
 
@@ -240,6 +204,17 @@ func createGoogleDriveService() *drive.Service {
 	service, err := drive.NewService(ctx)
 	if err != nil {
 		slog.Error("error", "gdrive service", err.Error())
+
+		panic(err)
+	}
+
+	return service
+}
+
+func createGoogleSheetsService(ctx context.Context) *sheets.Service {
+	service, err := sheets.NewService(ctx)
+	if err != nil {
+		slog.Error("error", "gsheets service", err.Error())
 
 		panic(err)
 	}
