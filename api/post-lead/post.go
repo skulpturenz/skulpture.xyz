@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
@@ -46,12 +45,11 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	defer r.MultipartForm.RemoveAll()
 
 	var body struct {
-		freshsalesId int
-		Email        string `json:"email" validate:"required,email"`
-		Mobile       string `json:"mobile" validate:"e164"`
-		FirstName    string `json:"firstName" validate:"required"`
-		LastName     string `json:"lastName" validate:"required"`
-		Enquiry      string `json:"enquiry" validate:"required"`
+		Email     string `json:"email" validate:"required,email"`
+		Mobile    string `json:"mobile" validate:"e164"`
+		FirstName string `json:"firstName" validate:"required"`
+		LastName  string `json:"lastName" validate:"required"`
+		Enquiry   string `json:"enquiry" validate:"required"`
 	}
 
 	body.Email = r.FormValue("email")
@@ -124,7 +122,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 				Create(&drive.File{
 					Name: fileHeader.Filename,
 					Properties: map[string]string{
-						"lead":      strconv.Itoa(body.freshsalesId),
 						"email":     body.Email,
 						"firstName": body.FirstName,
 						"lastName":  body.LastName,
