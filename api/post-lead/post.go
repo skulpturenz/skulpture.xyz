@@ -163,10 +163,10 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	sheetName := ""     // ENV
-	spreadsheetId := "" // ENV
+	enquiriesSheetName := ""     // ENV
+	enquiriesSpreadsheetId := "" // ENV
 	res, err := sheetsService.Spreadsheets.Values.
-		Append(spreadsheetId, sheetName, &sheets.ValueRange{
+		Append(enquiriesSpreadsheetId, enquiriesSheetName, &sheets.ValueRange{
 			Values: [][]interface{}{
 				{
 					body.FirstName, body.LastName,
@@ -185,6 +185,22 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	if res.HTTPStatusCode < 200 || res.HTTPStatusCode >= 300 {
 		slog.ErrorContext(r.Context(), "error", "gsheets", fmt.Sprintf("%+v", res))
 	}
+
+	constactsSpreadsheetId := ""
+	sheetsService.Spreadsheets.BatchUpdate(constactsSpreadsheetId, &sheets.BatchUpdateSpreadsheetRequest{
+		Requests: []*sheets.Request{
+			{
+				AppendCells: &sheets.AppendCellsRequest{
+					Fields: "*",
+					Rows:   []*sheets.RowData{}, // TODO
+				},
+				DeleteDuplicates: &sheets.DeleteDuplicatesRequest{
+					ComparisonColumns: []*sheets.DimensionRange{}, // TODO
+					Range:             &sheets.GridRange{},        // TODO
+				},
+			},
+		},
+	})
 
 	slog.Info("appended", "gsheets", fmt.Sprintf("%v+", res))
 
