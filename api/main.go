@@ -166,7 +166,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	body.LastName = r.FormValue("lastName")
 	body.Enquiry = r.FormValue("enquiry")
 
-	slog.InfoContext(r.Context(), "begin", "enquiry", fmt.Sprintf("%+v", body))
+	slog.DebugContext(r.Context(), "begin", "enquiry", fmt.Sprintf("%+v", body))
 
 	err := validate.Struct(body)
 	if err != nil {
@@ -200,13 +200,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		limit := about.StorageQuota.Limit
 		currentUsage := about.StorageQuota.UsageInDrive
 
-		slog.InfoContext(r.Context(), "stats", "gdrive usage", currentUsage, "gdrive limit", limit)
+		slog.DebugContext(r.Context(), "stats", "gdrive usage", currentUsage, "gdrive limit", limit)
 
 		for _, fileHeader := range files {
-			slog.InfoContext(r.Context(), "begin", "upload", fileHeader.Filename, "size", fileHeader.Size)
+			slog.DebugContext(r.Context(), "begin", "upload", fileHeader.Filename, "size", fileHeader.Size)
 
 			currentUsage += fileHeader.Size
-			slog.InfoContext(r.Context(), "stats", "gdrive usage", currentUsage, "gdrive limit", limit)
+			slog.DebugContext(r.Context(), "stats", "gdrive usage", currentUsage, "gdrive limit", limit)
 
 			if currentUsage == limit {
 				slog.ErrorContext(r.Context(), "gdrive usage exceeds limit")
@@ -244,7 +244,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			slog.InfoContext(r.Context(), "end", "upload", fileHeader.Filename, "link", res.WebContentLink)
+			slog.DebugContext(r.Context(), "end", "upload", fileHeader.Filename, "link", res.WebContentLink)
 
 			uploadedFiles = append(uploadedFiles, res)
 			uploadedFileLinks = append(uploadedFileLinks, fmt.Sprintf("- %s", res.WebContentLink))
@@ -268,7 +268,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	slog.InfoContext(r.Context(), "processed", "enquiry", fmt.Sprintf("%+v", body))
+	slog.DebugContext(r.Context(), "processed", "enquiry", fmt.Sprintf("%+v", body))
 
 	// TODO: POST to CRM
 	// TODO: Send email
@@ -297,7 +297,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		slog.ErrorContext(r.Context(), "error", "postmark", err.Error())
 	}
 
-	slog.InfoContext(r.Context(), "sent", "postmark message id", res.MessageID, "to", res.To, "at", res.SubmittedAt, "lead", body.uuid)
+	slog.DebugContext(r.Context(), "sent", "postmark message id", res.MessageID, "to", res.To, "at", res.SubmittedAt, "lead", body.uuid)
 }
 
 func createGoogleDriveService(ctx context.Context) *drive.Service {
@@ -310,13 +310,15 @@ func createGoogleDriveService(ctx context.Context) *drive.Service {
 		panic(err)
 	}
 
+	slog.DebugContext(ctx, "create google drive service")
+
 	return service
 }
 
 func createPostmarkClient(ctx context.Context) *postmark.Client {
 	client := postmark.NewClient(POSTMARK_SERVER_TOKEN.Value(), POSTMARK_ACCOUNT_TOKEN.Value())
 
-	slog.InfoContext(ctx, "created postmark client")
+	slog.DebugContext(ctx, "created postmark client")
 
 	return client
 }
