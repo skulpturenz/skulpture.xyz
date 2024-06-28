@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"mime/multipart"
 	"net/http"
-	"os"
-	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/agoda-com/opentelemetry-go/otelslog"
@@ -63,7 +63,7 @@ var (
 	OTEL_EXPORTER_OTLP_TRACES_HEADERS = ferrite.
 						String("OTEL_EXPORTER_OTLP_TRACES_HEADERS", "OpenTelemetry exporter headers").
 						Required()
-	POSTMARK_TEMPLATE = ferrite.String("POSTMARK_TEMPLATE", "Postmark template").
+	POSTMARK_TEMPLATE = ferrite.Signed[int]("POSTMARK_TEMPLATE", "Postmark template").
 				Required()
 	POSTMARK_FROM = ferrite.String("POSTMARK_FROM", "Postmark from").
 			WithDefault("hey@skulpture.xyz").
@@ -185,39 +185,47 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uploadedFileLinks := []string{}
-	uploadedFiles := []*drive.File{}
 	files := r.MultipartForm.File["files"]
 
 	if len(files) > 0 {
-		about, err := driveService.About.Get().Fields("storageQuota").Do()
+		about, err := driveService.About.
+			Get().
+			Fields("storageQuota").
+			Context(r.Context()).
+			Do()
 		if err != nil {
 			slog.ErrorContext(r.Context(), "error", "gdrive about", err.Error())
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 
 			return
 		}
-		limit := about.StorageQuota.Limit
-		currentUsage := about.StorageQuota.UsageInDrive
 
-		slog.DebugContext(r.Context(), "stats", "gdrive usage", currentUsage, "gdrive limit", limit)
+		slog.DebugContext(r.Context(), "stats", "gdrive usage", about.StorageQuota.UsageInDrive, "gdrive limit", about.StorageQuota.Limit)
 
-		for _, fileHeader := range files {
-			slog.DebugContext(r.Context(), "begin", "upload", fileHeader.Filename, "size", fileHeader.Size)
+		uploadedFiles := make(chan drive.File)
+		failedToUpload := make(chan int)
 
-			currentUsage += fileHeader.Size
-			slog.DebugContext(r.Context(), "stats", "gdrive usage", currentUsage, "gdrive limit", limit)
+		uploadCtx, cancel := context.WithCancel(r.Context())
 
-			if currentUsage == limit {
-				slog.ErrorContext(r.Context(), "gdrive usage exceeds limit")
+		var fileUploadWg sync.WaitGroup
+		uploadFile := func(fileHeader *multipart.FileHeader, idx int, wg *sync.WaitGroup) {
+			defer wg.Done()
 
-				break
+			select {
+			case <-uploadCtx.Done():
+				return
+			default:
 			}
+
+			slog.DebugContext(r.Context(), "begin", "upload", fileHeader.Filename, "size", fileHeader.Size)
 
 			file, err := fileHeader.Open()
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 
+				failedToUpload <- idx
+				slog.ErrorContext(r.Context(), "error", "open file", fileHeader.Filename, "email", body.Email)
+
+				cancel()
 				return
 			}
 			defer file.Close()
@@ -235,56 +243,60 @@ func handler(w http.ResponseWriter, r *http.Request) {
 				}).
 				Media(file).
 				Fields("id, webContentLink").
+				Context(uploadCtx).
 				Do()
 
 			if err != nil {
+				failedToUpload <- idx
 				slog.ErrorContext(r.Context(), "error", "upload", err.Error(), "email", body.Email)
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 
+				cancel()
 				return
 			}
 
 			slog.DebugContext(r.Context(), "end", "upload", fileHeader.Filename, "link", res.WebContentLink)
 
-			uploadedFiles = append(uploadedFiles, res)
-			uploadedFileLinks = append(uploadedFileLinks, fmt.Sprintf("- %s", res.WebContentLink))
+			uploadedFiles <- *res
+		}
+		for idx, fileHeader := range files {
+			fileUploadWg.Add(1)
+			go uploadFile(fileHeader, idx, &fileUploadWg)
 		}
 
-		if currentUsage == limit {
-			for _, file := range uploadedFiles {
-				driveService.Files.Delete(file.Id)
+		go func() {
+			fileUploadWg.Wait()
+			close(uploadedFiles)
+			close(failedToUpload)
+		}()
+
+		select {
+		case <-uploadCtx.Done():
+			for file := range uploadedFiles {
+				go driveService.Files.
+					Delete(file.Id).
+					Do()
 			}
 
-			slog.ErrorContext(r.Context(), "error", "upload", "gdrive quota reached")
-			http.Error(w, "Google Drive quota reached", http.StatusInsufficientStorage)
+			http.Error(w, "Failed to upload", http.StatusInternalServerError)
 
 			return
+		default:
 		}
 
-		if len(uploadedFileLinks) > 0 {
-			enquiryWithFiles := fmt.Appendf([]byte(body.Enquiry), "\nAttached files:\n%s", strings.Join(uploadedFileLinks, "\n"))
-
-			body.Enquiry = string(enquiryWithFiles)
+		attachedFiles := []string{}
+		for file := range uploadedFiles {
+			attachedFiles = append(attachedFiles, fmt.Sprintf("- %s", file.WebContentLink))
 		}
+		enquiryWithFiles := fmt.Appendf([]byte(body.Enquiry), "\nAttached files:\n%s", strings.Join(attachedFiles, "\n"))
+		body.Enquiry = string(enquiryWithFiles)
 	}
 
 	slog.DebugContext(r.Context(), "processed", "enquiry", fmt.Sprintf("%+v", body))
 
 	// TODO: POST to CRM
 	// TODO: Send email
-	templateId, err := strconv.ParseInt(os.Getenv(POSTMARK_TEMPLATE.Value()), 10, 64)
-	if err != nil {
-		slog.ErrorContext(r.Context(), "error", "env unspecified", POSTMARK_TEMPLATE)
-
-		panic(fmt.Errorf("environment variable %s must be specified", POSTMARK_TEMPLATE))
-	}
-
-	postmarkFrom := os.Getenv(POSTMARK_FROM.Value())
-	if postmarkFrom == "" {
-		slog.ErrorContext(r.Context(), "error", "env unspecified", POSTMARK_FROM)
-
-		panic(fmt.Errorf("environment variable %s must be specified", POSTMARK_FROM))
-	}
+	templateId := POSTMARK_TEMPLATE.Value()
+	postmarkFrom := POSTMARK_FROM.Value()
 
 	res, err := postmarkClient.SendTemplatedEmail(context.Background(), postmark.TemplatedEmail{
 		TemplateID:    int64(templateId),

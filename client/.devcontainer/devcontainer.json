@@ -3,12 +3,5 @@
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
-	"containerEnv": {
-		"SERVICE_NAME": "SkulptureLanding",
-		"NODE_ENV": "Development",
-		"OTEL_EXPORTER_OTLP_ENDPOINT": "",
-		"SIGNOZ_ACCESS_TOKEN": "", // DO NOT COMMIT
-		"API_BASE_URL": ""
-	},
 	"postStartCommand": "corepack pnpm install"
 }
