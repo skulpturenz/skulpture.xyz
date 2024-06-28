@@ -5,6 +5,19 @@
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
+	"runArgs": [
+		"--env-file",
+		".devcontainer/.env"
+	],
+	"containerEnv": {
+		"SERVICE_NAME": "skulpture-landing",
+		"GO_ENV": "Development"
+		// "GOOGLE_PROJECT": ""
+		// "OTEL_EXPORTER_OTLP_ENDPOINT": "",
+		// "OTEL_EXPORTER_OTLP_HEADERS": "",
+		// "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "",
+		// "OTEL_EXPORTER_OTLP_TRACES_HEADERS": ""
+	},
 	"customizations": {
 		"settings": {
 			"go.buildTags": "",
