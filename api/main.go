@@ -96,7 +96,7 @@ func main() {
 	if GO_ENV.Value() == "Development" {
 		noopStore, err := noopstore.New()
 		if err != nil {
-			slog.Error("error", "init", err.Error())
+			slog.ErrorContext(ctx, "error", "init", err.Error())
 			panic(err)
 		}
 
@@ -107,7 +107,7 @@ func main() {
 			Interval: time.Minute,
 		})
 		if err != nil {
-			slog.Error("error", "init", err.Error())
+			slog.ErrorContext(ctx, "error", "init", err.Error())
 			panic(err)
 		}
 
@@ -116,7 +116,7 @@ func main() {
 
 	middleware, err := httplimit.NewMiddleware(store, httplimit.IPKeyFunc())
 	if err != nil {
-		slog.Error("error", "init", err.Error())
+		slog.ErrorContext(ctx, "error", "init", err.Error())
 		panic(err)
 	}
 
