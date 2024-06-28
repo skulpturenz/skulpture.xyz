@@ -200,7 +200,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		slog.Info("stats", "gdrive usage", about.StorageQuota.UsageInDrive, "gdrive limit", about.StorageQuota.Limit)
+		slog.DebugContext(r.Context(), "stats", "gdrive usage", about.StorageQuota.UsageInDrive, "gdrive limit", about.StorageQuota.Limit)
 
 		uploadedFiles := make(chan drive.File)
 		failedToUpload := make(chan int)
@@ -217,13 +217,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			default:
 			}
 
-			slog.Info("begin", "upload", fileHeader.Filename, "size", fileHeader.Size)
+			slog.DebugContext(r.Context(), "begin", "upload", fileHeader.Filename, "size", fileHeader.Size)
 
 			file, err := fileHeader.Open()
 			if err != nil {
 
 				failedToUpload <- idx
-				slog.Error("error", "open file", fileHeader.Filename, "email", body.Email)
+				slog.ErrorContext(r.Context(), "error", "open file", fileHeader.Filename, "email", body.Email)
 
 				cancel()
 				return
@@ -248,13 +248,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 			if err != nil {
 				failedToUpload <- idx
-				slog.Error("error", "upload", err.Error(), "email", body.Email)
+				slog.ErrorContext(r.Context(), "error", "upload", err.Error(), "email", body.Email)
 
 				cancel()
 				return
 			}
 
-			slog.Info("end", "upload", fileHeader.Filename, "link", res.WebContentLink)
+			slog.DebugContext(r.Context(), "end", "upload", fileHeader.Filename, "link", res.WebContentLink)
 
 			uploadedFiles <- *res
 		}
@@ -291,7 +291,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		body.Enquiry = string(enquiryWithFiles)
 	}
 
-	slog.Info("processed", "enquiry", fmt.Sprintf("%+v", body))
+	slog.DebugContext(r.Context(), "processed", "enquiry", fmt.Sprintf("%+v", body))
 
 	// TODO: POST to CRM
 	// TODO: Send email
