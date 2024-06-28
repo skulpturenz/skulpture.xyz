@@ -11,6 +11,7 @@ require (
 	github.com/go-chi/httplog/v2 v2.0.11
 	github.com/go-playground/validator/v10 v10.22.0
 	github.com/google/uuid v1.6.0
+	github.com/mrz1836/postmark v1.6.5
 	github.com/sethvargo/go-limiter v1.0.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.52.0
 	go.opentelemetry.io/otel v1.27.0

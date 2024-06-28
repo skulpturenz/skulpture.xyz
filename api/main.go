@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -19,6 +21,7 @@ import (
 	"github.com/go-chi/httplog/v2"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"github.com/mrz1836/postmark"
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/sethvargo/go-limiter/memorystore"
@@ -35,6 +38,7 @@ import (
 
 var validate *validator.Validate
 var driveService *drive.Service
+var postmarkClient *postmark.Client
 
 const MAX_REQUEST_SIZE = 20 << 20 // 20 MB
 const MAX_UPLOAD_SIZE = 15 << 20  // 15 MB
@@ -59,6 +63,15 @@ var (
 	OTEL_EXPORTER_OTLP_TRACES_HEADERS = ferrite.
 						String("OTEL_EXPORTER_OTLP_TRACES_HEADERS", "OpenTelemetry exporter headers").
 						Required()
+	POSTMARK_TEMPLATE = ferrite.String("POSTMARK_TEMPLATE", "Postmark template").
+				Required()
+	POSTMARK_FROM = ferrite.String("POSTMARK_FROM", "Postmark from").
+			WithDefault("hey@skulpture.xyz").
+			Required()
+	POSTMARK_SERVER_TOKEN = ferrite.String("POSTMARK_SERVER_TOKEN", "Postmark server token").
+				Required()
+	POSTMARK_ACCOUNT_TOKEN = ferrite.String("POSTMARK_ACCOUNT_TOKEN", "Postmark account token").
+				Required()
 	GO_ENV = ferrite.
 		String("GO_ENV", "Golang environment").
 		WithDefault("Development").
@@ -78,6 +91,7 @@ func main() {
 	defer cleanup(ctx)
 
 	driveService = createGoogleDriveService(ctx)
+	postmarkClient = createPostmarkClient(ctx)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
@@ -152,7 +166,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	body.LastName = r.FormValue("lastName")
 	body.Enquiry = r.FormValue("enquiry")
 
-	slog.InfoContext(r.Context(), "begin", "enquiry", fmt.Sprintf("%+v", body))
+	slog.DebugContext(r.Context(), "begin", "enquiry", fmt.Sprintf("%+v", body))
 
 	err := validate.Struct(body)
 	if err != nil {
@@ -186,13 +200,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		limit := about.StorageQuota.Limit
 		currentUsage := about.StorageQuota.UsageInDrive
 
-		slog.InfoContext(r.Context(), "stats", "gdrive usage", currentUsage, "gdrive limit", limit)
+		slog.DebugContext(r.Context(), "stats", "gdrive usage", currentUsage, "gdrive limit", limit)
 
 		for _, fileHeader := range files {
-			slog.InfoContext(r.Context(), "begin", "upload", fileHeader.Filename, "size", fileHeader.Size)
+			slog.DebugContext(r.Context(), "begin", "upload", fileHeader.Filename, "size", fileHeader.Size)
 
 			currentUsage += fileHeader.Size
-			slog.InfoContext(r.Context(), "stats", "gdrive usage", currentUsage, "gdrive limit", limit)
+			slog.DebugContext(r.Context(), "stats", "gdrive usage", currentUsage, "gdrive limit", limit)
 
 			if currentUsage == limit {
 				slog.ErrorContext(r.Context(), "gdrive usage exceeds limit")
@@ -230,7 +244,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			slog.InfoContext(r.Context(), "end", "upload", fileHeader.Filename, "link", res.WebContentLink)
+			slog.DebugContext(r.Context(), "end", "upload", fileHeader.Filename, "link", res.WebContentLink)
 
 			uploadedFiles = append(uploadedFiles, res)
 			uploadedFileLinks = append(uploadedFileLinks, fmt.Sprintf("- %s", res.WebContentLink))
@@ -254,10 +268,36 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	slog.InfoContext(r.Context(), "processed", "enquiry", fmt.Sprintf("%+v", body))
+	slog.DebugContext(r.Context(), "processed", "enquiry", fmt.Sprintf("%+v", body))
 
 	// TODO: POST to CRM
 	// TODO: Send email
+	templateId, err := strconv.ParseInt(os.Getenv(POSTMARK_TEMPLATE.Value()), 10, 64)
+	if err != nil {
+		slog.ErrorContext(r.Context(), "error", "env unspecified", POSTMARK_TEMPLATE)
+
+		panic(fmt.Errorf("environment variable %s must be specified", POSTMARK_TEMPLATE))
+	}
+
+	postmarkFrom := os.Getenv(POSTMARK_FROM.Value())
+	if postmarkFrom == "" {
+		slog.ErrorContext(r.Context(), "error", "env unspecified", POSTMARK_FROM)
+
+		panic(fmt.Errorf("environment variable %s must be specified", POSTMARK_FROM))
+	}
+
+	res, err := postmarkClient.SendTemplatedEmail(context.Background(), postmark.TemplatedEmail{
+		TemplateID:    int64(templateId),
+		From:          postmarkFrom,
+		To:            body.Email,
+		TrackOpens:    true,
+		TemplateModel: map[string]interface{}{}, // TODO: Template model
+	})
+	if err != nil {
+		slog.ErrorContext(r.Context(), "error", "postmark", err.Error())
+	}
+
+	slog.DebugContext(r.Context(), "sent", "postmark message id", res.MessageID, "to", res.To, "at", res.SubmittedAt, "lead", body.uuid)
 }
 
 func createGoogleDriveService(ctx context.Context) *drive.Service {
@@ -270,7 +310,17 @@ func createGoogleDriveService(ctx context.Context) *drive.Service {
 		panic(err)
 	}
 
+	slog.DebugContext(ctx, "create google drive service")
+
 	return service
+}
+
+func createPostmarkClient(ctx context.Context) *postmark.Client {
+	client := postmark.NewClient(POSTMARK_SERVER_TOKEN.Value(), POSTMARK_ACCOUNT_TOKEN.Value())
+
+	slog.DebugContext(ctx, "created postmark client")
+
+	return client
 }
 
 func initOtel(ctx context.Context) func(context.Context) error {
@@ -280,7 +330,7 @@ func initOtel(ctx context.Context) func(context.Context) error {
 	)
 
 	if err != nil {
-		slog.Error("error", "otel", fmt.Sprintf("failed to create exporter: %s", err.Error()))
+		slog.ErrorContext(ctx, "error", "otel", fmt.Sprintf("failed to create exporter: %s", err.Error()))
 		panic(err)
 	}
 	resources, err := resource.New(
@@ -291,7 +341,7 @@ func initOtel(ctx context.Context) func(context.Context) error {
 		),
 	)
 	if err != nil {
-		slog.Error("error", "otel", fmt.Sprintf("could not set resources: %s", err.Error()))
+		slog.ErrorContext(ctx, "error", "otel", fmt.Sprintf("could not set resources: %s", err.Error()))
 		panic(err)
 	}
 
