@@ -1,4 +1,4 @@
-package post
+package main
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/agoda-com/opentelemetry-go/otelslog"
 	"github.com/agoda-com/opentelemetry-logs-go/exporters/otlp/otlplogs"
 	"github.com/agoda-com/opentelemetry-logs-go/exporters/otlp/otlplogs/otlplogshttp"
@@ -69,6 +68,10 @@ var (
 func init() {
 	ferrite.Init()
 
+	validate = validator.New(validator.WithRequiredStructEnabled())
+}
+
+func main() {
 	ctx := context.Background()
 
 	cleanup := initOtel(ctx)
@@ -119,14 +122,12 @@ func init() {
 
 	r.Use(middleware.Handle)
 
-	r.Post("/*", Handler)
+	r.Post("/lead", handler)
 
-	validate = validator.New(validator.WithRequiredStructEnabled())
-
-	functions.HTTP("Handler", r.ServeHTTP)
+	http.ListenAndServe(":443", r)
 }
 
-func Handler(w http.ResponseWriter, r *http.Request) {
+func handler(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, MAX_REQUEST_SIZE)
 	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
