@@ -1,7 +1,7 @@
 ---
 import "@/styles/globals.css";
 import { SEO } from "astro-seo";
-import { ThemeProvider } from "@/components/ui/theme-provider"
+import { ThemeProvider } from "@/components/ui/theme-provider";
 
 interface Props {
 	title: string;
@@ -27,7 +27,9 @@ const { title, description } = Astro.props;
 		<SEO title={title} description={description} />
 	</head>
 	<body>
-		<ThemeProvider storageKey={`skulpture-theme-${import.meta.env.MODE}`} client:only="react">
+		<ThemeProvider
+			storageKey={`skulpture-theme-${import.meta.env.MODE}`}
+			client:only="react">
 			<slot />
 		</ThemeProvider>
 	</body>
