@@ -1,5 +1,7 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Image } from "astro:assets";
+import astronautImage1x from "@/components/assets/images/astronaut-block-1x.png";
 
 const TITLE = "Skulpture";
 const DESCRIPTION = "Software, Delivery, Advisory";
@@ -7,4 +9,5 @@ const DESCRIPTION = "Software, Delivery, Advisory";
 
 <BaseLayout title={TITLE} description={DESCRIPTION}>
 	<h1>{TITLE}</h1>
+	<Image src={astronautImage1x} alt="HELLO WORLD!" />
 </BaseLayout>
