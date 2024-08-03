@@ -2,7 +2,6 @@ import js from "@eslint/js";
 import { FlatCompat } from "@eslint/eslintrc";
 import path from "path";
 import { fileURLToPath } from "url";
-import eslintPluginAstro from "eslint-plugin-astro";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import tseslint from "typescript-eslint";
 
@@ -20,7 +19,6 @@ const compat = new FlatCompat({
 export default [
 	js.configs.recommended,
 	...tseslint.configs.recommended,
-	...eslintPluginAstro.configs.recommended,
 	...compat.env({
 		browser: true,
 		es2020: true,
