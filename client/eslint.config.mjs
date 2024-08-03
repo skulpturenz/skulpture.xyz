@@ -55,6 +55,7 @@ export default [
 				"error",
 				{ argsIgnorePattern: "^_" },
 			],
+			"@typescript-eslint/no-empty-object-type": "warn",
 		},
 	},
 	eslintPluginPrettierRecommended,
