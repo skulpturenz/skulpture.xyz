@@ -7,6 +7,5 @@
 		"esbenp.prettier-vscode",
 		"Gruntfuggly.todo-tree",
 		"IBM.output-colorizer"
-	],
-	"unwantedRecommendations": []
+	]
 }
