@@ -1,12 +1,37 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { Image } from "astro:assets";
+import astronautImage05x from "@/components/assets/images/astronaut-block-0.5x.png";
+import astronautImage075x from "@/components/assets/images/astronaut-block-0.75x.png";
 import astronautImage1x from "@/components/assets/images/astronaut-block-1x.png";
 
 const TITLE = "Skulpture";
 const DESCRIPTION = "Software, Delivery, Advisory";
+
+const resources = {
+	banner: {
+		tagline: ["Building the future,", "today."],
+		alt: "Serious business",
+	},
+};
 ---
 
 <BaseLayout title={TITLE} description={DESCRIPTION}>
-	<Image src={astronautImage1x} alt="HELLO WORLD!" />
+	<div class="min-h-screen flex items-center justify-center">
+		<span class="text-5xl md:text-6xl tracking-tighter text-center">
+			<span class="font-bold">
+				{resources.banner.tagline.at(0)}
+			</span>&nbsp;{resources.banner.tagline.at(1)}
+		</span>
+		<Image
+			srcset={[
+				`${astronautImage05x.src} 0.5x`,
+				`${astronautImage075x.src} 0.75x`,
+				`${astronautImage1x.src} 1x`,
+			].join(", ")}
+			src={astronautImage05x}
+			alt={resources.banner.alt}
+			class="h-screen object-cover w-auto absolute -z-10 brightness-75"
+		/>
+	</div>
 </BaseLayout>
