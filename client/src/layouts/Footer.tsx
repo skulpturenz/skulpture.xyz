@@ -1,20 +1,31 @@
 import React from "react";
-import { LogoWords, LogoIconDark, LogoIconLight } from "@/components/assets";
+import {
+	LogoWords,
+	LogoIconDark,
+	LogoIconLight,
+	ArrowRight,
+} from "@/components/assets";
 import { cn } from "@/lib/utils";
 import { constants } from "@/components/constants";
 
 export interface FooterProps {
+	className?: string;
 	children?: React.ReactNode;
 }
 
 const resources = {
 	subtitle: "Your problems, our specialty",
+	workTogether: "Let's work together",
 };
 
-export const Footer = ({ children }: FooterProps) => {
+export const Footer = ({ className, children }: FooterProps) => {
 	return (
 		<footer
-			className={cn(constants.contentContainer, "flex flex-col gap-20 ")}>
+			className={cn(
+				constants.contentContainer,
+				className,
+				"flex flex-col gap-20",
+			)}>
 			<div className="flex flex-col gap-10 md:gap-0 md:flex-row md:items-start md:justify-between mt-24">
 				<div className="flex flex-col gap-8">
 					<div>
@@ -44,4 +55,23 @@ export const FooterSection = ({ children }: FooterSectionProps) => (
 	<div className="footer flex flex-col gap-4 first:mb-2 items-start">
 		{children}
 	</div>
+);
+
+export interface ContactBlockProps {
+	className?: string;
+}
+
+export const ContactBlock = ({ className }: ContactBlockProps) => (
+	<>
+		<div
+			className={cn(
+				className,
+				"bg-primary text-primary-foreground w-full rounded-md h-40 xl:h-80 flex items-center justify-between px-10 xl:px-24",
+			)}>
+			<span className="font-bold text-4xl xl:text-7xl max-w-[15rem] xl:max-w-sm tracking-tighter">
+				{resources.workTogether}
+			</span>
+			<ArrowRight className="xl:h-40 h-20 w-auto" />
+		</div>
+	</>
 );

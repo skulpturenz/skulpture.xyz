@@ -3,14 +3,16 @@ import "@/styles/globals.css";
 import { SEO } from "astro-seo";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Navigation, type NavigationItem } from "./Navigation";
-import { Footer, FooterSection } from "./Footer";
+import { Footer, FooterSection, ContactBlock } from "./Footer";
+import { constants } from "@/components/constants";
 
 interface Props {
 	title: string;
 	description: string;
+	isContactBlockHidden?: boolean;
 }
 
-const { title, description } = Astro.props;
+const { title, description, isContactBlockHidden } = Astro.props;
 
 const resources = {
 	navigation: {
@@ -57,30 +59,70 @@ const navigationItems: NavigationItem[] = [
 			client:only="react">
 			<Navigation items={navigationItems} client:load />
 			<slot />
-			<Footer>
-				<FooterSection>
-					<span>{resources.footer.company.header}</span>
-					<a
-						class="hover:underline-offset-4 hover:underline text-lg font-medium"
-						href="/about">
-						{resources.footer.company.about}
-					</a>
-					<a
-						class="hover:underline-offset-4 hover:underline text-lg font-medium"
-						href="/contact">
-						{resources.footer.company.contact}
-					</a>
-				</FooterSection>
+			{
+				!isContactBlockHidden && (
+					<div class="relative">
+						<div class="absolute w-full -top-16 xl:-top-36">
+							<div class={constants.contentContainer}>
+								<ContactBlock />
+							</div>
+						</div>
+						<Footer className="pt-20 xl:pt-40">
+							<FooterSection>
+								<span>{resources.footer.company.header}</span>
+								<a
+									class="hover:underline-offset-4 hover:underline text-lg font-medium"
+									href="/about">
+									{resources.footer.company.about}
+								</a>
+								<a
+									class="hover:underline-offset-4 hover:underline text-lg font-medium"
+									href="/contact">
+									{resources.footer.company.contact}
+								</a>
+							</FooterSection>
 
-				<FooterSection>
-					<span>{resources.footer.contact.header}</span>
-					<a
-						class="hover:underline-offset-4 hover:underline text-lg font-medium"
-						href="mailto:hey@skulpture.xyz">
-						hey@skulpture.xyz
-					</a>
-				</FooterSection>
-			</Footer>
+							<FooterSection>
+								<span>{resources.footer.contact.header}</span>
+								<a
+									class="hover:underline-offset-4 hover:underline text-lg font-medium"
+									href="mailto:hey@skulpture.xyz">
+									hey@skulpture.xyz
+								</a>
+							</FooterSection>
+						</Footer>
+					</div>
+				)
+			}
+
+			{
+				isContactBlockHidden && (
+					<Footer>
+						<FooterSection>
+							<span>{resources.footer.company.header}</span>
+							<a
+								class="hover:underline-offset-4 hover:underline text-lg font-medium"
+								href="/about">
+								{resources.footer.company.about}
+							</a>
+							<a
+								class="hover:underline-offset-4 hover:underline text-lg font-medium"
+								href="/contact">
+								{resources.footer.company.contact}
+							</a>
+						</FooterSection>
+
+						<FooterSection>
+							<span>{resources.footer.contact.header}</span>
+							<a
+								class="hover:underline-offset-4 hover:underline text-lg font-medium"
+								href="mailto:hey@skulpture.xyz">
+								hey@skulpture.xyz
+							</a>
+						</FooterSection>
+					</Footer>
+				)
+			}
 		</ThemeProvider>
 	</body>
 </html>
