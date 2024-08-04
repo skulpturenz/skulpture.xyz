@@ -49,7 +49,7 @@ export const Navigation = ({ items }: NavigationProps) => {
 						<div className="flex flex-shrink-0 items-center">
 							<a href="/">
 								<LogoLight className="h-6 w-auto dark:hidden" />
-								<LogoDark className="h-6 w-auto light:hidden" />
+								<LogoDark className="h-6 w-auto hidden dark:block" />
 								<span className="sr-only">
 									{resources.skulpture}
 								</span>
