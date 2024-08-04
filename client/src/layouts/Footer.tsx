@@ -7,6 +7,7 @@ import {
 } from "@/components/assets";
 import { cn } from "@/lib/utils";
 import { constants } from "@/components/constants";
+import { motion } from "framer-motion";
 
 export interface FooterProps {
 	className?: string;
@@ -63,15 +64,22 @@ export interface ContactBlockProps {
 
 export const ContactBlock = ({ className }: ContactBlockProps) => (
 	<>
-		<div
-			className={cn(
-				className,
-				"bg-primary text-primary-foreground w-full rounded-md h-40 xl:h-80 flex items-center justify-between px-10 xl:px-24",
-			)}>
-			<span className="font-bold text-4xl xl:text-7xl max-w-[15rem] xl:max-w-sm tracking-tighter">
-				{resources.workTogether}
-			</span>
-			<ArrowRight className="xl:h-40 h-20 w-auto" />
-		</div>
+		<a href="/contact" rel="noopener noreferrer" target="_blank">
+			<div
+				className={cn(
+					className,
+					"bg-primary text-primary-foreground w-full rounded-3xl md:rounded-2xl h-40 xl:h-80 flex items-center justify-between px-10 xl:px-24",
+				)}>
+				<span className="font-bold text-4xl xl:text-7xl max-w-[15rem] xl:max-w-sm tracking-tighter">
+					{resources.workTogether}
+				</span>
+				<motion.div
+					initial={{ x: "-100%", opacity: 0 }}
+					whileInView={{ x: 0, opacity: 1 }}
+					viewport={{ once: true }}>
+					<ArrowRight className="xl:h-40 h-20 w-auto" />
+				</motion.div>
+			</div>
+		</a>
 	</>
 );
