@@ -4,6 +4,9 @@ import { Image } from "astro:assets";
 import astronautImage05x from "@/components/assets/images/astronaut-block-0.5x.png";
 import astronautImage075x from "@/components/assets/images/astronaut-block-0.75x.png";
 import astronautImage1x from "@/components/assets/images/astronaut-block-1x.png";
+import ponderingImage05x from "@/components/assets/images/pondering-block-0.5x.png";
+import ponderingImage075x from "@/components/assets/images/pondering-block-0.75x.png";
+import ponderingImage1x from "@/components/assets/images/pondering-block-1x.png";
 import { constants } from "@/components/constants";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,11 +25,18 @@ const resources = {
 		tagline: ["Building the future,", "today."],
 		alt: "Serious business",
 	},
+	about: {
+		header: "Our cause",
+		subtitle: "Managing software throughout its lifecycle",
+		description:
+			"We build and maintain software solutions for your business problems through DevOps delivery and Agile development practices so that you can see faster, more reliable results. Software starts from an idea or business problem to grow into a fully fledged solution which drives business growth, and we're pretty good at the in-between.",
+		doLearnMore: "Learn more",
+	},
 };
 ---
 
 <BaseLayout title={TITLE} description={DESCRIPTION}>
-	<div class="min-h-screen">
+	<div class={cn(constants.vhContainer)}>
 		<div
 			class={cn(
 				constants.contentContainer,
@@ -35,7 +45,8 @@ const resources = {
 			<h1 class="font-bold text-4xl md:text-6xl tracking-tight">
 				{resources.intro.header}
 			</h1>
-			<p class="text-xl max-w-lg md:text-3xl md:max-w-3xl tracking-tight">
+			<p
+				class="text-xl max-w-lg md:text-3xl md:max-w-3xl tracking-tight text-foreground/75">
 				{resources.intro.subtitle}
 			</p>
 			<Button>
@@ -45,7 +56,7 @@ const resources = {
 			</Button>
 		</div>
 	</div>
-	<div class="min-h-screen flex items-center justify-center">
+	<div class={cn(constants.vhContainer, "flex items-center justify-center")}>
 		<span class="text-5xl md:text-6xl tracking-tighter text-center">
 			<span class="font-bold">
 				{resources.banner.tagline.at(0)}
@@ -61,5 +72,39 @@ const resources = {
 			alt={resources.banner.alt}
 			class="h-screen object-cover w-auto absolute -z-10 brightness-75"
 		/>
+	</div>
+	<div
+		class={cn(
+			constants.vhContainer,
+			constants.contentContainer,
+			"flex flex-col md:flex-row items-center gap-32 my-20 md:my-0",
+		)}>
+		<Image
+			srcset={[
+				`${ponderingImage05x.src} 0.5x`,
+				`${ponderingImage075x.src} 0.75x`,
+				`${ponderingImage1x.src} 1x`,
+			].join(", ")}
+			src={ponderingImage1x}
+			alt={resources.banner.alt}
+			class="w-full h-auto md:h-auto md:w-1/2"
+		/>
+		<div class="flex flex-col gap-6">
+			<h5 class="text-primary font-bold text-xs tracking-wide uppercase">
+				{resources.about.header}
+			</h5>
+			<p class="font-bold text-2xl lg:text-4xl tracking-tight">
+				{resources.about.subtitle}
+			</p>
+			<p class="text-sm lg:text-base text-foreground/80">
+				{resources.about.description}
+			</p>
+			<Button variant="outline" className="max-w-min">
+				<a href="/about">{resources.about.doLearnMore}</a>
+			</Button>
+		</div>
+	</div>
+	<div class={cn(constants.vhContainer, "bg-secondary")}>
+		<div class={cn(constants.contentContainer)}></div>
 	</div>
 </BaseLayout>
