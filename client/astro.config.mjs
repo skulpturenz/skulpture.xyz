@@ -8,14 +8,16 @@ import svgr from "vite-plugin-svgr";
 export default defineConfig({
 	site: "https://skulpture.xyz",
 	integrations: [
-		react(),
+		react({
+			experimentalReactChildren: true,
+		}),
 		tailwind({
 			applyBaseStyles: false,
 		}),
 		sitemap(),
 	],
 	vite: {
-		plugins: [svgr()]
+		plugins: [svgr()],
 	},
 	output: "static",
 });
