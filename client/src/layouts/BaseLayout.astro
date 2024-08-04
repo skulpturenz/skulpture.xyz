@@ -2,6 +2,8 @@
 import "@/styles/globals.css";
 import { SEO } from "astro-seo";
 import { ThemeProvider } from "@/components/ui/theme-provider";
+import { Navigation, type NavigationItem } from "./Navigation";
+import { Footer, FooterSection } from "./Footer";
 
 interface Props {
 	title: string;
@@ -9,6 +11,29 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
+
+const resources = {
+	navigation: {
+		about: "About",
+	},
+	footer: {
+		company: {
+			header: "Company",
+			about: "About",
+			contact: "Contact",
+		},
+		contact: {
+			header: "Contact",
+		},
+	},
+};
+
+const navigationItems: NavigationItem[] = [
+	{
+		label: resources.navigation.about,
+		pathname: "/about",
+	},
+];
 ---
 
 <html lang="en">
@@ -30,7 +55,32 @@ const { title, description } = Astro.props;
 		<ThemeProvider
 			storageKey={`skulpture-theme-${import.meta.env.MODE}`}
 			client:only="react">
+			<Navigation items={navigationItems} client:load />
 			<slot />
+			<Footer>
+				<FooterSection>
+					<span>{resources.footer.company.header}</span>
+					<a
+						class="hover:underline-offset-4 hover:underline text-lg font-medium"
+						href="/about">
+						{resources.footer.company.about}
+					</a>
+					<a
+						class="hover:underline-offset-4 hover:underline text-lg font-medium"
+						href="/contact">
+						{resources.footer.company.contact}
+					</a>
+				</FooterSection>
+
+				<FooterSection>
+					<span>{resources.footer.contact.header}</span>
+					<a
+						class="hover:underline-offset-4 hover:underline text-lg font-medium"
+						href="mailto:hey@skulpture.xyz">
+						hey@skulpture.xyz
+					</a>
+				</FooterSection>
+			</Footer>
 		</ThemeProvider>
 	</body>
 </html>
