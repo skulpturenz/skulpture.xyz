@@ -32,7 +32,7 @@ export const Footer = ({ className, children }: FooterProps) => {
 				<div className="flex flex-col gap-8">
 					<div>
 						<LogoIconDark className="light:hidden w-10 h-10 text-primary" />
-						<LogoIconLight className="dark:hidden w-10 h-10 text-primary" />
+						<LogoIconLight className="hidden dark:block w-10 h-10 text-primary" />
 						<span className="sr-only">{resources.skulpture}</span>
 					</div>
 					<span className="font-medium text-regular lg:text-xl">
