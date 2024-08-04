@@ -15,6 +15,7 @@ export interface FooterProps {
 }
 
 const resources = {
+	skulpture: "Skulpture",
 	subtitle: "Your problems, our specialty",
 	workTogether: "Let's work together",
 };
@@ -27,13 +28,14 @@ export const Footer = ({ className, children }: FooterProps) => {
 				className,
 				"flex flex-col gap-20",
 			)}>
-			<div className="flex flex-col gap-10 md:gap-0 md:flex-row md:items-start md:justify-between mt-24">
+			<div className="flex flex-col gap-10 lg:gap-0 lg:flex-row lg:items-start lg:justify-between mt-24">
 				<div className="flex flex-col gap-8">
 					<div>
 						<LogoIconDark className="light:hidden w-10 h-10 text-primary" />
 						<LogoIconLight className="dark:hidden w-10 h-10 text-primary" />
+						<span className="sr-only">{resources.skulpture}</span>
 					</div>
-					<span className="font-medium text-regular md:text-xl">
+					<span className="font-medium text-regular lg:text-xl">
 						{resources.subtitle}
 					</span>
 				</div>
@@ -68,7 +70,7 @@ export const ContactBlock = ({ className }: ContactBlockProps) => (
 			<div
 				className={cn(
 					className,
-					"bg-primary text-primary-foreground w-full rounded-3xl md:rounded-2xl h-40 xl:h-80 flex items-center justify-between px-10 xl:px-24",
+					"bg-primary text-primary-foreground w-full rounded-3xl lg:rounded-2xl h-40 xl:h-80 flex items-center justify-between px-10 xl:px-24",
 				)}>
 				<span className="font-bold text-4xl xl:text-7xl max-w-[15rem] xl:max-w-sm tracking-tighter">
 					{resources.workTogether}

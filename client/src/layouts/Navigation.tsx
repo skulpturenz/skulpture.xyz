@@ -19,6 +19,7 @@ export interface NavigationItem {
 }
 
 const resources = {
+	skulpture: "Skulpture",
 	doOpenMobileMenu: "Open main menu",
 	doContactUs: "Contact us",
 };
@@ -29,7 +30,7 @@ export const Navigation = ({ items }: NavigationProps) => {
 			<div className={cn(constants.contentContainer)}>
 				<div className="flex h-24 justify-between">
 					<div className="flex">
-						<div className="-ml-2 mr-1 flex items-center md:hidden">
+						<div className="-ml-2 mr-1 flex items-center lg:hidden">
 							<DisclosureButton className="group relative inline-flex items-center justify-center rounded-md p-2 text-foreground/70 hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset">
 								<span className="absolute -inset-0.5" />
 								<span className="sr-only">
@@ -49,14 +50,20 @@ export const Navigation = ({ items }: NavigationProps) => {
 							<a href="/">
 								<LogoLight className="h-6 w-auto dark:hidden" />
 								<LogoDark className="h-6 w-auto light:hidden" />
+								<span className="sr-only">
+									{resources.skulpture}
+								</span>
 							</a>
 						</div>
 					</div>
 					<div className="flex items-center">
-						<div className="hidden md:mr-11 md:flex md:flex-shrink-0 md:items-center">
+						<div className="hidden lg:mr-11 lg:flex lg:flex-shrink-0 lg:items-center">
 							{items?.map(item => {
 								return (
-									<Button key={item.pathname} variant="link">
+									<Button
+										key={item.pathname}
+										variant="link"
+										asChild>
 										<a href={item.pathname}>{item.label}</a>
 									</Button>
 								);
@@ -71,7 +78,7 @@ export const Navigation = ({ items }: NavigationProps) => {
 				</div>
 			</div>
 
-			<DisclosurePanel className="md:hidden border-b-2 rounded-b-sm">
+			<DisclosurePanel className="lg:hidden border-b-2 rounded-b-sm">
 				<div className="space-y-1 px-2 pb-3 pt-2 sm:px-3">
 					{items?.map(item => {
 						return (

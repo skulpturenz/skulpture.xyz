@@ -9,7 +9,7 @@ import ponderingImage075x from "@/components/assets/images/pondering-block-0.75x
 import ponderingImage1x from "@/components/assets/images/pondering-block-1x.png";
 import { constants } from "@/components/constants";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { Link } from "@/components/ui/button";
 
 const TITLE = "Skulpture";
 const DESCRIPTION = "Software, Delivery, Advisory";
@@ -42,22 +42,20 @@ const resources = {
 				constants.contentContainer,
 				"flex flex-col items-start justify-center h-screen gap-8 first:mb-3",
 			)}>
-			<h1 class="font-bold text-4xl md:text-6xl tracking-tight">
+			<h1 class="font-bold text-4xl lg:text-6xl tracking-tight">
 				{resources.intro.header}
 			</h1>
 			<p
-				class="text-xl max-w-lg md:text-3xl md:max-w-3xl tracking-tight text-foreground/75">
+				class="text-xl max-w-lg lg:text-3xl lg:max-w-3xl tracking-tight text-foreground/75">
 				{resources.intro.subtitle}
 			</p>
-			<Button>
-				<a href="/contact">
-					{resources.intro.doContactUs}
-				</a>
-			</Button>
+			<Link href="/contact">
+				{resources.intro.doContactUs}
+			</Link>
 		</div>
 	</div>
 	<div class={cn(constants.vhContainer, "flex items-center justify-center")}>
-		<span class="text-5xl md:text-6xl tracking-tighter text-center">
+		<span class="text-5xl lg:text-6xl tracking-tighter text-center">
 			<span class="font-bold">
 				{resources.banner.tagline.at(0)}
 			</span>&nbsp;{resources.banner.tagline.at(1)}
@@ -77,7 +75,7 @@ const resources = {
 		class={cn(
 			constants.vhContainer,
 			constants.contentContainer,
-			"flex flex-col md:flex-row items-center gap-32 my-20 md:my-0",
+			"flex flex-col lg:flex-row items-center gap-32 my-20 lg:my-0",
 		)}>
 		<Image
 			srcset={[
@@ -85,23 +83,23 @@ const resources = {
 				`${ponderingImage075x.src} 0.75x`,
 				`${ponderingImage1x.src} 1x`,
 			].join(", ")}
-			src={ponderingImage1x}
+			src={ponderingImage05x}
 			alt={resources.banner.alt}
-			class="w-full h-auto md:h-auto md:w-1/2"
+			class="w-full h-auto lg:h-auto lg:w-1/2"
 		/>
 		<div class="flex flex-col gap-6">
-			<h5 class="text-primary font-bold text-xs tracking-wide uppercase">
+			<h1 class="text-primary font-bold text-xs tracking-wide uppercase">
 				{resources.about.header}
-			</h5>
-			<p class="font-bold text-2xl lg:text-4xl tracking-tight">
+			</h1>
+			<h2 class="font-bold text-2xl lg:text-4xl tracking-tight">
 				{resources.about.subtitle}
-			</p>
+			</h2>
 			<p class="text-sm lg:text-base text-foreground/80">
 				{resources.about.description}
 			</p>
-			<Button variant="outline" className="max-w-min">
-				<a href="/about">{resources.about.doLearnMore}</a>
-			</Button>
+			<Link href="/about" variant="outline" className="max-w-min">
+				{resources.about.doLearnMore}
+			</Link>
 		</div>
 	</div>
 	<div class={cn(constants.vhContainer, "bg-secondary")}>
