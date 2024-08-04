@@ -3,6 +3,7 @@ import react from "@astrojs/react";
 import tailwind from "@astrojs/tailwind";
 import sitemap from "@astrojs/sitemap";
 import svgr from "vite-plugin-svgr";
+import robotsTxt from "astro-robots-txt";
 
 // https://astro.build/config
 export default defineConfig({
@@ -15,6 +16,7 @@ export default defineConfig({
 			applyBaseStyles: false,
 		}),
 		sitemap(),
+		robotsTxt(),
 	],
 	vite: {
 		plugins: [svgr()],
