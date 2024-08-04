@@ -9,7 +9,7 @@ import ponderingImage075x from "@/components/assets/images/pondering-block-0.75x
 import ponderingImage1x from "@/components/assets/images/pondering-block-1x.png";
 import { constants } from "@/components/constants";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { Link } from "@/components/ui/button";
 
 const TITLE = "Skulpture";
 const DESCRIPTION = "Software, Delivery, Advisory";
@@ -49,11 +49,9 @@ const resources = {
 				class="text-xl max-w-lg lg:text-3xl lg:max-w-3xl tracking-tight text-foreground/75">
 				{resources.intro.subtitle}
 			</p>
-			<Button>
-				<a href="/contact">
-					{resources.intro.doContactUs}
-				</a>
-			</Button>
+			<Link href="/contact">
+				{resources.intro.doContactUs}
+			</Link>
 		</div>
 	</div>
 	<div class={cn(constants.vhContainer, "flex items-center justify-center")}>
@@ -85,23 +83,23 @@ const resources = {
 				`${ponderingImage075x.src} 0.75x`,
 				`${ponderingImage1x.src} 1x`,
 			].join(", ")}
-			src={ponderingImage1x}
+			src={ponderingImage05x}
 			alt={resources.banner.alt}
 			class="w-full h-auto lg:h-auto lg:w-1/2"
 		/>
 		<div class="flex flex-col gap-6">
-			<h5 class="text-primary font-bold text-xs tracking-wide uppercase">
+			<h1 class="text-primary font-bold text-xs tracking-wide uppercase">
 				{resources.about.header}
-			</h5>
-			<p class="font-bold text-2xl lg:text-4xl tracking-tight">
+			</h1>
+			<h2 class="font-bold text-2xl lg:text-4xl tracking-tight">
 				{resources.about.subtitle}
-			</p>
+			</h2>
 			<p class="text-sm lg:text-base text-foreground/80">
 				{resources.about.description}
 			</p>
-			<Button variant="outline" className="max-w-min">
-				<a href="/about">{resources.about.doLearnMore}</a>
-			</Button>
+			<Link href="/about" variant="outline" className="max-w-min">
+				{resources.about.doLearnMore}
+			</Link>
 		</div>
 	</div>
 	<div class={cn(constants.vhContainer, "bg-secondary")}>

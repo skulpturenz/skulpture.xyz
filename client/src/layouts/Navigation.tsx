@@ -19,6 +19,7 @@ export interface NavigationItem {
 }
 
 const resources = {
+	skulpture: "Skulpture",
 	doOpenMobileMenu: "Open main menu",
 	doContactUs: "Contact us",
 };
@@ -49,6 +50,9 @@ export const Navigation = ({ items }: NavigationProps) => {
 							<a href="/">
 								<LogoLight className="h-6 w-auto dark:hidden" />
 								<LogoDark className="h-6 w-auto light:hidden" />
+								<span className="sr-only">
+									{resources.skulpture}
+								</span>
 							</a>
 						</div>
 					</div>
@@ -56,7 +60,10 @@ export const Navigation = ({ items }: NavigationProps) => {
 						<div className="hidden lg:mr-11 lg:flex lg:flex-shrink-0 lg:items-center">
 							{items?.map(item => {
 								return (
-									<Button key={item.pathname} variant="link">
+									<Button
+										key={item.pathname}
+										variant="link"
+										asChild>
 										<a href={item.pathname}>{item.label}</a>
 									</Button>
 								);

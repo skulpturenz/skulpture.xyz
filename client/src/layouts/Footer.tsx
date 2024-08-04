@@ -15,6 +15,7 @@ export interface FooterProps {
 }
 
 const resources = {
+	skulpture: "Skulpture",
 	subtitle: "Your problems, our specialty",
 	workTogether: "Let's work together",
 };
@@ -32,6 +33,7 @@ export const Footer = ({ className, children }: FooterProps) => {
 					<div>
 						<LogoIconDark className="light:hidden w-10 h-10 text-primary" />
 						<LogoIconLight className="dark:hidden w-10 h-10 text-primary" />
+						<span className="sr-only">{resources.skulpture}</span>
 					</div>
 					<span className="font-medium text-regular lg:text-xl">
 						{resources.subtitle}
