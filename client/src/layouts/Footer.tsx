@@ -76,7 +76,8 @@ export const ContactBlock = ({ className }: ContactBlockProps) => (
 				<motion.div
 					initial={{ x: "-100%", opacity: 0 }}
 					whileInView={{ x: 0, opacity: 1 }}
-					viewport={{ once: true }}>
+					viewport={{ once: true }}
+					transition={{ delay: 0.25 }}>
 					<ArrowRight className="xl:h-40 h-20 w-auto" />
 				</motion.div>
 			</div>
