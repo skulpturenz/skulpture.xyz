@@ -4,11 +4,17 @@ import { Image } from "astro:assets";
 import astronautImage05x from "@/components/assets/images/astronaut-block-0.5x.png";
 import astronautImage075x from "@/components/assets/images/astronaut-block-0.75x.png";
 import astronautImage1x from "@/components/assets/images/astronaut-block-1x.png";
+import { constants } from "@/components/constants";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const TITLE = "Skulpture";
 const DESCRIPTION = "Software, Delivery, Advisory";
 
 const resources = {
+	intro: {
+		doContactUs: "Contact us",
+	},
 	banner: {
 		tagline: ["Building the future,", "today."],
 		alt: "Serious business",
@@ -17,6 +23,26 @@ const resources = {
 ---
 
 <BaseLayout title={TITLE} description={DESCRIPTION}>
+	<div class="min-h-screen">
+		<div
+			class={cn(
+				constants.contentContainer,
+				"flex flex-col items-start justify-center h-screen gap-8 first:mb-3",
+			)}>
+			<h1 class="font-bold text-4xl md:text-6xl tracking-tight">
+				Your idea, to fruition
+			</h1>
+			<p class="text-xl max-w-lg md:text-3xl md:max-w-3xl tracking-tight">
+				Collaborate with us to find simple, reliable software solutions
+				to your complex business problems.
+			</p>
+			<Button>
+				<a href="/contact">
+					{resources.intro.doContactUs}
+				</a>
+			</Button>
+		</div>
+	</div>
 	<div class="min-h-screen flex items-center justify-center">
 		<span class="text-5xl md:text-6xl tracking-tighter text-center">
 			<span class="font-bold">
