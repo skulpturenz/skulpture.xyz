@@ -63,7 +63,9 @@ export const Navigation = ({ items }: NavigationProps) => {
 							})}
 						</div>
 						<div className="flex-shrink-0">
-							<Button>{resources.doContactUs}</Button>
+							<Button asChild>
+								<a href="/contact">{resources.doContactUs}</a>
+							</Button>
 						</div>
 					</div>
 				</div>
@@ -84,7 +86,7 @@ export const Navigation = ({ items }: NavigationProps) => {
 									isCurrent(item)
 										? "bg-secondary text-white"
 										: "text-foreground hover:bg-secondary hover:text-secondary-foreground",
-									"block rounded-full px-5 py-2 text-base font-medium",
+									"block rounded-md px-5 py-2 text-base font-medium",
 								)}>
 								{item.label}
 							</DisclosureButton>
