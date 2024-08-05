@@ -1,7 +1,6 @@
 ---
 import "@/styles/globals.css";
 import { SEO } from "astro-seo";
-import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Navigation, type NavigationItem } from "./Navigation";
 import { Footer, FooterSection, ContactBlock } from "./Footer";
 import { constants } from "@/components/constants";
@@ -54,50 +53,18 @@ const navigationItems: NavigationItem[] = [
 		<SEO title={title} description={description} />
 	</head>
 	<body>
-		<ThemeProvider
-			storageKey={`skulpture-theme-${import.meta.env.MODE}`}
-			client:only="react">
-			<Navigation items={navigationItems} client:load />
-			<slot />
-			{
-				!isContactBlockHidden && (
-					<div class="relative">
-						<div class="absolute w-full -top-20 xl:-top-40">
-							<div class={constants.contentContainer}>
-								<ContactBlock client:load />
-							</div>
+		<Navigation items={navigationItems} client:load />
+
+		<slot />
+		{
+			!isContactBlockHidden && (
+				<div class="relative">
+					<div class="absolute w-full -top-20 xl:-top-40">
+						<div class={constants.contentContainer}>
+							<ContactBlock client:load />
 						</div>
-						<Footer className="pt-20 xl:pt-40">
-							<FooterSection>
-								<span>{resources.footer.company.header}</span>
-								<a
-									class="hover:underline-offset-4 hover:underline text-lg font-medium"
-									href="/about">
-									{resources.footer.company.about}
-								</a>
-								<a
-									class="hover:underline-offset-4 hover:underline text-lg font-medium"
-									href="/contact">
-									{resources.footer.company.contact}
-								</a>
-							</FooterSection>
-
-							<FooterSection>
-								<span>{resources.footer.contact.header}</span>
-								<a
-									class="hover:underline-offset-4 hover:underline text-lg font-medium"
-									href="mailto:hey@skulpture.xyz">
-									hey@skulpture.xyz
-								</a>
-							</FooterSection>
-						</Footer>
 					</div>
-				)
-			}
-
-			{
-				isContactBlockHidden && (
-					<Footer>
+					<Footer className="pt-20 xl:pt-40">
 						<FooterSection>
 							<span>{resources.footer.company.header}</span>
 							<a
@@ -121,8 +88,37 @@ const navigationItems: NavigationItem[] = [
 							</a>
 						</FooterSection>
 					</Footer>
-				)
-			}
-		</ThemeProvider>
+				</div>
+			)
+		}
+
+		{
+			isContactBlockHidden && (
+				<Footer>
+					<FooterSection>
+						<span>{resources.footer.company.header}</span>
+						<a
+							class="hover:underline-offset-4 hover:underline text-lg font-medium"
+							href="/about">
+							{resources.footer.company.about}
+						</a>
+						<a
+							class="hover:underline-offset-4 hover:underline text-lg font-medium"
+							href="/contact">
+							{resources.footer.company.contact}
+						</a>
+					</FooterSection>
+
+					<FooterSection>
+						<span>{resources.footer.contact.header}</span>
+						<a
+							class="hover:underline-offset-4 hover:underline text-lg font-medium"
+							href="mailto:hey@skulpture.xyz">
+							hey@skulpture.xyz
+						</a>
+					</FooterSection>
+				</Footer>
+			)
+		}
 	</body>
 </html>

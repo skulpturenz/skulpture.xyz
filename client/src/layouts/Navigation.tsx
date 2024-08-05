@@ -8,6 +8,7 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { constants } from "@/components/constants";
+import { ToggleTheme } from "@/components/ui/theme-provider";
 
 export interface NavigationProps {
 	items?: NavigationItem[];
@@ -69,7 +70,11 @@ export const Navigation = ({ items }: NavigationProps) => {
 								);
 							})}
 						</div>
-						<div className="flex-shrink-0">
+						<div className="flex gap-2 items-center">
+							<ToggleTheme
+								storageKey={`skulpture-theme-${import.meta.env.MODE}`}
+							/>
+
 							<Button asChild>
 								<a href="/contact">{resources.doContactUs}</a>
 							</Button>
