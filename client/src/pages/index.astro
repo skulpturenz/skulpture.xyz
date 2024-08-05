@@ -184,8 +184,38 @@ const resources = {
 					{resources.services.subtitle}
 				</h2>
 			</div>
+
+			<!-- Small screen sizes -->
 			<div
-				class="grid lg:grid-cols-10 grid-flow-row justify-center items-start gap-6 lg:gap-20 w-full">
+				class="flex lg:hidden flex-col gap-6 w-full border-y-4 divide-y-4">
+				{
+					resources.services.items.map((item, idx, arr) => (
+						<div class={cn("w-full flex flex-col gap-6")}>
+							<div class="mt-6 font-bold text-xl lg:text-3xl">
+								{item.header}
+							</div>
+							<div class="text-foreground/80 text-base lg:text-base">
+								<div class="max-w-2xl">{item.description}</div>
+							</div>
+							<div
+								class={cn(
+									idx === arr.length - 1 ? "mb-6" : "",
+									"font-medium text-foreground/80",
+								)}>
+								<ul class="space-y-1 font-medium text-base lg:text-lg">
+									{item.services.map(service => (
+										<li>{service}</li>
+									))}
+								</ul>
+							</div>
+						</div>
+					))
+				}
+			</div>
+
+			<!-- Large screen sizes -->
+			<div
+				class="hidden lg:grid lg:grid-cols-10 grid-flow-row justify-center items-start gap-6 lg:gap-20">
 				{
 					resources.services.items.map(item => (
 						<>
@@ -194,7 +224,7 @@ const resources = {
 								{item.header}
 							</div>
 							<div class="row-span-1 lg:row-auto lg:col-span-4 text-foreground/80 text-base lg:text-base">
-								{item.description}
+								<div class="max-w-md">{item.description}</div>
 							</div>
 							<div class="row-span-1 lg:row-auto lg:col-span-3 font-medium text-foreground/80">
 								<ul class="space-y-1 font-medium text-base lg:text-lg">
