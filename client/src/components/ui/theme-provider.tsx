@@ -1,26 +1,37 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { MoonStar, Sun, SunMoon } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 export type Theme = "dark" | "light" | "system";
 
-const resources = {
-	toggleTheme: "Toggle theme",
+type ThemeProviderProps = {
+	children: React.ReactNode;
+	defaultTheme?: Theme;
+	storageKey?: string;
 };
 
-export const ToggleTheme = ({
+type ThemeProviderState = {
+	theme: Theme;
+	setTheme: (theme: Theme) => void;
+};
+
+const initialState: ThemeProviderState = {
+	theme: "system",
+	setTheme: () => null,
+};
+
+const ThemeProviderContext =
+	React.createContext<ThemeProviderState>(initialState);
+
+export const DEFAULT_THEME = "dark";
+export const DEFAULT_THEME_STORAGE_KEY = "skulpture-landing-theme";
+
+export const ThemeProvider = ({
+	children,
 	defaultTheme = "system",
 	storageKey = "vite-ui-theme",
-}) => {
-	const [theme, setTheme] = React.useState(
-		() => getStoredLocalTheme(storageKey) ?? defaultTheme,
+	...props
+}: ThemeProviderProps) => {
+	const [theme, setTheme] = React.useState<Theme>(
+		() => (localStorage.getItem(storageKey) as Theme) || defaultTheme,
 	);
 
 	React.useEffect(() => {
@@ -42,68 +53,26 @@ export const ToggleTheme = ({
 		root.classList.add(theme);
 	}, [theme]);
 
-	const nextTheme = () => {
-		const validThemes: Theme[] = ["light", "dark", "system"];
-
-		const currentThemeIdx = validThemes.findIndex(
-			validTheme => validTheme === theme,
-		);
-
-		const nextThemeIdx = (currentThemeIdx + 1) % validThemes.length;
-		const nextTheme = validThemes.at(nextThemeIdx) as Theme;
-
-		return nextTheme;
-	};
-
-	const onClickToggleTheme = () => {
-		const theme = nextTheme();
-
-		localStorage.setItem(storageKey, theme);
-
-		setTheme(theme);
+	const value = {
+		theme,
+		setTheme: (theme: Theme) => {
+			localStorage.setItem(storageKey, theme);
+			setTheme(theme);
+		},
 	};
 
 	return (
-		<TooltipProvider>
-			<Tooltip>
-				<TooltipTrigger asChild>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={onClickToggleTheme}>
-						<Sun
-							className={cn(
-								"h-5 w-auto aspect-square rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0",
-								theme === "system" ? "hidden" : "",
-							)}
-						/>
-						<MoonStar
-							className={cn(
-								"absolute h-5 w-auto aspect-square rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-primary",
-								theme === "system" ? "hidden" : "",
-							)}
-						/>
-						<SunMoon
-							className={cn(
-								"absolute h-5 w-auto aspect-square transition-all dark:text-primary light:text-foreground",
-								theme !== "system" ? "scale-0" : "scale-100",
-							)}
-						/>
-						<span className="sr-only">{resources.toggleTheme}</span>
-					</Button>
-				</TooltipTrigger>
-				<TooltipContent>
-					<span>{resources.toggleTheme}</span>
-				</TooltipContent>
-			</Tooltip>
-		</TooltipProvider>
+		<ThemeProviderContext.Provider {...props} value={value}>
+			{children}
+		</ThemeProviderContext.Provider>
 	);
 };
 
-const getStoredLocalTheme = (storageKey: string) => {
-	if (import.meta.env.SSR) {
-		return null;
-	}
+export const useTheme = () => {
+	const context = React.useContext(ThemeProviderContext);
 
-	return localStorage.getItem(storageKey) as Theme;
+	if (context === undefined)
+		throw new Error("useTheme must be used within a ThemeProvider");
+
+	return context;
 };
