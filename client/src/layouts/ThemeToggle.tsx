@@ -12,8 +12,15 @@ import {
 	DEFAULT_THEME,
 	DEFAULT_THEME_STORAGE_KEY,
 } from "@/components/ui/theme-provider";
+import { topographyLight, topographyDark } from "@/components/assets";
+import { constants } from "@/components/constants";
 
 export type Theme = "dark" | "light" | "system";
+
+export interface ToggleThemeProps {
+	defaultTheme?: Theme;
+	storageKey?: string;
+}
 
 const resources = {
 	toggleTheme: "Toggle theme",
@@ -23,16 +30,12 @@ const resources = {
 export const ToggleTheme = ({
 	defaultTheme = DEFAULT_THEME,
 	storageKey = DEFAULT_THEME_STORAGE_KEY,
-}) => {
-	const [theme, setTheme] = React.useState(
+}: ToggleThemeProps) => {
+	const [theme, setTheme] = React.useState<Theme>(
 		() => getStoredLocalTheme(storageKey) ?? defaultTheme,
 	);
 
-	React.useEffect(() => {
-		const root = window.document.documentElement;
-
-		root.classList.remove("light", "dark");
-
+	const getNextTheme = (): Theme => {
 		if (theme === "system") {
 			const systemTheme = window.matchMedia(
 				"(prefers-color-scheme: dark)",
@@ -40,11 +43,35 @@ export const ToggleTheme = ({
 				? "dark"
 				: "light";
 
-			root.classList.add(systemTheme);
-			return;
+			return systemTheme;
 		}
 
-		root.classList.add(theme);
+		return theme;
+	};
+
+	React.useEffect(() => {
+		const root = window.document.documentElement;
+
+		root.classList.remove("light", "dark");
+
+		const nextTheme = getNextTheme();
+
+		root.classList.add(nextTheme);
+	}, [theme]);
+
+	React.useEffect(() => {
+		const nextTheme = getNextTheme();
+
+		const landingPattern =
+			nextTheme === "dark" ? topographyDark : topographyLight;
+		const landingIntroSection = document.getElementById(
+			constants.id.landingIntro,
+		) as HTMLElement;
+
+		landingIntroSection.style.setProperty(
+			"background-image",
+			`url('${landingPattern.src}')`,
+		);
 	}, [theme]);
 
 	const nextTheme = () => {

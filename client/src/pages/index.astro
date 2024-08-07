@@ -10,6 +10,7 @@ import ponderingImage1x from "@/components/assets/images/pondering-block-1x.png"
 import { constants } from "@/components/constants";
 import { cn } from "@/lib/utils";
 import { Link } from "@/components/ui/button";
+import { topographyDark } from "@/components/assets";
 
 const TITLE = "Skulpture";
 const DESCRIPTION = "Software, Delivery, Advisory";
@@ -148,7 +149,13 @@ const resources = {
 ---
 
 <BaseLayout title={TITLE} description={DESCRIPTION}>
-	<div class={cn(constants.pageContainer)}>
+	<!--
+		Default `backgroundImage` based on default theme so that there is a pattern until `ThemeToggle` kicks in
+	-->
+	<div
+		id={constants.id.landingIntro}
+		style={{ backgroundImage: `url('${topographyDark.src}')` }}
+		class={cn(constants.pageContainer, "bg-cover")}>
 		<div
 			class={cn(
 				constants.contentContainer,
