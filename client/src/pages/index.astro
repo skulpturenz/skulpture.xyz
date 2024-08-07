@@ -149,7 +149,9 @@ const resources = {
 ---
 
 <BaseLayout title={TITLE} description={DESCRIPTION}>
-	<!-- Default `backgroundImage` when ssr so that there is no bg loading after page load -->
+	<!--
+		Default `backgroundImage` based on default theme so that there is a pattern until `ThemeToggle` kicks in
+	-->
 	<div
 		id={constants.id.landingIntro}
 		style={{ backgroundImage: `url('${topographyDark.src}')` }}
