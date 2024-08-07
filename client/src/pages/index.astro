@@ -148,7 +148,7 @@ const resources = {
 ---
 
 <BaseLayout title={TITLE} description={DESCRIPTION}>
-	<div class={cn(constants.vhContainer)}>
+	<div class={cn(constants.pageContainer)}>
 		<div
 			class={cn(
 				constants.contentContainer,
@@ -168,7 +168,7 @@ const resources = {
 	</div>
 	<div
 		class={cn(
-			constants.vhContainer,
+			constants.pageContainer,
 			"bg-secondary text-secondary-foreground",
 		)}>
 		<div
@@ -240,7 +240,8 @@ const resources = {
 			</div>
 		</div>
 	</div>
-	<div class={cn(constants.vhContainer, "flex items-center justify-center")}>
+	<div
+		class={cn(constants.pageContainer, "flex items-center justify-center")}>
 		<span
 			class="text-5xl lg:text-6xl tracking-tighter text-center text-white">
 			<span class="font-bold">
@@ -260,7 +261,7 @@ const resources = {
 	</div>
 	<div
 		class={cn(
-			constants.vhContainer,
+			constants.pageContainer,
 			constants.contentContainer,
 			"flex flex-col lg:flex-row items-center gap-32",
 		)}>
@@ -291,7 +292,10 @@ const resources = {
 	</div>
 	<div
 		class={cn(
-			constants.vhContainer,
+			constants.pageContainer,
+			// `calc(5rem + 5rem)` = 0.5 * lg:footer height + page padding
+			// `calc(10rem + 5rem)` = 0.5 * xl:footer height + page padding
+			"min-h-full lg:pb-[calc(5rem+5rem)] xl:pb-[calc(10rem+5rem)]",
 			"bg-secondary text-secondary-foreground",
 		)}>
 		<div
