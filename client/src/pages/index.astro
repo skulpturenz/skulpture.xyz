@@ -155,13 +155,14 @@ const resources = {
 	<div
 		id={constants.id.landingIntro}
 		style={{ backgroundImage: `url('${topographyDark.src}')` }}
-		class={cn(constants.pageContainer, "bg-cover")}>
+		class={cn(constants.pageContainer, "bg-cover", "min-h-full")}>
 		<div
 			class={cn(
 				constants.contentContainer,
-				"flex flex-col items-start justify-center h-screen gap-8 first:mb-3",
+				// h-[calc(100vh-6rem)] = 100vh - navigation bar height
+				"flex flex-col items-start justify-center h-[calc(100vh-6rem)] gap-8",
 			)}>
-			<h1 class="font-bold text-4xl lg:text-6xl tracking-tight">
+			<h1 class="font-bold text-4xl lg:text-6xl tracking-tight mb-3">
 				{resources.intro.header}
 			</h1>
 			<p
