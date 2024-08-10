@@ -11,10 +11,92 @@ const TITLE = "Skulpture";
 const DESCRIPTION = "Software, Delivery, Advisory";
 
 const resources = {
-	header: "About Us",
+	ui: {
+		sectionHeader:
+			"text-primary font-bold text-base sm:text-sm md:text-xs tracking-wide uppercase",
+		sectionSubtitle: "font-bold text-2xl lg:text-4xl tracking-tight",
+		sectionContainer: "flex flex-col items-center justify-center gap-12",
+		sectionHeaderContainer: "flex flex-col gap-6",
+	},
+	header: "About us",
 	banner: {
 		tagline: "Striving to deliver excellence",
 		alt: "Serious business",
+	},
+	whyWhatWho: {
+		items: [
+			{
+				header: "Why?",
+				description: [
+					"Software acts as a force multiplier allowing our clients",
+					"to operate at levels which are otherwise not feasible and",
+					"our passion is to leverage our craft to build levers for our clients",
+				].join(" "),
+			},
+			{
+				header: "What?",
+				description: [
+					"We build software well to a high level of quality to minimise",
+					"operational costs over the long-term whilst advocating for and",
+					"fostering the culture necessary required to continue building",
+					"great products for our clients",
+				].join(" "),
+			},
+			{
+				header: "Who?",
+				description: [
+					"We work with individuals and small to medium sized businesses",
+					"to enable them to achieve greater heights",
+				].join(" "),
+			},
+		],
+	},
+	values: {
+		header: "Our values",
+		subtitle: "Partnerships driven by shared values",
+		items: [
+			{
+				header: "Respect",
+				description: [
+					"A commitment to an environment where differing",
+					"viewpoints are respected and compromises reached,",
+					"your success is equally our success",
+				].join(" "),
+			},
+			{
+				header: "Integrity",
+				description: [
+					"A promise to be transparent,",
+					"open and honest in our lines of communication",
+					"so that you are not caught off guard",
+				].join(" "),
+			},
+			{
+				header: "Collaboration",
+				description: [
+					"A promise to work with you to see the world through your eyes with our shades on",
+				].join(" "),
+			},
+			{
+				header: "Trust",
+				description: [
+					"A promise to work in your best interests always, short-term and long-term",
+				].join(" "),
+			},
+			{
+				header: "Excellence",
+				description: [
+					"A promise to keep our standards high to keep your systems operational, secure and reliable",
+				].join(" "),
+			},
+			{
+				header: "Simplicity",
+				description: [
+					"A promise to deliver simple solutions which solves today's",
+					"problems with an eye toward the future",
+				],
+			},
+		],
 	},
 };
 ---
@@ -55,5 +137,57 @@ const resources = {
 			class="h-screen object-cover w-auto absolute -z-10 brightness-75"
 		/>
 	</div>
-	<div class={cn(constants.pageContainer)}></div>
+	<!-- `mb` same as `py` on `contentContainer` -->
+	<div class={cn(constants.pageContainer, "mb-20 lg:mb-40")}>
+		<div
+			class={cn(
+				constants.contentContainer,
+				resources.ui.sectionContainer,
+			)}>
+			<div class={resources.ui.sectionHeaderContainer}>
+				<h1 class={cn(resources.ui.sectionHeader, "text-center")}>
+					{resources.values.header}
+				</h1>
+				<h2 class={cn(resources.ui.sectionSubtitle, "text-center")}>
+					{resources.values.subtitle}
+				</h2>
+			</div>
+			<div class="w-full flex flex-col md:grid md:grid-cols-2 md:gap-x-5">
+				{
+					resources.values.items.map((value, idx) => {
+						const getBorder = () => {
+							if (idx === 0 || idx === 1) {
+								return "border-t-4";
+							}
+
+							if (idx === 4 || idx === 5) {
+								return "border-b-4";
+							}
+
+							if (idx === 3) {
+								return "border-b-4 md:border-y-4";
+							}
+
+							return "border-y-4";
+						};
+
+						return (
+							<div
+								class={cn(
+									"flex flex-col gap-y-5 lg:grid lg:grid-cols-5 py-8",
+									getBorder(),
+								)}>
+								<span class="font-bold col-span-2 tracking-tight text-xl lg:text-2xl">
+									{value.header}
+								</span>
+								<span class="col-span-3 text-foreground/80 text-sm lg:text-base lg:max-w-xs">
+									{value.description}
+								</span>
+							</div>
+						);
+					})
+				}
+			</div>
+		</div>
+	</div>
 </BaseLayout>
