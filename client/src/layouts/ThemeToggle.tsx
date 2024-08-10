@@ -66,9 +66,9 @@ export const ToggleTheme = ({
 			nextTheme === "dark" ? topographyDark : topographyLight;
 		const landingIntroSection = document.getElementById(
 			constants.id.landingIntro,
-		) as HTMLElement;
+		) as HTMLElement | null;
 
-		landingIntroSection.style.setProperty(
+		landingIntroSection?.style.setProperty(
 			"background-image",
 			`url('${landingPattern.src}')`,
 		);
