@@ -118,7 +118,29 @@ const resources = {
 		class={cn(
 			constants.pageContainer,
 			"bg-secondary text-secondary-foreground",
+			"min-h-full py-0",
 		)}>
+		<div
+			class={cn(
+				constants.contentContainer,
+				resources.ui.sectionContainer,
+				"h-screen",
+			)}>
+			<div class="flex h-4/5 w-full flex-col justify-between">
+				{
+					resources.whyWhatWho.items.map((value, idx) => (
+						<div class={cn("flex flex-col gap-y-5 py-8")}>
+							<span class="col-span-2 text-2xl font-bold tracking-tight">
+								{value.header}
+							</span>
+							<span class="col-span-3 max-w-5xl text-base text-secondary-foreground/80">
+								{value.description}
+							</span>
+						</div>
+					))
+				}
+			</div>
+		</div>
 	</div>
 	<div
 		class={cn(constants.pageContainer, "flex items-center justify-center")}>
