@@ -109,7 +109,7 @@ const resources = {
 				// h-[calc(100vh-6rem)] = 100vh - navigation bar height
 				"flex flex-col items-start justify-center h-20 lg:h-40 gap-8",
 			)}>
-			<h1 class="font-bold text-4xl lg:text-6xl tracking-tight">
+			<h1 class="text-4xl font-bold tracking-tight lg:text-6xl">
 				{resources.header}
 			</h1>
 		</div>
@@ -123,7 +123,7 @@ const resources = {
 	<div
 		class={cn(constants.pageContainer, "flex items-center justify-center")}>
 		<span
-			class="text-5xl lg:text-6xl tracking-tighter text-center text-white font-bold">
+			class="text-center text-5xl font-bold tracking-tighter text-white lg:text-6xl">
 			{resources.banner.tagline}
 		</span>
 		<Image
@@ -134,7 +134,7 @@ const resources = {
 			].join(", ")}
 			src={astronautImage05x}
 			alt={resources.banner.alt}
-			class="h-screen object-cover w-auto absolute -z-10 brightness-75"
+			class="absolute -z-10 h-screen w-auto object-cover brightness-75"
 		/>
 	</div>
 	<!-- `mb` same as `py` on `contentContainer` -->
@@ -152,7 +152,7 @@ const resources = {
 					{resources.values.subtitle}
 				</h2>
 			</div>
-			<div class="w-full flex flex-col md:grid md:grid-cols-2 md:gap-x-5">
+			<div class="flex w-full flex-col md:grid md:grid-cols-2 md:gap-x-5">
 				{
 					resources.values.items.map((value, idx) => {
 						const getBorder = () => {
@@ -174,13 +174,13 @@ const resources = {
 						return (
 							<div
 								class={cn(
-									"flex flex-col gap-y-5 lg:grid lg:grid-cols-5 py-8",
+									"flex flex-col gap-y-5 py-8 lg:grid lg:grid-cols-5",
 									getBorder(),
 								)}>
-								<span class="font-bold col-span-2 tracking-tight text-xl lg:text-2xl">
+								<span class="col-span-2 text-xl font-bold tracking-tight lg:text-2xl">
 									{value.header}
 								</span>
-								<span class="col-span-3 text-foreground/80 text-sm lg:text-base lg:max-w-xs">
+								<span class="col-span-3 text-sm text-foreground/80 lg:max-w-xs lg:text-base">
 									{value.description}
 								</span>
 							</div>

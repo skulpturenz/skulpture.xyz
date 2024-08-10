@@ -28,14 +28,14 @@ export const Footer = ({ className, children }: FooterProps) => {
 				className,
 				"flex flex-col gap-20",
 			)}>
-			<div className="flex flex-col gap-10 lg:gap-0 lg:flex-row lg:items-start lg:justify-between mt-24">
+			<div className="mt-24 flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-0">
 				<div className="flex flex-col gap-8">
 					<a href="/">
-						<LogoIconDark className="light:hidden w-10 h-10 text-primary" />
-						<LogoIconLight className="hidden dark:block w-10 h-10 text-primary" />
+						<LogoIconDark className="light:hidden h-10 w-10 text-primary" />
+						<LogoIconLight className="hidden h-10 w-10 text-primary dark:block" />
 						<span className="sr-only">{resources.skulpture}</span>
 					</a>
-					<span className="font-medium text-regular lg:text-xl">
+					<span className="text-regular font-medium lg:text-xl">
 						{resources.subtitle}
 					</span>
 				</div>
@@ -46,7 +46,7 @@ export const Footer = ({ className, children }: FooterProps) => {
 			</div>
 
 			<a href="/">
-				<LogoWords className="text-foreground h-auto w-full" />
+				<LogoWords className="h-auto w-full text-foreground" />
 			</a>
 		</footer>
 	);
@@ -57,7 +57,7 @@ export interface FooterSectionProps {
 }
 
 export const FooterSection = ({ children }: FooterSectionProps) => (
-	<div className="footer flex flex-col gap-4 first:mb-2 items-start">
+	<div className="footer flex flex-col items-start gap-4 first:mb-2">
 		{children}
 	</div>
 );
@@ -72,9 +72,9 @@ export const ContactBlock = ({ className }: ContactBlockProps) => (
 			<div
 				className={cn(
 					className,
-					"bg-primary text-primary-foreground w-full rounded-3xl lg:rounded-2xl h-40 xl:h-80 flex items-center justify-between px-10 xl:px-24",
+					"flex h-40 w-full items-center justify-between rounded-3xl bg-primary px-10 text-primary-foreground lg:rounded-2xl xl:h-80 xl:px-24",
 				)}>
-				<span className="font-bold text-4xl xl:text-7xl max-w-[15rem] xl:max-w-sm tracking-tighter">
+				<span className="max-w-[15rem] text-4xl font-bold tracking-tighter xl:max-w-sm xl:text-7xl">
 					{resources.workTogether}
 				</span>
 				<motion.div
@@ -82,7 +82,7 @@ export const ContactBlock = ({ className }: ContactBlockProps) => (
 					whileInView={{ x: 0, opacity: 1 }}
 					viewport={{ once: true }}
 					transition={{ delay: 0.1 }}>
-					<ArrowRight className="xl:h-40 h-20 w-auto" />
+					<ArrowRight className="h-20 w-auto xl:h-40" />
 				</motion.div>
 			</div>
 		</a>

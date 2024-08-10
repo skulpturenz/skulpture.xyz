@@ -105,19 +105,19 @@ export const ToggleTheme = ({
 						onClick={onClickToggleTheme}>
 						<Sun
 							className={cn(
-								"h-5 w-auto aspect-square rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0",
+								"aspect-square h-5 w-auto rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0",
 								theme === "system" ? "hidden" : "",
 							)}
 						/>
 						<MoonStar
 							className={cn(
-								"absolute h-5 w-auto aspect-square rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-primary",
+								"absolute aspect-square h-5 w-auto rotate-90 scale-0 text-primary transition-all dark:rotate-0 dark:scale-100",
 								theme === "system" ? "hidden" : "",
 							)}
 						/>
 						<SunMoon
 							className={cn(
-								"absolute h-5 w-auto aspect-square transition-all dark:text-primary light:text-foreground",
+								"light:text-foreground absolute aspect-square h-5 w-auto transition-all dark:text-primary",
 								theme !== "system" ? "scale-0" : "scale-100",
 							)}
 						/>
