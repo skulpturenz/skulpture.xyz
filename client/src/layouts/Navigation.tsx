@@ -32,7 +32,7 @@ export const Navigation = ({ items }: NavigationProps) => {
 				<div className="flex h-24 justify-between">
 					<div className="flex">
 						<div className="-ml-2 mr-1 flex items-center lg:hidden">
-							<DisclosureButton className="group relative inline-flex items-center justify-center rounded-md p-2 text-foreground/70 hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset">
+							<DisclosureButton className="group relative inline-flex items-center justify-center rounded-md p-2 text-foreground/70 hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
 								<span className="absolute -inset-0.5" />
 								<span className="sr-only">
 									{resources.doOpenMobileMenu}
@@ -50,7 +50,7 @@ export const Navigation = ({ items }: NavigationProps) => {
 						<div className="flex flex-shrink-0 items-center">
 							<a href="/">
 								<LogoLight className="h-6 w-auto dark:hidden" />
-								<LogoDark className="h-6 w-auto hidden dark:block" />
+								<LogoDark className="hidden h-6 w-auto dark:block" />
 								<span className="sr-only">
 									{resources.skulpture}
 								</span>
@@ -70,7 +70,7 @@ export const Navigation = ({ items }: NavigationProps) => {
 								);
 							})}
 						</div>
-						<div className="flex gap-2 items-center">
+						<div className="flex items-center gap-2">
 							<ToggleTheme
 								storageKey={`skulpture-theme-${import.meta.env.MODE}`}
 							/>
@@ -83,7 +83,7 @@ export const Navigation = ({ items }: NavigationProps) => {
 				</div>
 			</div>
 
-			<DisclosurePanel className="lg:hidden border-b-2 rounded-b-sm">
+			<DisclosurePanel className="rounded-b-sm border-b-2 lg:hidden">
 				<div className="space-y-1 px-2 pb-3 pt-2 sm:px-3">
 					{items?.map(item => {
 						return (

@@ -3,7 +3,7 @@ import ReactDOM from "react-dom";
 
 export const Backdrop = ({ children }: React.PropsWithChildren) => {
 	const Backdrop = ({ children }: React.PropsWithChildren) => (
-		<div className="z-50 fixed top-0 h-screen w-screen bg-black bg-opacity-90">
+		<div className="fixed top-0 z-50 h-screen w-screen bg-black bg-opacity-90">
 			{children}
 		</div>
 	);

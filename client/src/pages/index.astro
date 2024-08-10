@@ -162,11 +162,11 @@ const resources = {
 				// h-[calc(100vh-6rem)] = 100vh - navigation bar height
 				"flex flex-col items-start justify-center h-[calc(100vh-6rem)] gap-8",
 			)}>
-			<h1 class="font-bold text-4xl lg:text-6xl tracking-tight mb-3">
+			<h1 class="mb-3 text-4xl font-bold tracking-tight lg:text-6xl">
 				{resources.intro.header}
 			</h1>
 			<p
-				class="text-xl max-w-lg lg:text-3xl lg:max-w-3xl tracking-tight text-foreground/75">
+				class="max-w-lg text-xl tracking-tight text-foreground/75 lg:max-w-3xl lg:text-3xl">
 				{resources.intro.subtitle}
 			</p>
 			<Link href="/contact">
@@ -195,14 +195,14 @@ const resources = {
 
 			<!-- Small screen sizes -->
 			<div
-				class="flex lg:hidden flex-col gap-6 w-full border-y-4 border-border/25 dark:border-border divide-y-4 divide-border/25 dark:divide-border">
+				class="flex w-full flex-col gap-6 divide-y-4 divide-border/25 border-y-4 border-border/25 dark:divide-border dark:border-border lg:hidden">
 				{
 					resources.services.items.map((item, idx, arr) => (
-						<div class={cn("w-full flex flex-col gap-6")}>
-							<div class="mt-6 font-bold text-xl lg:text-3xl">
+						<div class={cn("flex w-full flex-col gap-6")}>
+							<div class="mt-6 text-xl font-bold lg:text-3xl">
 								{item.header}
 							</div>
-							<div class="text-secondary-foreground/90 text-base lg:text-base">
+							<div class="text-base text-secondary-foreground/90 lg:text-base">
 								<div class="max-w-2xl">{item.description}</div>
 							</div>
 							<div
@@ -210,7 +210,7 @@ const resources = {
 									idx === arr.length - 1 ? "mb-6" : "",
 									"font-medium text-secondary-foreground",
 								)}>
-								<ul class="space-y-1 font-medium text-base lg:text-lg">
+								<ul class="space-y-1 text-base font-medium lg:text-lg">
 									{item.services.map(service => (
 										<li>{service}</li>
 									))}
@@ -223,25 +223,25 @@ const resources = {
 
 			<!-- Large screen sizes -->
 			<div
-				class="hidden lg:grid lg:grid-cols-10 grid-flow-row justify-center items-start gap-6 lg:gap-20">
+				class="hidden grid-flow-row items-start justify-center gap-6 lg:grid lg:grid-cols-10 lg:gap-20">
 				{
 					resources.services.items.map(item => (
 						<>
-							<div class="row-span-1 lg:row-auto lg:col-span-10 h-1 bg-border/25 dark:bg-border" />
-							<div class="row-span-1 lg:row-auto lg:col-span-3 font-bold text-xl lg:text-3xl">
+							<div class="row-span-1 h-1 bg-border/25 dark:bg-border lg:col-span-10 lg:row-auto" />
+							<div class="row-span-1 text-xl font-bold lg:col-span-3 lg:row-auto lg:text-3xl">
 								{item.header}
 							</div>
-							<div class="row-span-1 lg:row-auto lg:col-span-4 text-secondary-foreground/90 text-base lg:text-base">
+							<div class="row-span-1 text-base text-secondary-foreground/90 lg:col-span-4 lg:row-auto lg:text-base">
 								<div class="max-w-md">{item.description}</div>
 							</div>
-							<div class="row-span-1 lg:row-auto lg:col-span-3 font-medium text-secondary-foreground">
-								<ul class="space-y-1 font-medium text-base lg:text-lg">
+							<div class="row-span-1 font-medium text-secondary-foreground lg:col-span-3 lg:row-auto">
+								<ul class="space-y-1 text-base font-medium lg:text-lg">
 									{item.services.map(service => (
 										<li>{service}</li>
 									))}
 								</ul>
 							</div>
-							<div class="row-span-1 lg:row-auto lg:col-span-10 h-1 bg-border/25 dark:bg-border hidden last:block" />
+							<div class="row-span-1 hidden h-1 bg-border/25 last:block dark:bg-border lg:col-span-10 lg:row-auto" />
 						</>
 					))
 				}
@@ -251,7 +251,7 @@ const resources = {
 	<div
 		class={cn(constants.pageContainer, "flex items-center justify-center")}>
 		<span
-			class="text-5xl lg:text-6xl tracking-tighter text-center text-white">
+			class="text-center text-5xl tracking-tighter text-white lg:text-6xl">
 			<span class="font-bold">
 				{resources.banner.tagline.at(0)}
 			</span>&nbsp;{resources.banner.tagline.at(1)}
@@ -264,7 +264,7 @@ const resources = {
 			].join(", ")}
 			src={astronautImage05x}
 			alt={resources.banner.alt}
-			class="h-screen object-cover w-auto absolute -z-10 brightness-75"
+			class="absolute -z-10 h-screen w-auto object-cover brightness-75"
 		/>
 	</div>
 	<div
@@ -281,7 +281,7 @@ const resources = {
 			].join(", ")}
 			src={ponderingImage05x}
 			alt={resources.banner.alt}
-			class="w-full h-auto lg:h-auto lg:w-1/2"
+			class="h-auto w-full lg:h-auto lg:w-1/2"
 		/>
 		<div class="flex flex-col gap-6">
 			<h1 class={resources.ui.sectionHeader}>
@@ -321,14 +321,14 @@ const resources = {
 			</div>
 			<!-- `mb` same as `py` on `contentContainer` -->
 			<div
-				class="flex flex-col gap-5 lg:flex-row lg:justify-between w-full mb-20 lg:mb-0">
+				class="mb-20 flex w-full flex-col gap-5 lg:mb-0 lg:flex-row lg:justify-between">
 				{
 					resources.process.steps.map(step => (
-						<div class="border-t-4 border-border/25 dark:border-border flex flex-col gap-5 lg:w-72 ">
-							<span class="text-primary font-light text-5xl mt-5">
+						<div class="flex flex-col gap-5 border-t-4 border-border/25 dark:border-border lg:w-72">
+							<span class="mt-5 text-5xl font-light text-primary">
 								{step.idx}
 							</span>
-							<span class="font-bold text-2xl tracking-tight">
+							<span class="text-2xl font-bold tracking-tight">
 								{step.header}
 							</span>
 							<span class="text-secondary-foreground/90">
