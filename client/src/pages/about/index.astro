@@ -20,7 +20,7 @@ const resources = {
 	},
 	header: "About us",
 	banner: {
-		tagline: "Striving to deliver excellence",
+		tagline: "Striving to deliver excellence.",
 		alt: "Serious business",
 	},
 	whyWhatWho: {
@@ -118,7 +118,7 @@ const resources = {
 		class={cn(
 			constants.pageContainer,
 			"bg-secondary text-secondary-foreground",
-			"min-h-full py-0",
+			"min-h-full",
 		)}>
 		<div
 			class={cn(
@@ -126,7 +126,7 @@ const resources = {
 				resources.ui.sectionContainer,
 				"h-screen",
 			)}>
-			<div class="flex h-4/5 w-full flex-col justify-between">
+			<div class="flex h-full w-full flex-col justify-between">
 				{
 					resources.whyWhatWho.items.map((value, idx) => (
 						<div class={cn("flex flex-col gap-y-5 py-8")}>
