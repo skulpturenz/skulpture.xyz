@@ -152,7 +152,7 @@ const resources = {
 					{resources.values.subtitle}
 				</h2>
 			</div>
-			<div class="w-full flex flex-col lg:grid lg:grid-cols-2 lg:gap-x-5">
+			<div class="w-full flex flex-col md:grid md:grid-cols-2 md:gap-x-5">
 				{
 					resources.values.items.map((value, idx) => {
 						const getBorder = () => {
@@ -165,7 +165,7 @@ const resources = {
 							}
 
 							if (idx === 3) {
-								return "border-b-4 lg:border-y-4";
+								return "border-b-4 md:border-y-4";
 							}
 
 							return "border-y-4";
@@ -177,10 +177,10 @@ const resources = {
 									"flex flex-col gap-y-5 lg:grid lg:grid-cols-5 py-8",
 									getBorder(),
 								)}>
-								<span class="font-bold col-span-2 tracking-tight text-2xl">
+								<span class="font-bold col-span-2 tracking-tight text-xl lg:text-2xl">
 									{value.header}
 								</span>
-								<span class="col-span-3 text-foreground/80 max-w-lg lg:max-w-xs">
+								<span class="col-span-3 max-w-xs text-foreground/80 text-sm lg:text-base lg:max-w-xs">
 									{value.description}
 								</span>
 							</div>
