@@ -30,11 +30,11 @@ export const Footer = ({ className, children }: FooterProps) => {
 			)}>
 			<div className="flex flex-col gap-10 lg:gap-0 lg:flex-row lg:items-start lg:justify-between mt-24">
 				<div className="flex flex-col gap-8">
-					<div>
+					<a href="/">
 						<LogoIconDark className="light:hidden w-10 h-10 text-primary" />
 						<LogoIconLight className="hidden dark:block w-10 h-10 text-primary" />
 						<span className="sr-only">{resources.skulpture}</span>
-					</div>
+					</a>
 					<span className="font-medium text-regular lg:text-xl">
 						{resources.subtitle}
 					</span>
@@ -45,7 +45,9 @@ export const Footer = ({ className, children }: FooterProps) => {
 				</div>
 			</div>
 
-			<LogoWords className="text-foreground h-auto w-full" />
+			<a href="/">
+				<LogoWords className="text-foreground h-auto w-full" />
+			</a>
 		</footer>
 	);
 };
