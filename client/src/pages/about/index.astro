@@ -1,0 +1,59 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { constants } from "@/components/constants";
+import { cn } from "@/lib/utils";
+import { Image } from "astro:assets";
+import astronautImage05x from "@/components/assets/images/astronaut-block-0.5x.png";
+import astronautImage075x from "@/components/assets/images/astronaut-block-0.75x.png";
+import astronautImage1x from "@/components/assets/images/astronaut-block-1x.png";
+
+const TITLE = "Skulpture";
+const DESCRIPTION = "Software, Delivery, Advisory";
+
+const resources = {
+	header: "About Us",
+	banner: {
+		tagline: "Striving to deliver excellence",
+		alt: "Serious business",
+	},
+};
+---
+
+<BaseLayout title={TITLE} description={DESCRIPTION}>
+	<div class={cn(constants.pageContainer, "min-h-full")}>
+		<div
+			class={cn(
+				constants.contentContainer,
+				// h-[calc(100vh-6rem)] = 100vh - navigation bar height
+				"flex flex-col items-start justify-center h-20 lg:h-40 gap-8",
+			)}>
+			<h1 class="font-bold text-4xl lg:text-6xl tracking-tight">
+				{resources.header}
+			</h1>
+		</div>
+	</div>
+	<div
+		class={cn(
+			constants.pageContainer,
+			"bg-secondary text-secondary-foreground",
+		)}>
+	</div>
+	<div
+		class={cn(constants.pageContainer, "flex items-center justify-center")}>
+		<span
+			class="text-5xl lg:text-6xl tracking-tighter text-center text-white font-bold">
+			{resources.banner.tagline}
+		</span>
+		<Image
+			srcset={[
+				`${astronautImage05x.src} 0.5x`,
+				`${astronautImage075x.src} 0.75x`,
+				`${astronautImage1x.src} 1x`,
+			].join(", ")}
+			src={astronautImage05x}
+			alt={resources.banner.alt}
+			class="h-screen object-cover w-auto absolute -z-10 brightness-75"
+		/>
+	</div>
+	<div class={cn(constants.pageContainer)}></div>
+</BaseLayout>
