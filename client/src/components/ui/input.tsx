@@ -38,7 +38,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 					{...props}
 				/>
 				{isError && (
-					<CircleAlert className="absolute right-2 top-[10%] h-5 w-auto text-red-500" />
+					<CircleAlert className="absolute right-2 top-[15%] h-5 w-auto text-red-500" />
 				)}
 			</div>
 		);
@@ -46,6 +46,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 );
 Input.displayName = "Input";
 
+// TODO: files selected & error
 const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 	(
 		{
