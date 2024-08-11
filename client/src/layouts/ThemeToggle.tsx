@@ -102,7 +102,8 @@ export const ToggleTheme = ({
 					<Button
 						variant="ghost"
 						size="icon"
-						onClick={onClickToggleTheme}>
+						onClick={onClickToggleTheme}
+						tabIndex={0}>
 						<Sun
 							className={cn(
 								"aspect-square h-5 w-auto rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0",

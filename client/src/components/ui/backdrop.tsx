@@ -1,29 +1,40 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { cn } from "@/lib/utils";
 
-export const Backdrop = ({ children }: React.PropsWithChildren) => {
-	const Backdrop = ({ children }: React.PropsWithChildren) => (
-		<div className="fixed top-0 z-50 h-screen w-screen bg-black bg-opacity-90">
-			{children}
-		</div>
-	);
+export interface BackdropProps
+	extends React.HtmlHTMLAttributes<HTMLDivElement> {}
 
-	if (import.meta.env.SSR) {
-		return <Backdrop>{children}</Backdrop>;
-	}
+export const Backdrop = React.forwardRef<HTMLDivElement, BackdropProps>(
+	({ children, ...rest }: BackdropProps, ref) => {
+		const Backdrop = ({ className, ...rest }: BackdropProps) => (
+			<div
+				ref={ref}
+				className={cn(
+					"fixed top-0 z-50 h-screen w-screen bg-black bg-opacity-90",
+					className,
+				)}
+				{...rest}
+			/>
+		);
 
-	React.useEffect(() => {
-		const body = document.getElementsByTagName("body").item(0);
+		if (import.meta.env.SSR) {
+			return <Backdrop {...rest}>{children}</Backdrop>;
+		}
 
-		body.style.setProperty("overflow", "hidden");
+		React.useEffect(() => {
+			const body = document.getElementsByTagName("body").item(0);
 
-		return () => {
-			body.style.setProperty("overflow", "auto");
-		};
-	});
+			body.style.setProperty("overflow", "hidden");
 
-	return ReactDOM.createPortal(
-		<Backdrop>{children}</Backdrop>,
-		document.body,
-	);
-};
+			return () => {
+				body.style.setProperty("overflow", "auto");
+			};
+		});
+
+		return ReactDOM.createPortal(
+			<Backdrop {...rest}>{children}</Backdrop>,
+			document.body,
+		);
+	},
+);
