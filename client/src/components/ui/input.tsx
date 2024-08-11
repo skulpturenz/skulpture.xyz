@@ -11,7 +11,6 @@ export interface InputProps
 }
 
 export interface InputFileProps extends Omit<InputProps, "value" | "onChange"> {
-	value?: File[];
 	onChange?: (files: File[]) => void;
 	isFileValid?: (file: File) => boolean;
 }
@@ -50,23 +49,11 @@ Input.displayName = "Input";
 
 const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 	(
-		{
-			className,
-			type,
-			isError,
-			value: controlledValue,
-			onChange: controlledSetFiles,
-			children,
-			isFileValid,
-			...props
-		},
+		{ className, type, isError, onChange, children, isFileValid, ...props },
 		ref,
 	) => {
 		const inputFileRef = React.useRef<HTMLInputElement | null>(null);
 		const backdropRef = React.useRef<HTMLDivElement | null>(null);
-
-		const [, uncontrolledSetFiles] = React.useState<File[]>();
-		const setValue = controlledSetFiles ?? uncontrolledSetFiles;
 
 		const [showBackdrop, setShowBackdrop] = React.useState(false);
 
@@ -78,14 +65,6 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 			} else if (ref) {
 				ref.current = instance;
 			}
-		};
-
-		const onChange: React.ChangeEventHandler<HTMLInputElement> = event => {
-			if (!event.target.files || !event.target.files.length) {
-				return;
-			}
-
-			setValue([...event.target.files]);
 		};
 
 		const onClickBrowse: React.MouseEventHandler<
@@ -132,6 +111,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 			// allow cancel
 			// TODO: allow checking total size of all files
 
+			onChange?.([...dataTransfer.files]);
 			setShowBackdrop(false);
 		};
 
@@ -161,7 +141,6 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 					multiple
 					className="hidden"
 					accept={props.accept}
-					onChange={onChange}
 				/>
 				<div
 					tabIndex={0}
