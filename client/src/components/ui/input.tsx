@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils";
 import { CircleAlert } from "lucide-react";
 import { Cloud } from "@/components/assets";
 import { Backdrop } from "./backdrop";
-import { motion, AnimatePresence } from "framer-motion";
 
 export interface InputProps
 	extends React.InputHTMLAttributes<HTMLInputElement> {
