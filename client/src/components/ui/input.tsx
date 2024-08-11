@@ -3,6 +3,7 @@ import { cn, plural } from "@/lib/utils";
 import { CircleAlert, Files } from "lucide-react";
 import { Cloud } from "@/components/assets";
 import { Backdrop } from "./backdrop";
+import { constants } from "@/components/constants";
 
 export interface InputProps
 	extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -14,17 +15,6 @@ export interface InputFileProps extends Omit<InputProps, "value" | "onChange"> {
 	onInvalidSelection?: (files: File[], totalSelectedFileSize: number) => void;
 	isFileValid?: (file: File, totalSelectedFileSize: number) => boolean;
 }
-
-const constants = {
-	plural: {
-		file: {
-			en: {
-				one: "file",
-				other: "files",
-			},
-		},
-	},
-};
 
 const resources = {
 	inputFile: {
