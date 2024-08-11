@@ -3,22 +3,24 @@ import ReactDOM from "react-dom";
 import { cn } from "@/lib/utils";
 
 export interface BackdropProps
-	extends React.HtmlHTMLAttributes<HTMLDivElement> {}
+	extends React.HtmlHTMLAttributes<HTMLDivElement> {
+	isPortalled?: boolean;
+}
 
 export const Backdrop = React.forwardRef<HTMLDivElement, BackdropProps>(
-	({ children, ...rest }: BackdropProps, ref) => {
+	({ children, isPortalled = true, ...rest }: BackdropProps, ref) => {
 		const Backdrop = ({ className, ...rest }: BackdropProps) => (
 			<div
 				ref={ref}
 				className={cn(
-					"fixed top-0 z-50 h-screen w-screen bg-black bg-opacity-90 text-white",
+					"fixed top-0 z-50 h-screen w-screen bg-black bg-opacity-95 text-white",
 					className,
 				)}
 				{...rest}
 			/>
 		);
 
-		if (import.meta.env.SSR) {
+		if (import.meta.env.SSR || !isPortalled) {
 			return <Backdrop {...rest}>{children}</Backdrop>;
 		}
 
