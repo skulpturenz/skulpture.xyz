@@ -1,6 +1,6 @@
 import * as React from "react";
-import { cn } from "@/lib/utils";
-import { CircleAlert } from "lucide-react";
+import { cn, plural } from "@/lib/utils";
+import { CircleAlert, Files } from "lucide-react";
 import { Cloud } from "@/components/assets";
 import { Backdrop } from "./backdrop";
 
@@ -11,12 +11,28 @@ export interface InputProps
 
 export interface InputFileProps extends Omit<InputProps, "value" | "onChange"> {
 	onChange?: (files: File[]) => void;
+	onInvalidSelection?: (files: File[], totalSelectedFileSize: number) => void;
 	isFileValid?: (file: File, totalSelectedFileSize: number) => boolean;
 }
+
+const constants = {
+	plural: {
+		file: {
+			en: {
+				one: "file",
+				other: "files",
+			},
+		},
+	},
+};
 
 const resources = {
 	inputFile: {
 		placeholder: ["Drag & drop or", "browse"],
+		selected: (numberOfFilesSelected: number, rules: Intl.PluralRules) => [
+			`${numberOfFilesSelected} ${plural(rules, constants.plural.file, numberOfFilesSelected)} selected`,
+			"Browse",
+		],
 		instruction: "Drop your files here",
 	},
 };
@@ -46,7 +62,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 );
 Input.displayName = "Input";
 
-// TODO: files selected & error
 const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 	(
 		{
@@ -54,6 +69,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 			type,
 			isError,
 			onChange: controlledOnChange,
+			onInvalidSelection,
 			children,
 			isFileValid,
 			...props
@@ -82,15 +98,31 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 				(acc, file) => acc + file.size,
 				0,
 			);
-			[...files].forEach(file => {
-				if (isFileValid && !isFileValid(file, totalSelectedFilesSize)) {
-					return;
-				}
 
-				dataTransfer.items.add(file);
-			});
+			const grouped = [...files].reduce(
+				(acc, file) => {
+					if (
+						isFileValid &&
+						!isFileValid(file, totalSelectedFilesSize)
+					) {
+						acc.invalidFiles = [...acc.invalidFiles, file];
 
-			return dataTransfer;
+						return acc;
+					}
+
+					acc.dataTransfer.items.add(file);
+
+					return acc;
+				},
+				{ dataTransfer, invalidFiles: [], totalSelectedFilesSize },
+			);
+
+			onInvalidSelection?.(
+				grouped.invalidFiles,
+				grouped.totalSelectedFilesSize,
+			);
+
+			return grouped.dataTransfer;
 		};
 		const selectValidFiles = (dataTransfer: DataTransfer) => {
 			inputFileRef.current.files = dataTransfer.files;
@@ -153,6 +185,9 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 			};
 		}, []);
 
+		const numberOfFilesSelected = inputFileRef.current?.files.length ?? 0;
+		const pluralRules = new Intl.PluralRules("en-US");
+
 		return (
 			<>
 				<input
@@ -167,19 +202,47 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 				<div
 					tabIndex={0}
 					onClick={onClickBrowse}
-					className="flex cursor-pointer flex-col items-center justify-center gap-5 border-4 border-dashed border-input p-5 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background">
-					<div>
+					className={cn(
+						"flex cursor-pointer flex-col items-center justify-center gap-5 px-5 py-5 md:py-10",
+						"border-4 border-dashed border-input transition-colors",
+						"focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background",
+						numberOfFilesSelected > 0
+							? "border-transparent bg-secondary"
+							: "bg-transparent",
+					)}>
+					{numberOfFilesSelected <= 0 && (
 						<button
 							className="inline-flex flex-col items-center justify-center font-medium text-muted-foreground"
 							onClick={onClickBrowse}
 							type="button">
-							<Cloud className="mb-2 h-6 w-auto text-primary" />
-							{resources.inputFile.placeholder.at(0)}&nbsp;
+							<Cloud className="mb-2 h-8 w-auto text-primary" />
+							{resources.inputFile.placeholder.at(0)}
+							<br />
 							<span className="text-primary">
 								{resources.inputFile.placeholder.at(1)}
 							</span>
 						</button>
-					</div>
+					)}
+					{numberOfFilesSelected > 0 && (
+						<button
+							className="inline-flex flex-col items-center justify-center font-medium text-white dark:text-muted-foreground"
+							onClick={onClickBrowse}
+							type="button">
+							<Files className="mb-2 h-8 w-auto text-primary" />
+							{resources.inputFile
+								.selected(numberOfFilesSelected, pluralRules)
+								.at(0)}
+							<br />
+							<span className="text-primary">
+								{resources.inputFile
+									.selected(
+										numberOfFilesSelected,
+										pluralRules,
+									)
+									.at(1)}
+							</span>
+						</button>
+					)}
 				</div>
 				<Backdrop
 					ref={backdropRef}
