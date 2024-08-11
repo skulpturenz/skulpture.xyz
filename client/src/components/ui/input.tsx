@@ -181,28 +181,17 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 						</button>
 					</div>
 				</div>
-				<AnimatePresence>
-					{showBackdrop && (
-						<motion.div
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}>
-							<Backdrop
-								ref={backdropRef}
-								onDrop={onDrop}
-								onDragLeave={onDragLeave}
-								isPortalled={false}
-								className={
-									"flex flex-col items-center justify-center"
-								}>
-								<Cloud className="h-24 w-auto text-primary" />
-								<span className="font-medium">
-									{resources.inputFile.instruction}
-								</span>
-							</Backdrop>
-						</motion.div>
-					)}
-				</AnimatePresence>
+				<Backdrop
+					ref={backdropRef}
+					onDrop={onDrop}
+					onDragLeave={onDragLeave}
+					show={showBackdrop}
+					className={"flex flex-col items-center justify-center"}>
+					<Cloud className="h-24 w-auto text-primary" />
+					<span className="font-medium">
+						{resources.inputFile.instruction}
+					</span>
+				</Backdrop>
 				{children}
 			</>
 		);
