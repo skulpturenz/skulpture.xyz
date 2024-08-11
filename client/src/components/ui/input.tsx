@@ -13,11 +13,13 @@ export interface InputProps
 export interface InputFileProps extends Omit<InputProps, "value" | "onChange"> {
 	value?: File[];
 	onChange?: (files: File[]) => void;
+	isFileValid?: (file: File) => boolean;
 }
 
 const resources = {
 	inputFile: {
 		placeholder: ["Drag & drop or", "browse"],
+		instruction: "Drop your files here",
 	},
 };
 
@@ -55,12 +57,12 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 			value: controlledValue,
 			onChange: controlledSetFiles,
 			children,
+			isFileValid,
 			...props
 		},
 		ref,
 	) => {
 		const inputFileRef = React.useRef<HTMLInputElement | null>(null);
-		const dragAndDropRef = React.useRef<HTMLDivElement | null>(null);
 		const backdropRef = React.useRef<HTMLDivElement | null>(null);
 
 		const [, uncontrolledSetFiles] = React.useState<File[]>();
@@ -88,18 +90,52 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 
 		const onClickBrowse: React.MouseEventHandler<
 			HTMLButtonElement | HTMLDivElement
-		> = () => inputFileRef.current?.click();
+		> = event => {
+			event.stopPropagation();
+
+			inputFileRef.current?.click();
+		};
+
+		const onDragEnter = (
+			event: DragEvent | React.DragEvent<HTMLDivElement>,
+		) => {
+			if (!event.dataTransfer.items.length) {
+				return;
+			}
+
+			setShowBackdrop(true);
+		};
+		const onDragOver = (
+			event: DragEvent | React.DragEvent<HTMLDivElement>,
+		) => {
+			event.preventDefault();
+		};
+		const onDragLeave = () => {
+			setShowBackdrop(false);
+		};
+		const onDrop = (event: DragEvent | React.DragEvent<HTMLDivElement>) => {
+			event.preventDefault();
+
+			const dataTransfer = new DataTransfer();
+
+			Object.values(event.dataTransfer.files).forEach(file => {
+				if (isFileValid && !isFileValid(file)) {
+					return;
+				}
+
+				dataTransfer.items.add(file);
+			});
+			inputFileRef.current.files = dataTransfer.files;
+
+			// TODO: if files invalid show error and don't hide backdrop
+			// backdrop text resets when dragging again or after a timeout
+			// allow cancel
+			// TODO: allow checking total size of all files
+
+			setShowBackdrop(false);
+		};
 
 		React.useEffect(() => {
-			const onDragEnter = (event: DragEvent) => {
-				setShowBackdrop(true);
-			};
-			const onDragOver = (event: DragEvent) => event.preventDefault();
-			const onDragLeave = (event: DragEvent) => {};
-			const onDrop = (event: DragEvent) => {
-				setShowBackdrop(false);
-			};
-
 			window.addEventListener("dragenter", onDragEnter);
 			window.addEventListener("dragover", onDragOver);
 			backdropRef.current?.addEventListener("dragleave", onDragLeave);
@@ -114,19 +150,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 				);
 				backdropRef.current?.removeEventListener("drop", onDrop);
 			};
-		}, [showBackdrop]);
-
-		const onDragEnter: React.DragEventHandler<HTMLDivElement> = event => {
-			setShowBackdrop(true);
-		};
-		const onDragOver: React.DragEventHandler<HTMLDivElement> = event =>
-			event.preventDefault();
-		const onDragLeave: React.DragEventHandler<HTMLDivElement> = event => {
-			setShowBackdrop(false);
-		};
-		const onDrop: React.DragEventHandler<HTMLDivElement> = event => {
-			setShowBackdrop(false);
-		};
+		}, []);
 
 		return (
 			<>
@@ -142,10 +166,6 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 				<div
 					tabIndex={0}
 					onClick={onClickBrowse}
-					onDragOver={onDragOver}
-					onDragEnter={onDragEnter}
-					draggable
-					ref={dragAndDropRef}
 					className="flex cursor-pointer flex-col items-center justify-center gap-5 border-4 border-dashed border-input p-5 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background">
 					<div>
 						<button
@@ -154,9 +174,9 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 							type="button">
 							<Cloud className="mb-2 h-6 w-auto text-primary" />
 							{resources.inputFile.placeholder.at(0)}&nbsp;
-							<a className="text-primary">
+							<span className="text-primary">
 								{resources.inputFile.placeholder.at(1)}
-							</a>
+							</span>
 						</button>
 					</div>
 				</div>
@@ -168,9 +188,12 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 						className={cn(
 							"transition-opacity data-[closed]:opacity-0",
 							"data-[enter]:opacity-100",
+							"flex flex-col items-center justify-center",
 						)}>
-						{/* TODO */}
-						HELLO WORLD!!
+						<Cloud className="h-24 w-auto text-primary" />
+						<span className="font-medium">
+							{resources.inputFile.instruction}
+						</span>
 					</Backdrop>
 				</Transition>
 				{children}

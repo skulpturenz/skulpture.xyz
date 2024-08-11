@@ -11,7 +11,7 @@ export const Backdrop = React.forwardRef<HTMLDivElement, BackdropProps>(
 			<div
 				ref={ref}
 				className={cn(
-					"fixed top-0 z-50 h-screen w-screen bg-black bg-opacity-90",
+					"fixed top-0 z-50 h-screen w-screen bg-black bg-opacity-90 text-white",
 					className,
 				)}
 				{...rest}
