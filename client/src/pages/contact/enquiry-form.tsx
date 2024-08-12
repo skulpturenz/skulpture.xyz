@@ -15,6 +15,9 @@ const constants = {
 	regexEmail:
 		/(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/gi,
 	regexPhone: /^[\+|0-9]+$/gi,
+	regexFilename: /(?<name>.+)(?<extension>\.+\w+)/gi,
+	attachmentAccept: [".pdf", ".docx", ".doc", ".ppt", ".pptx", ".txt", ".md"],
+	attachmentTotalSize: 5, // MB
 };
 
 const resources = {
@@ -45,6 +48,10 @@ const resources = {
 		},
 		files: {
 			label: "Attachments",
+			maxTotalSize: (totalSize: number) =>
+				`Total size of selection must be less than ${totalSize} MB`,
+			accepts: (accepts: string[]) =>
+				`Only ${accepts.slice(0, -1).join(", ")} and ${accepts.at(-1)} are accepted`,
 		},
 	},
 };
@@ -242,16 +249,6 @@ export const EnquiryForm = () => {
 					name="files"
 					defaultValue={[]}
 					render={({ field, formState }) => {
-						const maxMb = 5;
-						const acceptedExtensions = [
-							".pdf",
-							".docx",
-							".doc",
-							".ppt",
-							".pptx",
-							".txt",
-							".md",
-						];
 						const isFileValid = (
 							file: File,
 							totalSelectedFileSize: number,
@@ -269,32 +266,31 @@ export const EnquiryForm = () => {
 							const messages = [];
 							if (
 								totalSelectedFileSize >
-								maxMb * Math.pow(10, 6)
+								constants.attachmentTotalSize * Math.pow(10, 6)
 							) {
 								validations.push(flags.InvalidTotalSize);
-								// TODO: resources
 								messages.push(
-									`Total size of selection must be less than ${maxMb} MB`,
+									resources.form.files.maxTotalSize(
+										constants.attachmentTotalSize,
+									),
 								);
 							}
 
-							// TODO: constants
-							const fileNameRegex =
-								/(?<name>.+)(?<extension>\.+\w+)/gi;
 							const groups =
-								fileNameRegex.exec(file.name)?.groups ??
-								Object.create(null);
+								constants.regexFilename.exec(file.name)
+									?.groups ?? Object.create(null);
 
 							if (
-								!acceptedExtensions.includes(
+								!constants.attachmentAccept.includes(
 									groups.extension?.toLowerCase().trim() ??
 										"",
 								)
 							) {
 								validations.push(flags.InvalidFormat);
-								// TODO: resources
 								messages.push(
-									`Only ${acceptedExtensions.slice(0, -1).join(", ")} and ${acceptedExtensions.at(-1)} are accepted`,
+									resources.form.files.accepts(
+										constants.attachmentAccept,
+									),
 								);
 							}
 
@@ -320,7 +316,9 @@ export const EnquiryForm = () => {
 									{...field}
 									isError={Boolean(formState.errors.files)}
 									isFileValid={isFileValid}
-									accept={acceptedExtensions.join(",")}
+									accept={constants.attachmentAccept.join(
+										",",
+									)}
 								/>
 								<Small aria-live="polite" className="h-2">
 									{formState.errors.files?.message as string}
