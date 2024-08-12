@@ -8,7 +8,7 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { constants } from "@/components/constants";
-import { ToggleTheme } from "./ThemeToggle";
+import { ToggleTheme } from "./theme-toggle";
 
 export interface NavigationProps {
 	items?: NavigationItem[];
