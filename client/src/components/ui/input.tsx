@@ -6,7 +6,7 @@ import { Backdrop } from "./backdrop";
 import { constants } from "@/components/constants";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./hover-card";
 import { Button } from "./button";
-import { filesize } from "filesize";
+import { partial } from "filesize";
 
 export interface InputProps
 	extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -15,7 +15,7 @@ export interface InputProps
 
 const resources = {
 	inputFile: {
-		formatFileSize: (bytes: number) => filesize(bytes, { standard: "si" }),
+		formatFileSize: partial({ standard: "si" }),
 		placeholder: ["Drag & drop or", "browse"],
 		selected: (numberOfFilesSelected: number, rules: Intl.PluralRules) => [
 			`${numberOfFilesSelected} ${plural(rules, constants.plural.file, numberOfFilesSelected)} selected`,
@@ -68,8 +68,8 @@ export interface InputFileProps
 		totalSelectedFileSize: number,
 	) => ValidationResult;
 }
-export const FILE_VALIDATION_SUCCESS_FLAG = 1 << 0;
-export const FILE_VALIDATION_NO_VALIDATOR_FLAG = 1 << 1;
+export const FILE_VALIDATION_SUCCESS_FLAG = 1 << 5;
+export const FILE_VALIDATION_NO_VALIDATOR_FLAG = 1 << 6;
 export interface ValidationResult {
 	flag: number;
 	message?: string;

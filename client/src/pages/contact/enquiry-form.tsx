@@ -1,5 +1,9 @@
 import { Form, FormGroup } from "@/components/ui/form";
-import { Input, InputFile } from "@/components/ui/input";
+import {
+	FILE_VALIDATION_SUCCESS_FLAG,
+	Input,
+	InputFile,
+} from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -237,18 +241,91 @@ export const EnquiryForm = () => {
 					control={control}
 					name="files"
 					defaultValue={[]}
-					render={({ field, formState }) => (
-						<>
-							<InputFile
-								type="file"
-								{...field}
-								isError={Boolean(formState.errors.files)}
-							/>
-							<Small aria-live="polite" className="h-2">
-								{formState.errors.files?.message as string}
-							</Small>
-						</>
-					)}
+					render={({ field, formState }) => {
+						const isFileValid = (
+							file: File,
+							totalSelectedFileSize: number,
+						) => {
+							const maxMb = 5;
+							const flags = {
+								FILE_VALIDATION_INVALID_TOTAL_SIZE_FLAG: 1 << 2,
+								FILE_VALIDATION_INVALID_FORMAT_FLAG: 1 << 3,
+								InvalidTotalSize:
+									"FILE_VALIDATION_INVALID_TOTAL_SIZE_FLAG",
+								InvalidFormat:
+									"FILE_VALIDATION_INVALID_FORMAT_FLAG",
+							};
+
+							const acceptedExtensions = [
+								".pdf",
+								".docx",
+								".doc",
+								".ppt",
+								".txt",
+								".md",
+								"",
+							];
+							const validations = [];
+							const messages = [];
+							if (
+								totalSelectedFileSize >
+								maxMb * Math.pow(5, 6)
+							) {
+								validations.push(flags.InvalidTotalSize);
+								// TODO: resources
+								messages.push(
+									`Total size of selection must be less than ${maxMb} MB`,
+								);
+							}
+
+							// TODO: constants
+							const fileNameRegex =
+								/(?<name>\w+)(?<extension>\.*\w*)/gi;
+							const groups =
+								fileNameRegex.exec(file.name)?.groups ??
+								Object.create(null);
+
+							if (
+								acceptedExtensions.includes(
+									groups.extension?.toLowerCase() ?? "",
+								)
+							) {
+								validations.push(flags.InvalidFormat);
+								// TODO: resources
+								messages.push(
+									`Only the following formats are accepted: ${acceptedExtensions.join(", ")}`,
+								);
+							}
+
+							if (validations.length > 0) {
+								return {
+									flag: validations.reduce(
+										(acc, flag) => acc | flag,
+										1,
+									),
+									message: messages.at(0),
+								};
+							}
+
+							return {
+								flag: FILE_VALIDATION_SUCCESS_FLAG,
+							};
+						};
+
+						return (
+							<>
+								<InputFile
+									type="file"
+									{...field}
+									isError={Boolean(formState.errors.files)}
+									isFileValid={isFileValid}
+								/>
+								<Small aria-live="polite" className="h-2">
+									{formState.errors.files?.message as string}
+								</Small>
+							</>
+						);
+					}}
 				/>
 			</FormGroup>
 			<Button type="submit" tabIndex={0}>
