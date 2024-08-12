@@ -4,16 +4,29 @@ import { CircleAlert, Files } from "lucide-react";
 import { Cloud } from "@/components/assets";
 import { Backdrop } from "./backdrop";
 import { constants } from "@/components/constants";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./hover-card";
+import { Button } from "./button";
 
 export interface InputProps
 	extends React.InputHTMLAttributes<HTMLInputElement> {
 	isError?: boolean;
 }
 
-export interface InputFileProps extends Omit<InputProps, "value" | "onChange"> {
+export interface InputFileProps
+	extends Omit<InputProps, "value" | "onChange" | "children"> {
 	onChange?: (files: File[]) => void;
 	onInvalidSelection?: (files: File[], totalSelectedFileSize: number) => void;
-	isFileValid?: (file: File, totalSelectedFileSize: number) => boolean;
+	isFileValid?: (
+		file: File,
+		totalSelectedFileSize: number,
+	) => FileValidationResult;
+}
+
+export const FILE_VALIDATION_SUCCESS_FLAG = 1 << 0;
+export const FILE_VALIDATION_NO_VALIDATOR_FLAG = 1 << 1;
+export interface FileValidationResult {
+	flag: number;
+	message?: string;
 }
 
 const resources = {
@@ -24,6 +37,15 @@ const resources = {
 			"Browse",
 		],
 		instruction: "Drop your files here",
+		selectedFilesLabel: "These files were selected",
+		notSelectedFilesLabel: "These files were not selected",
+		infoCard: {
+			size: "Size",
+			lastModified: "Modified",
+			type: "Type",
+			reason: "Reason",
+			doRemoveSelection: "Remove selection",
+		},
 	},
 };
 
@@ -60,7 +82,6 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 			isError,
 			onChange: controlledOnChange,
 			onInvalidSelection,
-			children,
 			isFileValid,
 			...props
 		},
@@ -70,6 +91,10 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 		const backdropRef = React.useRef<HTMLDivElement | null>(null);
 
 		const [showBackdrop, setShowBackdrop] = React.useState(false);
+		// TODO: extract out types
+		const [validationResults, setValidationResults] = React.useState<
+			{ file: File; validationResult: FileValidationResult }[]
+		>([]);
 
 		const setInputRef = (instance: HTMLInputElement | null) => {
 			inputFileRef.current = instance;
@@ -91,26 +116,60 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 
 			const grouped = [...files].reduce(
 				(acc, file) => {
-					if (
-						isFileValid &&
-						!isFileValid(file, totalSelectedFilesSize)
-					) {
-						acc.invalidFiles = [...acc.invalidFiles, file];
+					if (isFileValid) {
+						const validationResult = isFileValid(
+							file,
+							totalSelectedFilesSize,
+						);
 
-						return acc;
+						acc.validationResults = [
+							...acc.validationResults,
+							{ file, validationResult },
+						];
+
+						if (
+							(validationResult.flag &
+								FILE_VALIDATION_SUCCESS_FLAG) !==
+							FILE_VALIDATION_SUCCESS_FLAG
+						) {
+							acc.invalidFiles = [...acc.invalidFiles, file];
+
+							return acc;
+						}
+					} else {
+						const validationResult = {
+							file,
+							validationResult: {
+								flag:
+									FILE_VALIDATION_SUCCESS_FLAG |
+									FILE_VALIDATION_NO_VALIDATOR_FLAG,
+							} as FileValidationResult,
+						};
+
+						acc.validationResults = [
+							...acc.validationResults,
+							validationResult,
+						];
 					}
 
 					acc.dataTransfer.items.add(file);
 
 					return acc;
 				},
-				{ dataTransfer, invalidFiles: [], totalSelectedFilesSize },
+				{
+					dataTransfer,
+					invalidFiles: [],
+					validationResults: [],
+					totalSelectedFilesSize,
+				},
 			);
 
 			onInvalidSelection?.(
 				grouped.invalidFiles,
 				grouped.totalSelectedFilesSize,
 			);
+
+			setValidationResults(grouped.validationResults);
 
 			return grouped.dataTransfer;
 		};
@@ -177,6 +236,29 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 
 		const numberOfFilesSelected = inputFileRef.current?.files.length ?? 0;
 		const pluralRules = new Intl.PluralRules("en-US");
+		const validSelections = validationResults.filter(
+			({ validationResult }) =>
+				(validationResult.flag & FILE_VALIDATION_SUCCESS_FLAG) ===
+				FILE_VALIDATION_SUCCESS_FLAG,
+		);
+		const invalidSelections = validationResults.filter(
+			({ validationResult }) =>
+				(validationResult.flag & FILE_VALIDATION_SUCCESS_FLAG) !==
+				FILE_VALIDATION_SUCCESS_FLAG,
+		);
+		const makeOnClickRemoveSelection = (file: File) => () => {
+			const filtered = [...inputFileRef.current.files].filter(
+				currentFile => currentFile.name !== file.name,
+			);
+
+			const dataTransfer = new DataTransfer();
+			filtered.forEach(file => dataTransfer.items.add(file));
+
+			setValidationResults(results =>
+				results.filter(result => result.file.name !== file.name),
+			);
+			selectValidFiles(dataTransfer);
+		};
 
 		return (
 			<>
@@ -202,7 +284,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 					)}>
 					{numberOfFilesSelected <= 0 && (
 						<button
-							className="inline-flex flex-col items-center justify-center font-medium text-muted-foreground"
+							className="inline-flex flex-col items-center justify-center font-semibold text-muted-foreground"
 							onClick={onClickBrowse}
 							type="button">
 							<Cloud className="mb-2 h-8 w-auto text-primary" />
@@ -215,7 +297,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 					)}
 					{numberOfFilesSelected > 0 && (
 						<button
-							className="inline-flex flex-col items-center justify-center font-medium text-white dark:text-muted-foreground"
+							className="inline-flex flex-col items-center justify-center font-semibold text-white"
 							onClick={onClickBrowse}
 							type="button">
 							<Files className="mb-2 h-8 w-auto text-primary" />
@@ -234,6 +316,124 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 						</button>
 					)}
 				</div>
+				{validationResults.length > 0 && (
+					<div className="flex flex-col gap-2">
+						{validSelections.length > 0 && (
+							<div className="flex flex-col gap-4 md:flex-row">
+								<span className="whitespace-nowrap">
+									{resources.inputFile.selectedFilesLabel}
+								</span>
+								<div className="flex flex-wrap items-center gap-x-4">
+									{validSelections.map(({ file }) => (
+										<HoverCard key={file.name}>
+											<HoverCardTrigger className="cursor-pointer font-semibold hover:underline hover:underline-offset-4">
+												{file.name}
+											</HoverCardTrigger>
+											<HoverCardContent className="flex max-w-xs flex-col text-sm">
+												<span>
+													{
+														resources.inputFile
+															.infoCard.size
+													}
+													:&nbsp;{file.size}
+												</span>
+												<span>
+													{
+														resources.inputFile
+															.infoCard.type
+													}
+													:&nbsp;{file.type}
+												</span>
+												<span>
+													{
+														resources.inputFile
+															.infoCard
+															.lastModified
+													}
+													:&nbsp;
+													{new Date(
+														file.lastModified,
+													).toDateString()}
+												</span>
+												<Button
+													variant="destructive"
+													className="mt-2 w-full"
+													onClick={makeOnClickRemoveSelection(
+														file,
+													)}>
+													{
+														resources.inputFile
+															.infoCard
+															.doRemoveSelection
+													}
+												</Button>
+											</HoverCardContent>
+										</HoverCard>
+									))}
+								</div>
+							</div>
+						)}
+						{invalidSelections.length > 0 && (
+							<div className="flex flex-col gap-4 md:flex-row">
+								<span className="whitespace-nowrap">
+									{resources.inputFile.notSelectedFilesLabel}
+								</span>
+								<div className="flex flex-wrap items-center gap-x-4">
+									{invalidSelections.map(
+										({ file, validationResult }) => (
+											<HoverCard key={file.name}>
+												<HoverCardTrigger className="cursor-pointer font-semibold hover:underline hover:underline-offset-4">
+													{file.name}
+												</HoverCardTrigger>
+												<HoverCardContent className="flex max-w-xs flex-col text-sm">
+													<span>
+														{
+															resources.inputFile
+																.infoCard.size
+														}
+														:&nbsp;{file.size}
+													</span>
+													<span>
+														{
+															resources.inputFile
+																.infoCard.type
+														}
+														:&nbsp;{file.type}
+													</span>
+													<span>
+														{
+															resources.inputFile
+																.infoCard
+																.lastModified
+														}
+														:&nbsp;
+														{new Date(
+															file.lastModified,
+														).toDateString()}
+													</span>
+													{validationResult.message && (
+														<span>
+															{
+																resources
+																	.inputFile
+																	.infoCard
+																	.reason
+															}
+															:&nbsp;
+															{
+																validationResult.message
+															}
+														</span>
+													)}
+												</HoverCardContent>
+											</HoverCard>
+										),
+									)}
+								</div>
+							</div>
+						)}
+					</div>
+				)}
 				<Backdrop
 					ref={backdropRef}
 					onDrop={onDrop}
@@ -245,7 +445,6 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 						{resources.inputFile.instruction}
 					</span>
 				</Backdrop>
-				{children}
 			</>
 		);
 	},
