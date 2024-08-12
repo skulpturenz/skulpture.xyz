@@ -6,31 +6,16 @@ import { Backdrop } from "./backdrop";
 import { constants } from "@/components/constants";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./hover-card";
 import { Button } from "./button";
+import { filesize } from "filesize";
 
 export interface InputProps
 	extends React.InputHTMLAttributes<HTMLInputElement> {
 	isError?: boolean;
 }
 
-export interface InputFileProps
-	extends Omit<InputProps, "value" | "onChange" | "children"> {
-	onChange?: (files: File[]) => void;
-	onInvalidSelection?: (files: File[], totalSelectedFileSize: number) => void;
-	isFileValid?: (
-		file: File,
-		totalSelectedFileSize: number,
-	) => FileValidationResult;
-}
-
-export const FILE_VALIDATION_SUCCESS_FLAG = 1 << 0;
-export const FILE_VALIDATION_NO_VALIDATOR_FLAG = 1 << 1;
-export interface FileValidationResult {
-	flag: number;
-	message?: string;
-}
-
 const resources = {
 	inputFile: {
+		formatFileSize: (bytes: number) => filesize(bytes, { standard: "si" }),
 		placeholder: ["Drag & drop or", "browse"],
 		selected: (numberOfFilesSelected: number, rules: Intl.PluralRules) => [
 			`${numberOfFilesSelected} ${plural(rules, constants.plural.file, numberOfFilesSelected)} selected`,
@@ -74,6 +59,26 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 );
 Input.displayName = "Input";
 
+export interface InputFileProps
+	extends Omit<InputProps, "value" | "onChange" | "children"> {
+	onChange?: (files: File[]) => void;
+	onInvalidSelection?: (files: File[], totalSelectedFileSize: number) => void;
+	isFileValid?: (
+		file: File,
+		totalSelectedFileSize: number,
+	) => ValidationResult;
+}
+export const FILE_VALIDATION_SUCCESS_FLAG = 1 << 0;
+export const FILE_VALIDATION_NO_VALIDATOR_FLAG = 1 << 1;
+export interface ValidationResult {
+	flag: number;
+	message?: string;
+}
+export interface FileSelection {
+	file: File;
+	validationResult: ValidationResult;
+}
+
 const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 	(
 		{
@@ -91,9 +96,8 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 		const backdropRef = React.useRef<HTMLDivElement | null>(null);
 
 		const [showBackdrop, setShowBackdrop] = React.useState(false);
-		// TODO: extract out types
 		const [validationResults, setValidationResults] = React.useState<
-			{ file: File; validationResult: FileValidationResult }[]
+			FileSelection[]
 		>([]);
 
 		const setInputRef = (instance: HTMLInputElement | null) => {
@@ -143,7 +147,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 								flag:
 									FILE_VALIDATION_SUCCESS_FLAG |
 									FILE_VALIDATION_NO_VALIDATOR_FLAG,
-							} as FileValidationResult,
+							} as ValidationResult,
 						};
 
 						acc.validationResults = [
@@ -319,7 +323,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 				{validationResults.length > 0 && (
 					<div className="flex flex-col gap-2">
 						{validSelections.length > 0 && (
-							<div className="flex flex-col gap-4 md:flex-row">
+							<div className="flex flex-col gap-0 md:flex-row md:gap-4">
 								<span className="whitespace-nowrap">
 									{resources.inputFile.selectedFilesLabel}
 								</span>
@@ -335,7 +339,10 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 														resources.inputFile
 															.infoCard.size
 													}
-													:&nbsp;{file.size}
+													:&nbsp;
+													{resources.inputFile.formatFileSize(
+														file.size,
+													)}
 												</span>
 												<span>
 													{
@@ -374,7 +381,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 							</div>
 						)}
 						{invalidSelections.length > 0 && (
-							<div className="flex flex-col gap-4 md:flex-row">
+							<div className="flex flex-col gap-0 md:flex-row md:gap-4">
 								<span className="whitespace-nowrap">
 									{resources.inputFile.notSelectedFilesLabel}
 								</span>
@@ -391,7 +398,10 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 															resources.inputFile
 																.infoCard.size
 														}
-														:&nbsp;{file.size}
+														:&nbsp;
+														{resources.inputFile.formatFileSize(
+															file.size,
+														)}
 													</span>
 													<span>
 														{
