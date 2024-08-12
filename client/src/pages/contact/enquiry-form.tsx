@@ -300,7 +300,7 @@ export const EnquiryForm = () => {
 							if (validations.length > 0) {
 								return {
 									flag: validations.reduce(
-										(acc, flag) => acc | flag,
+										(acc, flag) => acc | flags[flag],
 										1,
 									),
 									message: messages.at(0),
