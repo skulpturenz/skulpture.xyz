@@ -367,7 +367,8 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 													className="mt-2 w-full"
 													onClick={makeOnClickRemoveSelection(
 														file,
-													)}>
+													)}
+													type="button">
 													{
 														resources.inputFile
 															.infoCard
