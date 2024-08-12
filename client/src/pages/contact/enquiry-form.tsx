@@ -242,11 +242,20 @@ export const EnquiryForm = () => {
 					name="files"
 					defaultValue={[]}
 					render={({ field, formState }) => {
+						const maxMb = 5;
+						const acceptedExtensions = [
+							".pdf",
+							".docx",
+							".doc",
+							".ppt",
+							".pptx",
+							".txt",
+							".md",
+						];
 						const isFileValid = (
 							file: File,
 							totalSelectedFileSize: number,
 						) => {
-							const maxMb = 5;
 							const flags = {
 								FILE_VALIDATION_INVALID_TOTAL_SIZE_FLAG: 1 << 2,
 								FILE_VALIDATION_INVALID_FORMAT_FLAG: 1 << 3,
@@ -256,20 +265,11 @@ export const EnquiryForm = () => {
 									"FILE_VALIDATION_INVALID_FORMAT_FLAG",
 							};
 
-							const acceptedExtensions = [
-								".pdf",
-								".docx",
-								".doc",
-								".ppt",
-								".txt",
-								".md",
-								"",
-							];
 							const validations = [];
 							const messages = [];
 							if (
 								totalSelectedFileSize >
-								maxMb * Math.pow(5, 6)
+								maxMb * Math.pow(10, 6)
 							) {
 								validations.push(flags.InvalidTotalSize);
 								// TODO: resources
@@ -286,14 +286,14 @@ export const EnquiryForm = () => {
 								Object.create(null);
 
 							if (
-								acceptedExtensions.includes(
+								!acceptedExtensions.includes(
 									groups.extension?.toLowerCase() ?? "",
 								)
 							) {
 								validations.push(flags.InvalidFormat);
 								// TODO: resources
 								messages.push(
-									`Only the following formats are accepted: ${acceptedExtensions.join(", ")}`,
+									`Only ${acceptedExtensions.slice(0, -1).join(", ")} and ${acceptedExtensions.at(-1)} are accepted`,
 								);
 							}
 
@@ -319,6 +319,7 @@ export const EnquiryForm = () => {
 									{...field}
 									isError={Boolean(formState.errors.files)}
 									isFileValid={isFileValid}
+									accept={acceptedExtensions.join(",")}
 								/>
 								<Small aria-live="polite" className="h-2">
 									{formState.errors.files?.message as string}

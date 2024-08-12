@@ -6,7 +6,12 @@ const HoverCard = (
 	props: React.ComponentPropsWithoutRef<typeof HoverCardPrimitive.Root>,
 ) => {
 	const [isOpen, setIsOpen] = React.useState(props.defaultOpen ?? false);
-	const toggleOpen = () => setIsOpen(open => !open);
+	const toggleOpen: React.MouseEventHandler<HTMLDivElement> = event => {
+		event.preventDefault();
+		event.stopPropagation();
+
+		setIsOpen(isOpen => !isOpen);
+	};
 
 	return (
 		<HoverCardPrimitive.Root
