@@ -280,14 +280,15 @@ export const EnquiryForm = () => {
 
 							// TODO: constants
 							const fileNameRegex =
-								/(?<name>\w+)(?<extension>\.*\w*)/gi;
+								/(?<name>.+)(?<extension>\.+\w+)/gi;
 							const groups =
 								fileNameRegex.exec(file.name)?.groups ??
 								Object.create(null);
 
 							if (
 								!acceptedExtensions.includes(
-									groups.extension?.toLowerCase() ?? "",
+									groups.extension?.toLowerCase().trim() ??
+										"",
 								)
 							) {
 								validations.push(flags.InvalidFormat);
