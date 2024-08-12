@@ -41,7 +41,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 				<input
 					type={type}
 					className={cn(
-						"flex h-9 w-full border-b-4 border-input bg-transparent px-3 py-1 transition-colors file:border-0 file:bg-transparent file:font-medium placeholder:text-muted-foreground focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50",
+						"flex h-9 w-full rounded-none border-b-4 border-input bg-transparent px-3 py-1 transition-colors file:border-0 file:bg-transparent file:font-medium placeholder:text-muted-foreground focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50",
 						isError
 							? "border-red-500 focus-visible:ring-red-500"
 							: "",
@@ -62,7 +62,10 @@ Input.displayName = "Input";
 export interface InputFileProps
 	extends Omit<InputProps, "value" | "onChange" | "children"> {
 	onChange?: (files: File[]) => void;
-	onInvalidSelection?: (files: File[], totalSelectedFileSize: number) => void;
+	onInvalidSelection?: (
+		selections: FileSelection[],
+		totalSelectionSize: number,
+	) => void;
 	isFileValid?: (
 		file: File,
 		totalSelectedFileSize: number,
@@ -113,7 +116,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 		const filterValidFiles = (files: FileList) => {
 			const dataTransfer = new DataTransfer();
 
-			const totalSelectedFilesSize = [...files].reduce(
+			const totalSelectionSize = [...files].reduce(
 				(acc, file) => acc + file.size,
 				0,
 			);
@@ -123,11 +126,11 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 					if (isFileValid) {
 						const validationResult = isFileValid(
 							file,
-							totalSelectedFilesSize,
+							totalSelectionSize,
 						);
 
-						acc.validationResults = [
-							...acc.validationResults,
+						acc.selections = [
+							...acc.selections,
 							{ file, validationResult },
 						];
 
@@ -141,19 +144,16 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 							return acc;
 						}
 					} else {
-						const validationResult = {
+						const validationResult: FileSelection = {
 							file,
 							validationResult: {
 								flag:
 									FILE_VALIDATION_SUCCESS_FLAG |
 									FILE_VALIDATION_NO_VALIDATOR_FLAG,
-							} as ValidationResult,
+							},
 						};
 
-						acc.validationResults = [
-							...acc.validationResults,
-							validationResult,
-						];
+						acc.selections = [...acc.selections, validationResult];
 					}
 
 					acc.dataTransfer.items.add(file);
@@ -163,17 +163,17 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 				{
 					dataTransfer,
 					invalidFiles: [],
-					validationResults: [],
-					totalSelectedFilesSize,
+					selections: [],
+					totalSelectionSize,
 				},
 			);
 
 			onInvalidSelection?.(
-				grouped.invalidFiles,
-				grouped.totalSelectedFilesSize,
+				grouped.selections,
+				grouped.totalSelectionSize,
 			);
 
-			setValidationResults(grouped.validationResults);
+			setValidationResults(grouped.selections);
 
 			return grouped.dataTransfer;
 		};
@@ -279,7 +279,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 					tabIndex={0}
 					onClick={onClickBrowse}
 					className={cn(
-						"flex cursor-pointer flex-col items-center justify-center gap-5 px-5 py-5 md:py-10",
+						"flex cursor-pointer flex-col items-center justify-center gap-5 rounded-none px-5 py-5 md:py-10",
 						"border-4 border-dashed border-input transition-colors",
 						"focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background",
 						numberOfFilesSelected > 0

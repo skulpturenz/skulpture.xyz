@@ -6,11 +6,18 @@ const HoverCard = (
 	props: React.ComponentPropsWithoutRef<typeof HoverCardPrimitive.Root>,
 ) => {
 	const [isOpen, setIsOpen] = React.useState(props.defaultOpen ?? false);
-	const toggleOpen: React.MouseEventHandler<HTMLDivElement> = event => {
+	const toggleOpen = () => setIsOpen(isOpen => !isOpen);
+	const onClick: React.MouseEventHandler<HTMLDivElement> = event => {
 		event.preventDefault();
 		event.stopPropagation();
 
-		setIsOpen(isOpen => !isOpen);
+		toggleOpen();
+	};
+	const onBlur: React.FocusEventHandler<HTMLDivElement> = event => {
+		event.preventDefault();
+		event.stopPropagation();
+
+		toggleOpen();
 	};
 
 	return (
@@ -18,7 +25,9 @@ const HoverCard = (
 			{...props}
 			open={isOpen}
 			onOpenChange={setIsOpen}>
-			<div onClick={toggleOpen}>{props.children}</div>
+			<div onClick={onClick} onBlur={onBlur}>
+				{props.children}
+			</div>
 		</HoverCardPrimitive.Root>
 	);
 };
