@@ -1,14 +1,14 @@
+import { Small } from "@/components/typography/small";
+import { Button } from "@/components/ui/button";
 import { Form, FormGroup } from "@/components/ui/form";
 import {
 	FILE_VALIDATION_SUCCESS_FLAG,
 	Input,
 	InputFile,
 } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Controller, useForm } from "react-hook-form";
-import { Small } from "@/components/typography/small";
 
 const constants = {
 	// From: https://emailregex.com/index.html

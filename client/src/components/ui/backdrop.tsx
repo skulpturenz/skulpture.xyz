@@ -1,7 +1,7 @@
+import { cn } from "@/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
 import React from "react";
 import ReactDOM from "react-dom";
-import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
 
 export interface BackdropProps
 	extends React.HtmlHTMLAttributes<HTMLDivElement> {

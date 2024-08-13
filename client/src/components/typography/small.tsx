@@ -1,5 +1,5 @@
-import React from "react";
 import { cn } from "@/lib/utils";
+import React from "react";
 
 export type TypographyProps<T extends keyof React.JSX.IntrinsicElements> =
 	React.ComponentPropsWithRef<T>;
