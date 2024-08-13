@@ -89,16 +89,19 @@ export interface InputFileProps
 		totalSelectedFileSize: number,
 	) => ValidationResult;
 }
-export const FILE_VALIDATION_SUCCESS_FLAG = 1 << 5;
-export const FILE_VALIDATION_NO_VALIDATOR_FLAG = 1 << 6;
+
 export interface ValidationResult {
 	flag: number;
 	message?: string;
 }
+
 export interface FileSelection {
 	file: File;
 	validationResult: ValidationResult;
 }
+
+export const FILE_VALIDATION_SUCCESS_FLAG = 1 << 5;
+export const FILE_VALIDATION_NO_VALIDATOR_FLAG = 1 << 6;
 
 const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 	(
@@ -315,6 +318,10 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 			const Trigger = noHover() ? PopoverTrigger : HoverCardTrigger;
 			const Content = noHover() ? PopoverContent : HoverCardContent;
 
+			const isSelectionValid = () =>
+				(validationResult.flag & FILE_VALIDATION_SUCCESS_FLAG) ===
+				FILE_VALIDATION_SUCCESS_FLAG;
+
 			return (
 				<Container key={file.name}>
 					<Trigger
@@ -344,13 +351,15 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 								{validationResult.message}
 							</span>
 						)}
-						<Button
-							variant="destructive"
-							className="mt-2 w-full"
-							onClick={makeOnClickRemoveSelection(file)}
-							type="button">
-							{resources.inputFile.infoCard.doRemoveSelection}
-						</Button>
+						{isSelectionValid() && (
+							<Button
+								variant="destructive"
+								className="mt-2 w-full"
+								onClick={makeOnClickRemoveSelection(file)}
+								type="button">
+								{resources.inputFile.infoCard.doRemoveSelection}
+							</Button>
+						)}
 					</Content>
 				</Container>
 			);
