@@ -7,6 +7,7 @@ import { constants } from "@/components/constants";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./hover-card";
 import { Button } from "./button";
 import { partial } from "filesize";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 export interface InputProps
 	extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -14,6 +15,22 @@ export interface InputProps
 }
 
 const resources = {
+	ui: {
+		inputFile: {
+			selectContainer:
+				"inline-flex flex-col items-center justify-center font-semibold ",
+			selectIcon: "mb-2 h-8 w-auto text-primary",
+			selectInstruction: "text-primary",
+			selectedListContainer: "flex flex-col gap-0 md:flex-row md:gap-4",
+			selectedListLabel: "whitespace-nowrap",
+			selectedListItemContainer: "flex flex-wrap items-center gap-x-4",
+			infoCard: {
+				trigger:
+					"cursor-pointer font-semibold hover:underline hover:underline-offset-4 text-left",
+				content: "flex max-w-xs flex-col text-sm text-left",
+			},
+		},
+	},
 	inputFile: {
 		formatFileSize: partial({ standard: "si" }),
 		placeholder: ["Drag & drop or", "browse"],
@@ -61,6 +78,7 @@ Input.displayName = "Input";
 
 export interface InputFileProps
 	extends Omit<InputProps, "value" | "onChange" | "children"> {
+	value?: null;
 	onChange?: (files: File[]) => void;
 	onInvalidSelection?: (
 		selections: FileSelection[],
@@ -91,6 +109,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 			onChange: controlledOnChange,
 			onInvalidSelection,
 			isFileValid,
+			value,
 			...props
 		},
 		ref,
@@ -99,9 +118,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 		const backdropRef = React.useRef<HTMLDivElement | null>(null);
 
 		const [showBackdrop, setShowBackdrop] = React.useState(false);
-		const [validationResults, setValidationResults] = React.useState<
-			FileSelection[]
-		>([]);
+		const [selections, setSelections] = React.useState<FileSelection[]>([]);
 
 		const setInputRef = (instance: HTMLInputElement | null) => {
 			inputFileRef.current = instance;
@@ -113,7 +130,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 			}
 		};
 
-		const filterValidFiles = (files: FileList) => {
+		const onlyValid = (files: FileList) => {
 			const dataTransfer = new DataTransfer();
 
 			const totalSelectionSize = [...files].reduce(
@@ -173,14 +190,19 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 				grouped.totalSelectionSize,
 			);
 
-			setValidationResults(grouped.selections);
+			setSelections(grouped.selections);
 
 			return grouped.dataTransfer;
 		};
-		const selectValidFiles = (dataTransfer: DataTransfer) => {
+		const select = (dataTransfer: DataTransfer) => {
 			inputFileRef.current.files = dataTransfer.files;
 
 			controlledOnChange?.([...dataTransfer.files]);
+		};
+		const reset = () => {
+			select(new DataTransfer());
+			setSelections([]);
+			setShowBackdrop(false);
 		};
 
 		const onClickBrowse: React.MouseEventHandler<
@@ -191,8 +213,8 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 			inputFileRef.current?.click();
 		};
 		const onChange: React.ChangeEventHandler<HTMLInputElement> = event => {
-			const dataTransfer = filterValidFiles(event.target.files);
-			selectValidFiles(dataTransfer);
+			const dataTransfer = onlyValid(event.target.files);
+			select(dataTransfer);
 		};
 
 		const onDragEnter = (
@@ -215,8 +237,8 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 		const onDrop = (event: DragEvent | React.DragEvent<HTMLDivElement>) => {
 			event.preventDefault();
 
-			const dataTransfer = filterValidFiles(event.dataTransfer.files);
-			selectValidFiles(dataTransfer);
+			const dataTransfer = onlyValid(event.dataTransfer.files);
+			select(dataTransfer);
 
 			setShowBackdrop(false);
 		};
@@ -240,12 +262,12 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 
 		const numberOfFilesSelected = inputFileRef.current?.files.length ?? 0;
 		const pluralRules = new Intl.PluralRules("en-US");
-		const validSelections = validationResults.filter(
+		const validSelections = selections.filter(
 			({ validationResult }) =>
 				(validationResult.flag & FILE_VALIDATION_SUCCESS_FLAG) ===
 				FILE_VALIDATION_SUCCESS_FLAG,
 		);
-		const invalidSelections = validationResults.filter(
+		const invalidSelections = selections.filter(
 			({ validationResult }) =>
 				(validationResult.flag & FILE_VALIDATION_SUCCESS_FLAG) !==
 				FILE_VALIDATION_SUCCESS_FLAG,
@@ -258,10 +280,65 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 			const dataTransfer = new DataTransfer();
 			filtered.forEach(file => dataTransfer.items.add(file));
 
-			setValidationResults(results =>
+			setSelections(results =>
 				results.filter(result => result.file.name !== file.name),
 			);
-			selectValidFiles(dataTransfer);
+			select(dataTransfer);
+		};
+
+		const hasHover = () => {
+			if (import.meta.env.SSR) {
+				return false;
+			}
+
+			return window.matchMedia("(hover: none)").matches;
+		};
+
+		React.useEffect(() => {
+			if (value) {
+				return;
+			}
+
+			reset();
+		}, [value]);
+
+		const SelectedFile = ({ file }: FileSelection) => {
+			const Container = hasHover() ? Popover : HoverCard;
+			const Trigger = hasHover() ? PopoverTrigger : HoverCardTrigger;
+			const Content = hasHover() ? PopoverContent : HoverCardContent;
+
+			return (
+				<Container key={file.name}>
+					<Trigger
+						className={resources.ui.inputFile.infoCard.trigger}>
+						{file.name}
+					</Trigger>
+					<Content
+						className={resources.ui.inputFile.infoCard.content}>
+						<span>
+							{resources.inputFile.infoCard.size}
+							:&nbsp;
+							{resources.inputFile.formatFileSize(file.size)}
+						</span>
+						<span>
+							{resources.inputFile.infoCard.type}
+							:&nbsp;{file.type}
+						</span>
+						<span>
+							{resources.inputFile.infoCard.lastModified}
+							:&nbsp;
+							{new Date(file.lastModified).toDateString()}
+						</span>
+						<Button
+							variant="destructive"
+							className="mt-2 w-full"
+							onClick={makeOnClickRemoveSelection(file)}
+							type="button">
+							{resources.inputFile.infoCard.doRemoveSelection}
+						</Button>
+					</Content>
+				</Container>
+			);
 		};
 
 		return (
@@ -269,11 +346,10 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 				<input
 					ref={setInputRef}
 					type="file"
-					name={props.name}
 					multiple
 					className="hidden"
-					accept={props.accept}
 					onChange={onChange}
+					{...props}
 				/>
 				<div
 					tabIndex={0}
@@ -288,28 +364,44 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 					)}>
 					{numberOfFilesSelected <= 0 && (
 						<button
-							className="inline-flex flex-col items-center justify-center font-semibold text-muted-foreground"
+							className={cn(
+								resources.ui.inputFile.selectContainer,
+								"text-muted-foreground",
+							)}
 							onClick={onClickBrowse}
 							type="button">
-							<Cloud className="mb-2 h-8 w-auto text-primary" />
+							<Cloud
+								className={resources.ui.inputFile.selectIcon}
+							/>
 							{resources.inputFile.placeholder.at(0)}
 							<br />
-							<span className="text-primary">
+							<span
+								className={
+									resources.ui.inputFile.selectInstruction
+								}>
 								{resources.inputFile.placeholder.at(1)}
 							</span>
 						</button>
 					)}
 					{numberOfFilesSelected > 0 && (
 						<button
-							className="inline-flex flex-col items-center justify-center font-semibold text-white"
+							className={cn(
+								resources.ui.inputFile.selectContainer,
+								"text-white",
+							)}
 							onClick={onClickBrowse}
 							type="button">
-							<Files className="mb-2 h-8 w-auto text-primary" />
+							<Files
+								className={resources.ui.inputFile.selectIcon}
+							/>
 							{resources.inputFile
 								.selected(numberOfFilesSelected, pluralRules)
 								.at(0)}
 							<br />
-							<span className="text-primary">
+							<span
+								className={
+									resources.ui.inputFile.selectInstruction
+								}>
 								{resources.inputFile
 									.selected(
 										numberOfFilesSelected,
@@ -320,126 +412,45 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 						</button>
 					)}
 				</div>
-				{validationResults.length > 0 && (
-					<div className="flex flex-col gap-2">
+				{selections.length > 0 && (
+					<div className="flex flex-col gap-4">
 						{validSelections.length > 0 && (
-							<div className="flex flex-col gap-0 md:flex-row md:gap-4">
-								<span className="whitespace-nowrap">
+							<div
+								className={
+									resources.ui.inputFile.selectedListContainer
+								}>
+								<span
+									className={
+										resources.ui.inputFile.selectedListLabel
+									}>
 									{resources.inputFile.selectedFilesLabel}
 								</span>
-								<div className="flex flex-wrap items-center gap-x-4">
-									{validSelections.map(({ file }) => (
-										<HoverCard key={file.name}>
-											<HoverCardTrigger className="cursor-pointer font-semibold hover:underline hover:underline-offset-4">
-												{file.name}
-											</HoverCardTrigger>
-											<HoverCardContent className="flex max-w-xs flex-col text-sm">
-												<span>
-													{
-														resources.inputFile
-															.infoCard.size
-													}
-													:&nbsp;
-													{resources.inputFile.formatFileSize(
-														file.size,
-													)}
-												</span>
-												<span>
-													{
-														resources.inputFile
-															.infoCard.type
-													}
-													:&nbsp;{file.type}
-												</span>
-												<span>
-													{
-														resources.inputFile
-															.infoCard
-															.lastModified
-													}
-													:&nbsp;
-													{new Date(
-														file.lastModified,
-													).toDateString()}
-												</span>
-												<Button
-													variant="destructive"
-													className="mt-2 w-full"
-													onClick={makeOnClickRemoveSelection(
-														file,
-													)}
-													type="button">
-													{
-														resources.inputFile
-															.infoCard
-															.doRemoveSelection
-													}
-												</Button>
-											</HoverCardContent>
-										</HoverCard>
-									))}
+								<div
+									className={
+										resources.ui.inputFile
+											.selectedListItemContainer
+									}>
+									{validSelections.map(SelectedFile)}
 								</div>
 							</div>
 						)}
 						{invalidSelections.length > 0 && (
-							<div className="flex flex-col gap-0 md:flex-row md:gap-4">
-								<span className="whitespace-nowrap">
+							<div
+								className={
+									resources.ui.inputFile.selectedListContainer
+								}>
+								<span
+									className={
+										resources.ui.inputFile.selectedListLabel
+									}>
 									{resources.inputFile.notSelectedFilesLabel}
 								</span>
-								<div className="flex flex-wrap items-center gap-x-4">
-									{invalidSelections.map(
-										({ file, validationResult }) => (
-											<HoverCard key={file.name}>
-												<HoverCardTrigger className="cursor-pointer font-semibold hover:underline hover:underline-offset-4">
-													{file.name}
-												</HoverCardTrigger>
-												<HoverCardContent className="flex max-w-xs flex-col text-sm">
-													<span>
-														{
-															resources.inputFile
-																.infoCard.size
-														}
-														:&nbsp;
-														{resources.inputFile.formatFileSize(
-															file.size,
-														)}
-													</span>
-													<span>
-														{
-															resources.inputFile
-																.infoCard.type
-														}
-														:&nbsp;{file.type}
-													</span>
-													<span>
-														{
-															resources.inputFile
-																.infoCard
-																.lastModified
-														}
-														:&nbsp;
-														{new Date(
-															file.lastModified,
-														).toDateString()}
-													</span>
-													{validationResult.message && (
-														<span>
-															{
-																resources
-																	.inputFile
-																	.infoCard
-																	.reason
-															}
-															:&nbsp;
-															{
-																validationResult.message
-															}
-														</span>
-													)}
-												</HoverCardContent>
-											</HoverCard>
-										),
-									)}
+								<div
+									className={
+										resources.ui.inputFile
+											.selectedListItemContainer
+									}>
+									{invalidSelections.map(SelectedFile)}
 								</div>
 							</div>
 						)}
@@ -450,7 +461,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 					onDrop={onDrop}
 					onDragLeave={onDragLeave}
 					show={showBackdrop}
-					className={"flex flex-col items-center justify-center"}>
+					className="flex flex-col items-center justify-center">
 					<Cloud className="h-24 w-auto text-primary" />
 					<span className="font-medium">
 						{resources.inputFile.instruction}

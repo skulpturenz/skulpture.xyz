@@ -14,8 +14,8 @@ const constants = {
 	// From: https://emailregex.com/index.html
 	regexEmail:
 		/(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/gi,
-	regexPhone: /^[\+|0-9]+$/gi,
-	regexFilename: /(?<name>.+)(?<extension>\.+\w+)/gi,
+	regexPhone: /^[\+0-9]+$/gi,
+	regexFilename: /(?<name>.+)(?<extension>\.+\w+)/i,
 	attachmentAccept: [".pdf", ".docx", ".doc", ".ppt", ".pptx", ".txt", ".md"],
 	attachmentTotalSize: 5, // MB
 };
@@ -67,14 +67,13 @@ export const EnquiryForm = () => {
 	});
 
 	const onSubmit = handleSubmit(_data => {
+		console.log(_data);
+
 		reset();
 	});
 
 	return (
-		<Form
-			method="POST"
-			action={resources.enquiryAction}
-			onSubmit={onSubmit}>
+		<Form method="POST" onSubmit={onSubmit}>
 			<FormGroup>
 				<Controller
 					control={control}
@@ -195,9 +194,7 @@ export const EnquiryForm = () => {
 							<Input
 								type="tel"
 								name="phone"
-								placeholder={resources.required(
-									resources.form.phone.label,
-								)}
+								placeholder={resources.form.phone.label}
 								autoComplete="home work mobile"
 								isError={Boolean(formState.errors.phone)}
 								pattern={constants.regexPhone
@@ -247,7 +244,7 @@ export const EnquiryForm = () => {
 				<Controller
 					control={control}
 					name="files"
-					defaultValue={[]}
+					defaultValue={null}
 					render={({ field, formState }) => {
 						const isFileValid = (
 							file: File,
@@ -313,16 +310,13 @@ export const EnquiryForm = () => {
 							<>
 								<InputFile
 									type="file"
-									{...field}
 									isError={Boolean(formState.errors.files)}
 									isFileValid={isFileValid}
 									accept={constants.attachmentAccept.join(
 										",",
 									)}
+									{...field}
 								/>
-								<Small aria-live="polite" className="h-2">
-									{formState.errors.files?.message as string}
-								</Small>
 							</>
 						);
 					}}

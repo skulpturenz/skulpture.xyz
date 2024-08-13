@@ -2,35 +2,7 @@ import * as React from "react";
 import * as HoverCardPrimitive from "@radix-ui/react-hover-card";
 import { cn } from "@/lib/utils";
 
-const HoverCard = (
-	props: React.ComponentPropsWithoutRef<typeof HoverCardPrimitive.Root>,
-) => {
-	const [isOpen, setIsOpen] = React.useState(props.defaultOpen ?? false);
-	const toggleOpen = () => setIsOpen(isOpen => !isOpen);
-	const onClick: React.MouseEventHandler<HTMLDivElement> = event => {
-		event.preventDefault();
-		event.stopPropagation();
-
-		toggleOpen();
-	};
-	const onBlur: React.FocusEventHandler<HTMLDivElement> = event => {
-		event.preventDefault();
-		event.stopPropagation();
-
-		toggleOpen();
-	};
-
-	return (
-		<HoverCardPrimitive.Root
-			{...props}
-			open={isOpen}
-			onOpenChange={setIsOpen}>
-			<div onClick={onClick} onBlur={onBlur}>
-				{props.children}
-			</div>
-		</HoverCardPrimitive.Root>
-	);
-};
+const HoverCard = HoverCardPrimitive.Root;
 
 const HoverCardTrigger = HoverCardPrimitive.Trigger;
 
