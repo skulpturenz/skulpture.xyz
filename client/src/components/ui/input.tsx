@@ -263,7 +263,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 			select(dataTransfer);
 		};
 
-		const hasHover = () => {
+		const noHover = () => {
 			if (import.meta.env.SSR) {
 				return false;
 			}
@@ -297,9 +297,9 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 		}, [value]);
 
 		const SelectedFile = ({ file, validationResult }: FileSelection) => {
-			const Container = hasHover() ? Popover : HoverCard;
-			const Trigger = hasHover() ? PopoverTrigger : HoverCardTrigger;
-			const Content = hasHover() ? PopoverContent : HoverCardContent;
+			const Container = noHover() ? Popover : HoverCard;
+			const Trigger = noHover() ? PopoverTrigger : HoverCardTrigger;
+			const Content = noHover() ? PopoverContent : HoverCardContent;
 
 			return (
 				<Container key={file.name}>
