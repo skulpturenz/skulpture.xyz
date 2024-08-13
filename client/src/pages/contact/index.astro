@@ -1,0 +1,55 @@
+---
+import { constants } from "@/components/constants";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { cn } from "@/lib/utils";
+import { EnquiryForm } from "./enquiry-form";
+
+const TITLE = "Contact us";
+const DESCRIPTION = "Software, Delivery, Advisory";
+
+const resources = {
+	ui: {
+		sectionHeader:
+			"text-primary font-bold text-base sm:text-sm md:text-xs tracking-wide uppercase",
+		sectionSubtitle: "font-bold text-2xl lg:text-4xl tracking-tight",
+		sectionContainer: "flex flex-col items-center justify-center gap-12",
+		sectionHeaderContainer: "flex flex-col gap-6",
+	},
+	header: "Contact us",
+	subtitle: "",
+	form: {
+		enquiryAction: "/api/enquiry",
+		required: (label: string) => `${label}*`,
+		placeholderFirstName: "First name",
+		placeholderLastName: "Last name",
+		placeholderEmail: "Email",
+		placeholderPhone: "Phone",
+		placeholderEnquiry: "Enquiry",
+		doSubmit: "Submit",
+	},
+};
+---
+
+<BaseLayout title={TITLE} description={DESCRIPTION} isContactBlockHidden>
+	<div class={cn(constants.pageContainer)}>
+		<div
+			class={cn(
+				constants.contentContainer,
+				"flex flex-col justify-center gap-10",
+			)}>
+			<div>
+				<h1
+					class="text-center text-4xl font-bold tracking-tight lg:text-6xl">
+					{resources.header}
+				</h1>
+				<p
+					class="max-w-lg text-center text-xl tracking-tight text-foreground/75 lg:max-w-3xl lg:text-3xl">
+					{resources.subtitle}
+				</p>
+			</div>
+			<div>
+				<EnquiryForm client:load />
+			</div>
+		</div>
+	</div>
+</BaseLayout>

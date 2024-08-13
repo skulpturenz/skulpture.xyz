@@ -1,19 +1,19 @@
-import React from "react";
+import { topographyDark, topographyLight } from "@/components/assets";
+import { constants } from "@/components/constants";
 import { Button } from "@/components/ui/button";
+import {
+	DEFAULT_THEME,
+	DEFAULT_THEME_STORAGE_KEY,
+} from "@/components/ui/theme-provider";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { MoonStar, Sun, SunMoon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-	DEFAULT_THEME,
-	DEFAULT_THEME_STORAGE_KEY,
-} from "@/components/ui/theme-provider";
-import { topographyLight, topographyDark } from "@/components/assets";
-import { constants } from "@/components/constants";
+import { MoonStar, Sun, SunMoon } from "lucide-react";
+import React from "react";
 
 export type Theme = "dark" | "light" | "system";
 
@@ -102,7 +102,8 @@ export const ToggleTheme = ({
 					<Button
 						variant="ghost"
 						size="icon"
-						onClick={onClickToggleTheme}>
+						onClick={onClickToggleTheme}
+						tabIndex={0}>
 						<Sun
 							className={cn(
 								"aspect-square h-5 w-auto rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0",

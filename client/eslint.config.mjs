@@ -1,10 +1,10 @@
-import js from "@eslint/js";
 import { FlatCompat } from "@eslint/eslintrc";
-import path from "path";
-import { fileURLToPath } from "url";
+import js from "@eslint/js";
 import eslintPluginAstro from "eslint-plugin-astro";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
+import path from "path";
 import tseslint from "typescript-eslint";
+import { fileURLToPath } from "url";
 
 // mimic CommonJS variables -- not needed if using CommonJS
 const __filename = fileURLToPath(import.meta.url);

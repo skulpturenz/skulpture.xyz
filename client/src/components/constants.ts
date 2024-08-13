@@ -4,4 +4,12 @@ export const constants = {
 	id: {
 		landingIntro: "landing-intro",
 	},
+	plural: {
+		file: {
+			en: {
+				one: "file",
+				other: "files",
+			},
+		},
+	},
 };

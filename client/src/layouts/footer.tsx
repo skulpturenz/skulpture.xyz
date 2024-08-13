@@ -1,13 +1,13 @@
-import React from "react";
 import {
-	LogoWords,
+	ArrowRight,
 	LogoIconDark,
 	LogoIconLight,
-	ArrowRight,
+	LogoWords,
 } from "@/components/assets";
-import { cn } from "@/lib/utils";
 import { constants } from "@/components/constants";
+import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import React from "react";
 
 export interface FooterProps {
 	className?: string;
