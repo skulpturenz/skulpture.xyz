@@ -362,6 +362,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 						numberOfFilesSelected > 0
 							? "border-transparent bg-secondary"
 							: "bg-transparent",
+						className,
 					)}>
 					{numberOfFilesSelected <= 0 && (
 						<button
