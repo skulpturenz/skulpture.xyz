@@ -375,8 +375,8 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 						"border-4 border-dashed border-input transition-colors",
 						"focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background",
 						numberOfFilesSelected > 0
-							? "border-transparent bg-secondary"
-							: "bg-transparent",
+							? "border-transparent bg-secondary hover:bg-secondary/90"
+							: "bg-transparent hover:bg-accent",
 						className,
 					)}>
 					{numberOfFilesSelected <= 0 && (
