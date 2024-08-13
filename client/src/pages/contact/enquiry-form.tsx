@@ -30,6 +30,7 @@ const resources = {
 	required: (label: string) => `${label}*`,
 	doSubmit: "Submit",
 	doCancel: "Cancel",
+	doTryAgain: "Try again",
 	form: {
 		firstName: {
 			label: "First name",
@@ -113,6 +114,8 @@ export const EnquiryForm = () => {
 	};
 
 	const onSubmit = handleSubmit(() => {
+		resetSubmitStatus();
+
 		// TODO
 		const formData = new FormData(formRef.current);
 
@@ -399,7 +402,7 @@ export const EnquiryForm = () => {
 					}}
 				/>
 			</FormGroup>
-			{submitStatus.show && (
+			{submitStatus.show && !submitStatus.error && (
 				<>
 					<Progress value={submitStatus.progress} />
 					<Button
@@ -410,6 +413,11 @@ export const EnquiryForm = () => {
 						{resources.doCancel}
 					</Button>
 				</>
+			)}
+			{submitStatus.show && submitStatus.error && (
+				<Button type="submit" tabIndex={0}>
+					{resources.doTryAgain}
+				</Button>
 			)}
 			{!submitStatus.show && (
 				<Button type="submit" tabIndex={0}>
