@@ -12,4 +12,13 @@ export const constants = {
 			},
 		},
 	},
+	keyboardKey: {
+		ArrowDown: "ArrowDown",
+		ArrowUp: "ArrowUp",
+		ArrowLeft: "ArrowLeft",
+		ArrowRight: "ArrowRight",
+		Enter: "Enter",
+		Space: " ",
+		Escape: "Escape",
+	},
 };

@@ -206,11 +206,25 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 		};
 
 		const onClickBrowse: React.MouseEventHandler<
-			HTMLButtonElement | HTMLDivElement
+			HTMLButtonElement | HTMLDivElement | null
 		> = event => {
-			event.stopPropagation();
+			event?.stopPropagation();
 
 			inputFileRef.current?.click();
+		};
+		const onKeyDown: React.KeyboardEventHandler<HTMLDivElement> = event => {
+			if (
+				![
+					constants.keyboardKey.Enter,
+					constants.keyboardKey.Space,
+				].includes(event.key)
+			) {
+				return;
+			}
+
+			event.preventDefault();
+
+			onClickBrowse(null);
 		};
 		const onChange: React.ChangeEventHandler<HTMLInputElement> = event => {
 			const dataTransfer = onlyValid(event.target.files);
@@ -355,6 +369,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 				<div
 					tabIndex={0}
 					onClick={onClickBrowse}
+					onKeyDown={onKeyDown}
 					className={cn(
 						"flex cursor-pointer flex-col items-center justify-center gap-5 rounded-none px-5 py-5 md:py-10",
 						"border-4 border-dashed border-input transition-colors",
@@ -368,10 +383,11 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 						<button
 							className={cn(
 								resources.ui.inputFile.selectContainer,
-								"text-muted-foreground",
+								"text-muted-foreground focus-visible:outline-none",
 							)}
 							onClick={onClickBrowse}
-							type="button">
+							type="button"
+							tabIndex={-1}>
 							<Cloud
 								className={resources.ui.inputFile.selectIcon}
 							/>
