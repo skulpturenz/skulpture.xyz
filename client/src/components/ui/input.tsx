@@ -237,23 +237,6 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 			setShowBackdrop(false);
 		};
 
-		React.useEffect(() => {
-			window.addEventListener("dragenter", onDragEnter);
-			window.addEventListener("dragover", onDragOver);
-			backdropRef.current?.addEventListener("dragleave", onDragLeave);
-			backdropRef.current?.addEventListener("drop", onDrop);
-
-			return () => {
-				window.removeEventListener("dragenter", onDragEnter);
-				window.removeEventListener("dragover", onDragOver);
-				backdropRef.current?.removeEventListener(
-					"dragleave",
-					onDragLeave,
-				);
-				backdropRef.current?.removeEventListener("drop", onDrop);
-			};
-		}, []);
-
 		const numberOfFilesSelected = inputFileRef.current?.files.length ?? 0;
 		const pluralRules = new Intl.PluralRules("en-US");
 		const validSelections = selections.filter(
@@ -289,6 +272,23 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 		};
 
 		React.useEffect(() => {
+			window.addEventListener("dragenter", onDragEnter);
+			window.addEventListener("dragover", onDragOver);
+			backdropRef.current?.addEventListener("dragleave", onDragLeave);
+			backdropRef.current?.addEventListener("drop", onDrop);
+
+			return () => {
+				window.removeEventListener("dragenter", onDragEnter);
+				window.removeEventListener("dragover", onDragOver);
+				backdropRef.current?.removeEventListener(
+					"dragleave",
+					onDragLeave,
+				);
+				backdropRef.current?.removeEventListener("drop", onDrop);
+			};
+		}, []);
+
+		React.useEffect(() => {
 			if (value) {
 				return;
 			}
@@ -296,7 +296,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 			reset();
 		}, [value]);
 
-		const SelectedFile = ({ file }: FileSelection) => {
+		const SelectedFile = ({ file, validationResult }: FileSelection) => {
 			const Container = hasHover() ? Popover : HoverCard;
 			const Trigger = hasHover() ? PopoverTrigger : HoverCardTrigger;
 			const Content = hasHover() ? PopoverContent : HoverCardContent;
@@ -323,6 +323,13 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 							:&nbsp;
 							{new Date(file.lastModified).toDateString()}
 						</span>
+						{validationResult.message && (
+							<span>
+								{resources.inputFile.infoCard.reason}
+								:&nbsp;
+								{validationResult.message}
+							</span>
+						)}
 						<Button
 							variant="destructive"
 							className="mt-2 w-full"
