@@ -217,13 +217,7 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 			select(dataTransfer);
 		};
 
-		const onDragEnter = (
-			event: DragEvent | React.DragEvent<HTMLDivElement>,
-		) => {
-			if (!event.dataTransfer.items.length) {
-				return;
-			}
-
+		const onDragEnter = () => {
 			setShowBackdrop(true);
 		};
 		const onDragOver = (
