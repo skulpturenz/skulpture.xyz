@@ -1,3 +1,4 @@
+import { constants as styles } from "@/components/constants";
 import { Small } from "@/components/typography/small";
 import { Button } from "@/components/ui/button";
 import { Form, FormGroup } from "@/components/ui/form";
@@ -7,13 +8,13 @@ import {
 	InputFile,
 } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
+import { Dots, Loader } from "@/components/ui/loader";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import wretch from "wretch";
 import AbortAddon from "wretch/addons/abort";
-import ProgressAddon from "wretch/addons/progress";
 
 const constants = {
 	// From: https://emailregex.com/index.html
@@ -119,14 +120,14 @@ export const EnquiryForm = () => {
 		// TODO
 		const formData = new FormData(formRef.current);
 
+		console.log(formData.getAll("files"));
+
 		wretch(import.meta.env.API_BASE_URL)
 			.addon(AbortAddon())
 			.signal(abortControllerRef.current)
-			.addon(ProgressAddon())
 			.url("/contact")
 			.post(formData)
 			.onAbort(abortSubmission)
-			.progress(setSubmissionProgress)
 			.res()
 			.then(reset)
 			.catch(submissionFailed);
@@ -402,28 +403,27 @@ export const EnquiryForm = () => {
 					}}
 				/>
 			</FormGroup>
-			{submitStatus.show && !submitStatus.error && (
-				<>
-					<Progress value={submitStatus.progress} />
-					<Button
-						type="button"
-						variant="destructive"
-						tabIndex={0}
-						onClick={onClickCancel}>
-						{resources.doCancel}
-					</Button>
-				</>
-			)}
-			{submitStatus.show && submitStatus.error && (
-				<Button type="submit" tabIndex={0}>
-					{resources.doTryAgain}
+			<FormGroup>
+				<Button
+					type="button"
+					variant="destructive"
+					disabled={!submitStatus.show}
+					tabIndex={0}
+					onClick={onClickCancel}>
+					{resources.doCancel}
 				</Button>
-			)}
-			{!submitStatus.show && (
 				<Button type="submit" tabIndex={0}>
-					{resources.doSubmit}
+					{submitStatus.show &&
+						submitStatus.error &&
+						resources.doTryAgain}
+					{!submitStatus.show && resources.doSubmit}
+					{submitStatus.show && !submitStatus.error && (
+						<Loader className={cn(styles.dotsLoaderContainer)}>
+							<Dots />
+						</Loader>
+					)}
 				</Button>
-			)}
+			</FormGroup>
 		</Form>
 	);
 };
