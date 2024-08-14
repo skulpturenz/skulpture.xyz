@@ -407,7 +407,7 @@ export const EnquiryForm = () => {
 				<Button
 					type="button"
 					variant="destructive"
-					disabled={!submitStatus.show}
+					disabled={!submitStatus.show || submitStatus.error}
 					tabIndex={0}
 					onClick={onClickCancel}>
 					{resources.doCancel}
