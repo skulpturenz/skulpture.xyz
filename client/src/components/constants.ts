@@ -1,7 +1,7 @@
 export const constants = {
 	contentContainer: "mx-auto max-w-7xl px-4 sm:px-6 lg:px-8",
 	pageContainer: "min-h-screen max-w-screen py-20",
-	dotsLoaderContainer: "flex justify-evenly w-8",
+	dotsLoaderContainer: "flex gap-[0.2em]",
 	id: {
 		landingIntro: "landing-intro",
 	},

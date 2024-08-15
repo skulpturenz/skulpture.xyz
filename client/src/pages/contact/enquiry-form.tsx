@@ -8,7 +8,7 @@ import {
 	InputFile,
 } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dots, Loader } from "@/components/ui/loader";
+import { Dot, Loader } from "@/components/ui/loader";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import React from "react";
@@ -72,20 +72,21 @@ export const EnquiryForm = () => {
 		show: false,
 		error: false,
 		aborted: false,
-		progress: 0,
 	});
 
-	const [submitStatus, setSubmitStatus] = React.useState(createSubmitStatus);
+	// TODO: remove
+	const loadingSubmitStatus = {
+		show: true,
+		error: false,
+		aborted: false,
+	};
+
+	const [submitStatus, setSubmitStatus] = React.useState(loadingSubmitStatus);
 	const resetSubmitStatus = () => setSubmitStatus(createSubmitStatus);
 	const submissionStart = () =>
 		setSubmitStatus(submitStatus => ({
 			...submitStatus,
 			show: true,
-		}));
-	const setSubmissionProgress = (loaded: number, total: number) =>
-		setSubmitStatus(submitStatus => ({
-			...submitStatus,
-			progress: (loaded / total) * 100,
 		}));
 	const abortSubmission = () =>
 		setSubmitStatus(submitStatus => ({
@@ -418,8 +419,14 @@ export const EnquiryForm = () => {
 						resources.doTryAgain}
 					{!submitStatus.show && resources.doSubmit}
 					{submitStatus.show && !submitStatus.error && (
-						<Loader className={cn(styles.dotsLoaderContainer)}>
-							<Dots />
+						<Loader
+							className={cn(
+								styles.dotsLoaderContainer,
+								"text-primary-foreground text-base",
+							)}>
+							{new Array(3).fill(null).map(() => (
+								<Dot />
+							))}
 						</Loader>
 					)}
 				</Button>
