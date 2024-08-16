@@ -1,0 +1,8 @@
+{
+	"editor.insertSpaces": false,
+	"editor.tabSize": 4,
+	"editor.smoothScrolling": true,
+	"editor.formatOnSave": true,
+	"editor.formatOnSaveMode": "file",
+	"files.eol": "\n"
+}

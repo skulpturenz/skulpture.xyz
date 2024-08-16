@@ -1,0 +1,7 @@
+name: landing
+runtime: go
+description: Landing page
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: go
