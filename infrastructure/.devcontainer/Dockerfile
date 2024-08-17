@@ -8,5 +8,8 @@ FROM base
 
 RUN apk add git-lfs && git lfs install
 
+RUN apk add libc6-compat && curl -fsSL https://get.pulumi.com/ | sh
+ENV PATH=$PATH:/root/.pulumi/bin
+
 RUN bash -c "curl https://sdk.cloud.google.com > /tmp/install-gcloud.sh" && bash /tmp/install-gcloud.sh --disable-prompts
 ENV PATH="${PATH}:/root/google-cloud-sdk/bin"

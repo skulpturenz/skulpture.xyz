@@ -1,0 +1,21 @@
+networks:
+  default:
+    name: landing
+    driver: overlay
+    attachable: true
+
+services:
+  landing-api:
+    image: skulpture/landing-api:${TAG:-latest}
+    restart: unless-stopped
+    environment:
+      OTEL_SERVICE_NAME: landing-api
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+      OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Bearer ${OTEL_EXPORTER_OTLP_AUTH_TOKEN}"
+      POSTMARK_TEMPLATE: ${POSTMARK_TEMPLATE}
+      POSTMARK_SERVER_TOKEN: ${POSTMARK_SERVER_TOKEN}
+      POSTMARK_ACCOUNT_TOKEN: ${POSTMARK_ACCOUNT_TOKEN}
+      GO_ENV: ${GO_ENV}
+    deploy:
+      mode: replicated
+      replicas: 1

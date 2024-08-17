@@ -48,21 +48,21 @@ var (
 			WithMembers(slog.LevelDebug, slog.LevelError, slog.LevelInfo, slog.LevelWarn).
 			WithDefault(slog.LevelInfo).
 			Required()
-	SERVICE_NAME = ferrite.
-			String("SERVICE_NAME", "OpenTelemetry service name").
-			Required()
+	OTEL_SERVICE_NAME = ferrite.
+				String("OTEL_SERVICE_NAME", "OpenTelemetry service name").
+				Required()
 	OTEL_EXPORTER_OTLP_ENDPOINT = ferrite.
 					String("OTEL_EXPORTER_OTLP_ENDPOINT", "OpenTelemetry exporter endpoint").
 					Required()
 	OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = ferrite.
 						String("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "OpenTelemetry traces exporter endpoint").
-						Required()
+						Optional()
 	OTEL_EXPORTER_OTLP_HEADERS = ferrite.
 					String("OTEL_EXPORTER_OTLP_HEADERS", "OpenTelemetry exporter headers").
 					Required()
 	OTEL_EXPORTER_OTLP_TRACES_HEADERS = ferrite.
 						String("OTEL_EXPORTER_OTLP_TRACES_HEADERS", "OpenTelemetry exporter headers").
-						Required()
+						Optional()
 	POSTMARK_TEMPLATE = ferrite.Signed[int]("POSTMARK_TEMPLATE", "Postmark template").
 				Required()
 	POSTMARK_FROM = ferrite.String("POSTMARK_FROM", "Postmark from").
@@ -95,8 +95,8 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
-	r.Use(otelhttp.NewMiddleware(SERVICE_NAME.Value()))
-	r.Use(httplog.RequestLogger(httplog.NewLogger(SERVICE_NAME.Value(), httplog.Options{
+	r.Use(otelhttp.NewMiddleware(OTEL_SERVICE_NAME.Value()))
+	r.Use(httplog.RequestLogger(httplog.NewLogger(OTEL_SERVICE_NAME.Value(), httplog.Options{
 		Concise: true,
 		Tags: map[string]string{
 			"env": GO_ENV.Value(),
@@ -348,7 +348,7 @@ func initOtel(ctx context.Context) func(context.Context) error {
 	resources, err := resource.New(
 		ctx,
 		resource.WithAttributes(
-			attribute.String("service.name", SERVICE_NAME.Value()),
+			attribute.String("service.name", OTEL_SERVICE_NAME.Value()),
 			attribute.String("library.language", "go"),
 		),
 	)

@@ -1,0 +1,161 @@
+name: Deploy services
+
+on:
+  push:
+    branches: [master, staging, dev]
+  workflow_dispatch:
+
+env:
+  BRANCH_NAME: ${{ github.base_ref || github.ref_name }}
+
+jobs:
+  up:
+    if: contains(vars.UP, github.base_ref || github.ref_name)
+    permissions:
+      contents: read
+      id-token: write
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Configure GCP credentials
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - name: "Install dependencies: infrastructure"
+        run: go mod download
+        working-directory: infrastructure
+        
+      - name: "Deploy stack: skulpture/landing/prod"
+        uses: pulumi/actions@v5
+        with:
+          command: up
+          stack-name: "skulpture/landing/prod"
+          comment-on-pr: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          work-dir: "infrastructure"
+          upsert: true
+          suppress-outputs: true
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+          COMPUTE_INSTANCE_NAME: "landing"
+          GOOGLE_PROJECT: ${{ vars.GCP_PROJECT_ID }}
+          CLOUDFLARE_ZONE_ID: ${{ vars.CLOUDFLARE_ZONE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          GOOGLE_SERVICE_ACCOUNT: ${{ vars.GOOGLE_SERVICE_ACCOUNT }}
+          GCP_SSH_PUBLIC_KEY: ${{ vars.GCP_SSH_PUBLIC_KEY }}
+
+  build:
+    if: ${{ always() }}
+    needs: up
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: "Build Docker image: landing-api"
+        uses: docker/build-push-action@v5
+        env:
+          TAG: ${{ (env.BRANCH_NAME == 'master' && 'latest') || env.BRANCH_NAME }}
+        with:
+          context: "{{defaultContext}}:api"
+          push: true
+          tags: |
+            skulpture/landing-api:${{ env.TAG }}
+
+  deploy:    
+    permissions:
+      contents: read
+      id-token: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [api]
+        branch: [master] # staging, dev
+
+    environment: "landing-${{ matrix.branch }}"
+
+    needs: build
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy files to GCP (${{ matrix.branch }})
+        uses: appleboy/scp-action@master
+        # if: env.BRANCH_NAME == matrix.branch
+        with:
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USERNAME }}
+          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GCP_SSH_PASSPHRASE }}
+          port: 22
+          overwrite: true
+          source: "./*"
+          target: "./landing-${{ env.BRANCH_NAME }}"
+
+      - name: Deploy landing (${{ matrix.branch }})
+        uses: appleboy/ssh-action@master
+        if: contains(vars.DEPLOY, env.BRANCH_NAME)
+        env:
+          STACK_NAME: ${{ matrix.service }}
+          SERVICES_DOCKER_COMPOSE_FILE: docker-compose.yml
+          LOGS_DOCKER_COMPOSE_FILE: docker-compose.logs.yml
+          PROXY_DOCKER_COMPOSE_FILE: docker-compose.proxy.yml
+          ENV_FILE: ~/.env
+        with:
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USERNAME }}
+          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GCP_SSH_PASSPHRASE }}
+          port: 22
+          script: |
+            sudo su
+
+            # TODO: before, updated env wasn't being applied when just updating a stack like this
+            # TODO: if we refer to a node specifically by ip, there are issues with nginx not being able
+            # to resolve the hostname because it caches
+            docker stack rm ${{ env.STACK_NAME }}
+            docker container prune -f
+
+            sleep 30s
+
+            docker pull skulpture/kryptos
+            export $(docker run --rm --env-file ${{ env.ENV_FILE }} skulpture/kryptos cat | xargs)
+            
+            if [[ "${{ env.BRANCH_NAME }}" != "master" ]]; then
+              export TAG=${{ env.BRANCH_NAME }}
+            fi
+
+            cd landing-${{ env.BRANCH_NAME }}/${{ matrix.service }}
+
+            docker stack deploy --compose-file ${{ env.SERVICES_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }}
+            sleep 30s
+            docker stack deploy --compose-file ${{ env.LOGS_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }}
+            sleep 30s
+            docker stack deploy --compose-file ${{ env.PROXY_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }}
