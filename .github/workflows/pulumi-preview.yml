@@ -43,7 +43,7 @@ jobs:
         uses: pulumi/actions@v5
         with:
           command: preview
-          stack-name: "skulpture/landing"
+          stack-name: "skulpture/landing/prod"
           comment-on-pr: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
           work-dir: "infrastructure"

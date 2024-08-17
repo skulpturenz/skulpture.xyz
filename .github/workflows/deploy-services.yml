@@ -39,11 +39,11 @@ jobs:
         run: go mod download
         working-directory: infrastructure
         
-      - name: "Deploy stack: skulpture/landing"
+      - name: "Deploy stack: skulpture/landing/prod"
         uses: pulumi/actions@v5
         with:
           command: up
-          stack-name: "skulpture/landing"
+          stack-name: "skulpture/landing/prod"
           comment-on-pr: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
           work-dir: "infrastructure"
