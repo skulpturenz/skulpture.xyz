@@ -6,7 +6,6 @@ import (
 	"github.com/dogmatiq/ferrite"
 	"github.com/pulumi/pulumi-cloudflare/sdk/v5/go/cloudflare"
 	"github.com/pulumi/pulumi-gcp/sdk/v7/go/gcp/compute"
-	"github.com/pulumi/pulumi-gcp/sdk/v7/go/gcp/iam"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
@@ -129,29 +128,29 @@ func main() {
 			return err
 		}
 
-		pool, err := iam.LookupWorkloadIdentityPool(ctx, &iam.LookupWorkloadIdentityPoolArgs{
-			WorkloadIdentityPoolId: "shared-resources",
-		})
-		if err != nil {
-			return err
-		}
+		// pool, err := iam.LookupWorkloadIdentityPool(ctx, &iam.LookupWorkloadIdentityPoolArgs{
+		// 	WorkloadIdentityPoolId: "shared-resources",
+		// })
+		// if err != nil {
+		// 	return err
+		// }
 
-		const REPOSITORY = "nmathew98/skulpture.xyz"
-		principalSet := fmt.Sprintf("principalSet://iam.googleapis.com/%s/attribute.repository/%s", pool.Name, REPOSITORY)
+		// const REPOSITORY = "nmathew98/skulpture.xyz"
+		// principalSet := fmt.Sprintf("principalSet://iam.googleapis.com/%s/attribute.repository/%s", pool.Name, REPOSITORY)
 
-		instance.InstanceId.ApplyT(func(instanceId string) error {
-			_, err = compute.NewInstanceIAMBinding(ctx, fmt.Sprintf("%s-compute-admin", COMPUTE_INSTANCE_NAME.Value()), &compute.InstanceIAMBindingArgs{
-				Zone:         pulumi.String("australia-southeast1-c"),
-				InstanceName: pulumi.String(COMPUTE_INSTANCE_NAME.Value()),
-				Role:         pulumi.String("roles/compute.admin"),
-				Members:      pulumi.ToStringArray([]string{principalSet}),
-			})
-			if err != nil {
-				return err
-			}
+		// instance.InstanceId.ApplyT(func(instanceId string) error {
+		// 	_, err = compute.NewInstanceIAMBinding(ctx, fmt.Sprintf("%s-compute-admin", COMPUTE_INSTANCE_NAME.Value()), &compute.InstanceIAMBindingArgs{
+		// 		Zone:         pulumi.String("australia-southeast1-c"),
+		// 		InstanceName: pulumi.String(COMPUTE_INSTANCE_NAME.Value()),
+		// 		Role:         pulumi.String("roles/compute.admin"),
+		// 		Members:      pulumi.ToStringArray([]string{principalSet}),
+		// 	})
+		// 	if err != nil {
+		// 		return err
+		// 	}
 
-			return nil
-		})
+		// 	return nil
+		// })
 
 		return nil
 	})
