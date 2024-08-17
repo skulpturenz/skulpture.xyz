@@ -4,7 +4,12 @@ go 1.21
 
 toolchain go1.22.4
 
-require github.com/pulumi/pulumi/sdk/v3 v3.128.0
+require (
+	github.com/dogmatiq/ferrite v1.3.0
+	github.com/pulumi/pulumi-cloudflare/sdk/v5 v5.36.0
+	github.com/pulumi/pulumi-gcp/sdk/v7 v7.37.0
+	github.com/pulumi/pulumi/sdk/v3 v3.128.0
+)
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
@@ -25,7 +30,6 @@ require (
 	github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
 	github.com/djherbis/times v1.5.0 // indirect
-	github.com/dogmatiq/ferrite v1.3.0 // indirect
 	github.com/dogmatiq/iago v0.4.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
@@ -60,8 +64,6 @@ require (
 	github.com/pkg/term v1.1.0 // indirect
 	github.com/pulumi/appdash v0.0.0-20231130102222-75f619a67231 // indirect
 	github.com/pulumi/esc v0.9.1 // indirect
-	github.com/pulumi/pulumi-cloudflare/sdk/v5 v5.36.0 // indirect
-	github.com/pulumi/pulumi-gcp/sdk/v7 v7.37.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06 // indirect
