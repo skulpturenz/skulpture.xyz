@@ -35,9 +35,9 @@ jobs:
         with:
           project_id: ${{ vars.GCP_PROJECT_ID }}
 
-      - name: "Install dependencies: api"
+      - name: "Install dependencies: infrastructure"
         run: go mod download
-        working-directory: api
+        working-directory: infrastructure
         
       - name: "Deploy stack: skulpture/landing"
         uses: pulumi/actions@v5

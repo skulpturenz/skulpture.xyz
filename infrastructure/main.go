@@ -129,16 +129,17 @@ func main() {
 			return err
 		}
 
+		pool, err := iam.LookupWorkloadIdentityPool(ctx, &iam.LookupWorkloadIdentityPoolArgs{
+			WorkloadIdentityPoolId: "shared-resources",
+		})
+		if err != nil {
+			return err
+		}
+
+		ctx.Export("workflowIdentityPoolId", pulumi.String(pool.WorkloadIdentityPoolId))
+		ctx.Export("workflowIdentityPoolName", pulumi.String(pool.Name))
+
 		instance.InstanceId.ApplyT(func(instanceId string) error {
-			pool, err := iam.LookupWorkloadIdentityPool(ctx, &iam.LookupWorkloadIdentityPoolArgs{
-				WorkloadIdentityPoolId: "shared-resources",
-			})
-			if err != nil {
-				return err
-			}
-
-			ctx.Export("poolId", pulumi.String(pool.WorkloadIdentityPoolId))
-
 			const REPOSITORY = "nmathew98/skulpture.xyz"
 			principalSet := fmt.Sprintf("principalSet://iam.googleapis.com/%s/attribute.repository/%s", pool.Name, REPOSITORY)
 

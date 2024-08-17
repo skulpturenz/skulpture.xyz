@@ -35,9 +35,9 @@ jobs:
         with:
           project_id: ${{ vars.GCP_PROJECT_ID }}
 
-      - name: "Install dependencies: ${{ matrix.compute }}"
+      - name: "Install dependencies: infrastructure"
         run: go mod download
-        working-directory: ${{ matrix.compute }}
+        working-directory: "infrastructure"
 
       - name: "Preview stack: skulpture/landing"
         uses: pulumi/actions@v5
