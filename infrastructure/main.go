@@ -150,7 +150,7 @@ func main() {
 
 		_, err = serviceaccount.NewIAMBinding(ctx, "gh-actions-wif-user", &serviceaccount.IAMBindingArgs{
 			ServiceAccountId: pulumi.String(serviceAccount.Id),
-			Role:             pulumi.String("role/iam.workloadIdentityUser"),
+			Role:             pulumi.String("roles/iam.workloadIdentityUser"),
 			Members:          pulumi.ToStringArray([]string{principalSet}),
 		})
 		if err != nil {
