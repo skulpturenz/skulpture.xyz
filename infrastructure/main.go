@@ -137,6 +137,8 @@ func main() {
 				return err
 			}
 
+			ctx.Export("poolId", pulumi.String(pool.WorkloadIdentityPoolId))
+
 			const REPOSITORY = "nmathew98/skulpture.xyz"
 			principalSet := fmt.Sprintf("principalSet://iam.googleapis.com/%s/attribute.repository/%s", pool.Name, REPOSITORY)
 
