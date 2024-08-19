@@ -130,7 +130,8 @@ func main() {
 		store = memoryStore
 	}
 
-	middleware, err := httplimit.NewMiddleware(store, httplimit.IPKeyFunc())
+	// requests are proxied by nginx
+	middleware, err := httplimit.NewMiddleware(store, httplimit.IPKeyFunc("X-Forwarded-For"))
 	if err != nil {
 		slog.ErrorContext(ctx, "error", "init", err.Error())
 		panic(err)
