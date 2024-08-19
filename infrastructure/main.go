@@ -136,7 +136,7 @@ func main() {
 			return err
 		}
 
-		const REPOSITORY = "nmathew98/skulpture.xyz"
+		const REPOSITORY = "skulpturenz/skulpture.xyz"
 		principalSet := fmt.Sprintf("principalSet://iam.googleapis.com/%s/attribute.repository/%s", pool.Name, REPOSITORY)
 
 		instance.InstanceId.ApplyT(func(instanceId string) error {
