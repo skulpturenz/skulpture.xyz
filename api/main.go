@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -22,6 +23,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/mrz1836/postmark"
+	slogmulti "github.com/samber/slog-multi"
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/sethvargo/go-limiter/memorystore"
@@ -378,9 +380,16 @@ func initOtel(ctx context.Context) func(context.Context) error {
 		sdklog.WithResource(resources),
 	)
 
-	otelLogger := slog.New(otelslog.NewOtelHandler(loggerProvider, &otelslog.HandlerOptions{
-		Level: LOG_LEVEL.Value(),
-	}))
+	otelLogger := slog.New(
+		slogmulti.Fanout(
+			otelslog.NewOtelHandler(loggerProvider, &otelslog.HandlerOptions{
+				Level: LOG_LEVEL.Value(),
+			}),
+			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+				Level: LOG_LEVEL.Value(),
+			}),
+		),
+	)
 	slog.SetDefault(otelLogger)
 
 	return func(ctx context.Context) error {
