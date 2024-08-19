@@ -9,6 +9,7 @@ services:
     image: skulpture/landing-api:${TAG:-latest}
     restart: unless-stopped
     environment:
+      LOG_LEVEL: ${LOG_LEVEL}
       OTEL_SERVICE_NAME: landing-api
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
       OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Bearer ${OTEL_EXPORTER_OTLP_AUTH_TOKEN}"
