@@ -136,7 +136,7 @@ func main() {
 
 	r.Use(middleware.Handle)
 
-	r.Post("/lead", handler)
+	r.Post("/contact", handler)
 
 	http.ListenAndServe(":80", r)
 }
@@ -294,16 +294,18 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	slog.DebugContext(r.Context(), "processed", "enquiry", fmt.Sprintf("%+v", body))
 
 	// TODO: POST to CRM
-	// TODO: Send email
+
 	templateId := POSTMARK_TEMPLATE.Value()
 	postmarkFrom := POSTMARK_FROM.Value()
 
 	res, err := postmarkClient.SendTemplatedEmail(context.Background(), postmark.TemplatedEmail{
-		TemplateID:    int64(templateId),
-		From:          postmarkFrom,
-		To:            body.Email,
-		TrackOpens:    true,
-		TemplateModel: map[string]interface{}{}, // TODO: Template model
+		TemplateID: int64(templateId),
+		From:       postmarkFrom,
+		To:         body.Email,
+		TrackOpens: true,
+		TemplateModel: map[string]interface{}{
+			"enquiry": body,
+		},
 	})
 	if err != nil {
 		slog.ErrorContext(r.Context(), "error", "postmark", err.Error())
