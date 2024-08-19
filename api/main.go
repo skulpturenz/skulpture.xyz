@@ -303,8 +303,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		From:       postmarkFrom,
 		To:         body.Email,
 		TrackOpens: true,
-		TemplateModel: map[string]interface{}{
-			"enquiry": body,
+		TemplateModel: map[string]any{
+			"uuid":      body.uuid,
+			"email":     body.Email,
+			"firstName": body.FirstName,
+			"lastName":  body.LastName,
+			"mobile":    body.Email,
+			"enquiry":   body.Enquiry,
 		},
 	})
 	if err != nil {
