@@ -105,6 +105,8 @@ func main() {
 				Email: pulumi.StringPtr(GOOGLE_SERVICE_ACCOUNT.Value()),
 				Scopes: pulumi.ToStringArray([]string{
 					"cloud-platform",
+					"https://www.googleapis.com/auth/drive",
+					"https://www.googleapis.com/auth/documents",
 				}),
 			},
 		})
