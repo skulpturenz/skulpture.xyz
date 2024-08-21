@@ -74,6 +74,8 @@ var (
 				Required()
 	POSTMARK_ACCOUNT_TOKEN = ferrite.String("POSTMARK_ACCOUNT_TOKEN", "Postmark account token").
 				Required()
+	GDRIVE_FOLDER_ID = ferrite.String("GDRIVE_FOLDER_ID", "Google drive folder id").
+				Required()
 	GO_ENV = ferrite.
 		String("GO_ENV", "Golang environment").
 		WithDefault("Development").
@@ -235,14 +237,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 			res, err := driveService.Files.
 				Create(&drive.File{
-					Name: fileHeader.Filename,
+					Name: fmt.Sprintf("%s (%s)", fileHeader.Filename, GO_ENV.Value()),
 					Properties: map[string]string{
-						"lead":      body.uuid,
-						"email":     body.Email,
-						"firstName": body.FirstName,
-						"lastName":  body.LastName,
-						"mobile":    body.Mobile,
+						"lead":        body.uuid,
+						"email":       body.Email,
+						"firstName":   body.FirstName,
+						"lastName":    body.LastName,
+						"mobile":      body.Mobile,
+						"environment": GO_ENV.Value(),
 					},
+					Parents: []string{GDRIVE_FOLDER_ID.Value()},
 				}).
 				Media(file).
 				Fields("id, webContentLink").
