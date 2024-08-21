@@ -237,7 +237,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 			res, err := driveService.Files.
 				Create(&drive.File{
-					Name: fmt.Sprintf("%s (%s)", fileHeader.Filename, GO_ENV.Value()),
+					Name: fmt.Sprintf("%s - %s (%s)", body.Email, fileHeader.Filename, GO_ENV.Value()),
 					Properties: map[string]string{
 						"lead":        body.uuid,
 						"email":       body.Email,
@@ -249,7 +249,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 					Parents: []string{GDRIVE_FOLDER_ID.Value()},
 				}).
 				Media(file).
-				Fields("id, webContentLink").
+				Fields("id, webViewLink").
 				Context(uploadCtx).
 				Do()
 
@@ -261,7 +261,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			slog.DebugContext(r.Context(), "end", "upload", fileHeader.Filename, "link", res.WebContentLink)
+			slog.DebugContext(r.Context(), "end", "upload", fileHeader.Filename, "link", res.WebViewLink)
 
 			uploadedFiles <- *res
 		}
@@ -292,7 +292,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		attachedFiles := []string{}
 		for file := range uploadedFiles {
-			attachedFiles = append(attachedFiles, fmt.Sprintf("- %s", file.WebContentLink))
+			attachedFiles = append(attachedFiles, fmt.Sprintf("- %s", file.WebViewLink))
 		}
 		enquiryWithFiles := fmt.Appendf([]byte(body.Enquiry), "\nAttached files:\n%s", strings.Join(attachedFiles, "\n"))
 		body.Enquiry = string(enquiryWithFiles)
