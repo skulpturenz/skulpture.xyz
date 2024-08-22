@@ -156,7 +156,7 @@ func main() {
 	r.Use(cors.Handler(cors.Options{
 		AllowOriginFunc: func(r *http.Request, origin string) bool {
 			if GO_ENV.Value() != "development" {
-				return strings.Contains(origin, "skulpture.xyz") || strings.ContainsAny(origin, "skulpture-xyz.pages.dev")
+				return strings.Contains(origin, "skulpture.xyz") || strings.Contains(origin, "skulpture-xyz.pages.dev")
 			}
 
 			return true
