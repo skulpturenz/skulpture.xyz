@@ -395,6 +395,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func createGoogleSheetsService(ctx context.Context) *sheets.Service {
 	// Authenticate using ADC
 	// instance or account must have required permissions to docs api
+	// instance must have oauth scope: https://www.googleapis.com/auth/spreadsheets
 	service, err := sheets.NewService(ctx)
 	if err != nil {
 		slog.ErrorContext(ctx, "error", "gsheets service", err.Error())
@@ -408,7 +409,9 @@ func createGoogleSheetsService(ctx context.Context) *sheets.Service {
 
 func createGoogleDriveService(ctx context.Context) *drive.Service {
 	// Authenticate using ADC
-	// instance or account must have required permissions to docs api
+	// instance or account must have required permissions to drive api
+	// instance must have oauth scope: https://www.googleapis.com/auth/drive
+	// local run must have gdrive access enabled
 	service, err := drive.NewService(ctx)
 	if err != nil {
 		slog.ErrorContext(ctx, "error", "gdrive service", err.Error())
