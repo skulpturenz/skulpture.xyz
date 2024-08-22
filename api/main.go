@@ -342,6 +342,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		ValueInputOption("RAW").
 		InsertDataOption("INSERT_ROWS").
 		Context(r.Context()).
+		Fields("SpreadsheetId").
 		Do()
 	if err != nil {
 		slog.ErrorContext(r.Context(), "error", "gsheets", err.Error())
