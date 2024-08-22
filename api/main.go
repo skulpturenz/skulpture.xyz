@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -22,6 +23,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/mrz1836/postmark"
+	slogmulti "github.com/samber/slog-multi"
 	"github.com/sethvargo/go-limiter"
 	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/sethvargo/go-limiter/memorystore"
@@ -34,11 +36,13 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/api/drive/v3"
+	"google.golang.org/api/sheets/v4"
 )
 
 var validate *validator.Validate
 var driveService *drive.Service
 var postmarkClient *postmark.Client
+var sheetsService *sheets.Service
 
 const MAX_REQUEST_SIZE = 20 << 20 // 20 MB
 const MAX_UPLOAD_SIZE = 15 << 20  // 15 MB
@@ -48,29 +52,40 @@ var (
 			WithMembers(slog.LevelDebug, slog.LevelError, slog.LevelInfo, slog.LevelWarn).
 			WithDefault(slog.LevelInfo).
 			Required()
-	SERVICE_NAME = ferrite.
-			String("SERVICE_NAME", "OpenTelemetry service name").
-			Required()
+	OTEL_SERVICE_NAME = ferrite.
+				String("OTEL_SERVICE_NAME", "OpenTelemetry service name").
+				Required()
 	OTEL_EXPORTER_OTLP_ENDPOINT = ferrite.
 					String("OTEL_EXPORTER_OTLP_ENDPOINT", "OpenTelemetry exporter endpoint").
 					Required()
 	OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = ferrite.
 						String("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "OpenTelemetry traces exporter endpoint").
-						Required()
+						Optional()
 	OTEL_EXPORTER_OTLP_HEADERS = ferrite.
 					String("OTEL_EXPORTER_OTLP_HEADERS", "OpenTelemetry exporter headers").
 					Required()
 	OTEL_EXPORTER_OTLP_TRACES_HEADERS = ferrite.
 						String("OTEL_EXPORTER_OTLP_TRACES_HEADERS", "OpenTelemetry exporter headers").
-						Required()
+						Optional()
 	POSTMARK_TEMPLATE = ferrite.Signed[int]("POSTMARK_TEMPLATE", "Postmark template").
 				Required()
 	POSTMARK_FROM = ferrite.String("POSTMARK_FROM", "Postmark from").
 			WithDefault("hey@skulpture.xyz").
 			Required()
-	POSTMARK_SERVER_TOKEN = ferrite.String("POSTMARK_SERVER_TOKEN", "Postmark server token").
+	POSTMARK_SERVER_TOKEN = ferrite.
+				String("POSTMARK_SERVER_TOKEN", "Postmark server token").
 				Required()
-	POSTMARK_ACCOUNT_TOKEN = ferrite.String("POSTMARK_ACCOUNT_TOKEN", "Postmark account token").
+	POSTMARK_ACCOUNT_TOKEN = ferrite.
+				String("POSTMARK_ACCOUNT_TOKEN", "Postmark account token").
+				Required()
+	GDRIVE_FOLDER_ID = ferrite.
+				String("GDRIVE_FOLDER_ID", "Google drive folder id").
+				Required()
+	GSHEETS_SPREADSHEET_ID = ferrite.String("GSHEETS_SPREADSHEET_ID", "Google sheets spreadsheet id").
+				Required()
+	GSHEETS_SHEET_NAME = ferrite.
+				String("GSHEETS_SHEET_NAME", "Google sheets sheet name").
+				WithDefault("Sheet1").
 				Required()
 	GO_ENV = ferrite.
 		String("GO_ENV", "Golang environment").
@@ -92,11 +107,12 @@ func main() {
 
 	driveService = createGoogleDriveService(ctx)
 	postmarkClient = createPostmarkClient(ctx)
+	sheetsService = createGoogleSheetsService(ctx)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
-	r.Use(otelhttp.NewMiddleware(SERVICE_NAME.Value()))
-	r.Use(httplog.RequestLogger(httplog.NewLogger(SERVICE_NAME.Value(), httplog.Options{
+	r.Use(otelhttp.NewMiddleware(OTEL_SERVICE_NAME.Value()))
+	r.Use(httplog.RequestLogger(httplog.NewLogger(OTEL_SERVICE_NAME.Value(), httplog.Options{
 		Concise: true,
 		Tags: map[string]string{
 			"env": GO_ENV.Value(),
@@ -128,7 +144,8 @@ func main() {
 		store = memoryStore
 	}
 
-	middleware, err := httplimit.NewMiddleware(store, httplimit.IPKeyFunc())
+	// requests are proxied by nginx
+	middleware, err := httplimit.NewMiddleware(store, httplimit.IPKeyFunc("X-Forwarded-For"))
 	if err != nil {
 		slog.ErrorContext(ctx, "error", "init", err.Error())
 		panic(err)
@@ -136,7 +153,7 @@ func main() {
 
 	r.Use(middleware.Handle)
 
-	r.Post("/lead", handler)
+	r.Post("/contact", handler)
 
 	http.ListenAndServe(":80", r)
 }
@@ -157,6 +174,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		FirstName string `json:"firstName" validate:"required"`
 		LastName  string `json:"lastName" validate:"required"`
 		Enquiry   string `json:"enquiry" validate:"required"`
+		files     []*drive.File
 	}
 
 	body.uuid = uuid.NewString()
@@ -232,17 +250,19 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 			res, err := driveService.Files.
 				Create(&drive.File{
-					Name: fileHeader.Filename,
+					Name: fmt.Sprintf("%s - %s (%s)", body.Email, fileHeader.Filename, GO_ENV.Value()),
 					Properties: map[string]string{
-						"lead":      body.uuid,
-						"email":     body.Email,
-						"firstName": body.FirstName,
-						"lastName":  body.LastName,
-						"mobile":    body.Mobile,
+						"lead":        body.uuid,
+						"email":       body.Email,
+						"firstName":   body.FirstName,
+						"lastName":    body.LastName,
+						"mobile":      body.Mobile,
+						"environment": GO_ENV.Value(),
 					},
+					Parents: []string{GDRIVE_FOLDER_ID.Value()},
 				}).
 				Media(file).
-				Fields("id, webContentLink").
+				Fields("id, webViewLink").
 				Context(uploadCtx).
 				Do()
 
@@ -254,7 +274,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			slog.DebugContext(r.Context(), "end", "upload", fileHeader.Filename, "link", res.WebContentLink)
+			slog.DebugContext(r.Context(), "end", "upload", fileHeader.Filename, "link", res.WebViewLink)
 
 			uploadedFiles <- *res
 		}
@@ -284,8 +304,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		attachedFiles := []string{}
+		body.files = []*drive.File{}
 		for file := range uploadedFiles {
-			attachedFiles = append(attachedFiles, fmt.Sprintf("- %s", file.WebContentLink))
+			attachedFiles = append(attachedFiles, fmt.Sprintf("- %s", file.WebViewLink))
+			body.files = append(body.files, &file)
 		}
 		enquiryWithFiles := fmt.Appendf([]byte(body.Enquiry), "\nAttached files:\n%s", strings.Join(attachedFiles, "\n"))
 		body.Enquiry = string(enquiryWithFiles)
@@ -293,29 +315,90 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	slog.DebugContext(r.Context(), "processed", "enquiry", fmt.Sprintf("%+v", body))
 
-	// TODO: POST to CRM
-	// TODO: Send email
+	sheetRange := fmt.Sprintf("%s!A1", GSHEETS_SHEET_NAME.Value())
+
+	links := []string{}
+	for _, file := range body.files {
+		links = append(links, fmt.Sprintf("- %s", file.WebViewLink))
+	}
+
+	_, err = sheetsService.
+		Spreadsheets.
+		Values.
+		Append(GSHEETS_SPREADSHEET_ID.Value(), sheetRange, &sheets.ValueRange{
+			Values: [][]interface{}{
+				{
+					body.Email,
+					body.uuid,
+					body.FirstName,
+					body.LastName,
+					body.Mobile,
+					body.Enquiry,
+					strings.Join(links, "\n"),
+				},
+			},
+		}).
+		ValueInputOption("RAW").
+		InsertDataOption("INSERT_ROWS").
+		Context(r.Context()).
+		Do()
+	if err != nil {
+		slog.ErrorContext(r.Context(), "error", "gsheets", err.Error())
+
+		http.Error(w, "Failed to capture enquiry", http.StatusInternalServerError)
+
+		for _, file := range body.files {
+			go driveService.Files.
+				Delete(file.Id).
+				Do()
+		}
+
+		return
+	}
+
 	templateId := POSTMARK_TEMPLATE.Value()
 	postmarkFrom := POSTMARK_FROM.Value()
 
 	res, err := postmarkClient.SendTemplatedEmail(context.Background(), postmark.TemplatedEmail{
-		TemplateID:    int64(templateId),
-		From:          postmarkFrom,
-		To:            body.Email,
-		TrackOpens:    true,
-		TemplateModel: map[string]interface{}{}, // TODO: Template model
+		TemplateID: int64(templateId),
+		From:       postmarkFrom,
+		To:         body.Email,
+		TrackOpens: true,
+		TemplateModel: map[string]any{
+			"uuid":      body.uuid,
+			"email":     body.Email,
+			"firstName": body.FirstName,
+			"lastName":  body.LastName,
+			"mobile":    body.Email,
+			"enquiry":   body.Enquiry,
+		},
 	})
 	if err != nil {
 		slog.ErrorContext(r.Context(), "error", "postmark", err.Error())
+
+		return
 	}
 
 	slog.DebugContext(r.Context(), "sent", "postmark message id", res.MessageID, "to", res.To, "at", res.SubmittedAt, "lead", body.uuid)
 }
 
+func createGoogleSheetsService(ctx context.Context) *sheets.Service {
+	// Authenticate using ADC
+	// instance or account must have required permissions to docs api
+	service, err := sheets.NewService(ctx)
+	if err != nil {
+		slog.ErrorContext(ctx, "error", "gsheets service", err.Error())
+		panic(err)
+	}
+
+	slog.DebugContext(ctx, "create google sheets service")
+
+	return service
+}
+
 func createGoogleDriveService(ctx context.Context) *drive.Service {
-	// Authenticate using client default credentials
-	// see: https://cloud.google.com/docs/authentication/client-libraries
-	// Note: Service Account Token Creator IAM role must be granted to the service account
+	// Authenticate using ADC
+	// instance or account must have required permissions to docs api
 	service, err := drive.NewService(ctx)
 	if err != nil {
 		slog.ErrorContext(ctx, "error", "gdrive service", err.Error())
@@ -348,7 +431,7 @@ func initOtel(ctx context.Context) func(context.Context) error {
 	resources, err := resource.New(
 		ctx,
 		resource.WithAttributes(
-			attribute.String("service.name", SERVICE_NAME.Value()),
+			attribute.String("service.name", OTEL_SERVICE_NAME.Value()),
 			attribute.String("library.language", "go"),
 		),
 	)
@@ -371,9 +454,16 @@ func initOtel(ctx context.Context) func(context.Context) error {
 		sdklog.WithResource(resources),
 	)
 
-	otelLogger := slog.New(otelslog.NewOtelHandler(loggerProvider, &otelslog.HandlerOptions{
-		Level: LOG_LEVEL.Value(),
-	}))
+	otelLogger := slog.New(
+		slogmulti.Fanout(
+			otelslog.NewOtelHandler(loggerProvider, &otelslog.HandlerOptions{
+				Level: LOG_LEVEL.Value(),
+			}),
+			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+				Level: LOG_LEVEL.Value(),
+			}),
+		),
+	)
 	slog.SetDefault(otelLogger)
 
 	return func(ctx context.Context) error {
