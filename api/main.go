@@ -319,7 +319,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	links := []string{}
 	for _, file := range body.files {
-		fmt.Println(file.WebViewLink)
 		links = append(links, fmt.Sprintf("- %s", file.WebViewLink))
 	}
 
@@ -342,12 +341,17 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		ValueInputOption("RAW").
 		InsertDataOption("INSERT_ROWS").
 		Context(r.Context()).
-		Fields("SpreadsheetId").
 		Do()
 	if err != nil {
 		slog.ErrorContext(r.Context(), "error", "gsheets", err.Error())
 
 		http.Error(w, "Failed to capture enquiry", http.StatusInternalServerError)
+
+		for _, file := range body.files {
+			go driveService.Files.
+				Delete(file.Id).
+				Do()
+		}
 
 		return
 	}
@@ -371,12 +375,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		slog.ErrorContext(r.Context(), "error", "postmark", err.Error())
-
-		for _, file := range body.files {
-			go driveService.Files.
-				Delete(file.Id).
-				Do()
-		}
 
 		return
 	}
