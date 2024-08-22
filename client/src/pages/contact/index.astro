@@ -48,7 +48,10 @@ const resources = {
 				</p>
 			</div>
 			<div>
-				<EnquiryForm client:load />
+				<EnquiryForm
+					action={import.meta.env.API_BASE_URL}
+					client:load
+				/>
 			</div>
 		</div>
 	</div>

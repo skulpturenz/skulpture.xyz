@@ -1,3 +1,4 @@
+import { constants as styles } from "@/components/constants";
 import { Small } from "@/components/typography/small";
 import { Button } from "@/components/ui/button";
 import { Form, FormGroup } from "@/components/ui/form";
@@ -7,8 +8,13 @@ import {
 	InputFile,
 } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dot, Loader } from "@/components/ui/loader";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import React from "react";
 import { Controller, useForm } from "react-hook-form";
+import wretch from "wretch";
+import AbortAddon from "wretch/addons/abort";
 
 const constants = {
 	// From: https://emailregex.com/index.html
@@ -24,6 +30,8 @@ const resources = {
 	enquiryAction: "/api/enquiry",
 	required: (label: string) => `${label}*`,
 	doSubmit: "Submit",
+	doCancel: "Cancel",
+	doTryAgain: "Try again",
 	form: {
 		firstName: {
 			label: "First name",
@@ -56,24 +64,88 @@ const resources = {
 	},
 };
 
-export const EnquiryForm = () => {
+export const EnquiryForm = ({ action = "" }) => {
+	const abortControllerRef = React.useRef(new AbortController());
+	const formRef = React.useRef<HTMLFormElement>(null);
+
+	const createSubmitStatus = () => ({
+		show: false,
+		error: false,
+		aborted: false,
+	});
+
+	const [submitStatus, setSubmitStatus] = React.useState(createSubmitStatus);
+	const resetSubmitStatus = () => setSubmitStatus(createSubmitStatus);
+	const submissionStart = () =>
+		setSubmitStatus(submitStatus => ({
+			...submitStatus,
+			show: true,
+		}));
+	const abortSubmission = () =>
+		setSubmitStatus(submitStatus => ({
+			...submitStatus,
+			aborted: true,
+		}));
+	const submissionFailed = error => {
+		console.error(error);
+
+		setSubmitStatus(submitStatus => ({
+			...submitStatus,
+			error: true,
+		}));
+	};
+
 	const {
 		handleSubmit,
 		control,
-		formState: _formState,
-		reset,
+		reset: resetForm,
 	} = useForm({
 		mode: "onChange",
 	});
+	const reset = () => {
+		resetForm();
+		abortControllerRef.current = new AbortController();
+		resetSubmitStatus();
+	};
 
-	const onSubmit = handleSubmit(_data => {
-		console.log(_data);
+	const onSubmit = handleSubmit(() => {
+		resetSubmitStatus();
 
-		reset();
+		const formData = new FormData(formRef.current);
+
+		wretch(action)
+			.addon(AbortAddon())
+			.signal(abortControllerRef.current)
+			.url("/contact")
+			.post(formData)
+			.onAbort(abortSubmission)
+			.res()
+			.then(reset)
+			.catch(submissionFailed);
+
+		submissionStart();
 	});
 
+	const onClickCancel: React.MouseEventHandler<HTMLButtonElement> = event => {
+		event.preventDefault();
+
+		abortControllerRef.current.abort();
+
+		abortControllerRef.current = new AbortController();
+
+		resetSubmitStatus();
+	};
+
+	React.useEffect(() => {
+		const abortController = abortControllerRef.current;
+
+		return () => {
+			abortController.abort();
+		};
+	}, []);
+
 	return (
-		<Form method="POST" onSubmit={onSubmit}>
+		<Form ref={formRef} method="POST" onSubmit={onSubmit}>
 			<FormGroup>
 				<Controller
 					control={control}
@@ -181,7 +253,7 @@ export const EnquiryForm = () => {
 			<FormGroup>
 				<Controller
 					control={control}
-					name="phone"
+					name="mobile"
 					defaultValue=""
 					rules={{
 						pattern: {
@@ -193,7 +265,7 @@ export const EnquiryForm = () => {
 						<>
 							<Input
 								type="tel"
-								name="phone"
+								name="mobile"
 								placeholder={resources.form.phone.label}
 								autoComplete="home work mobile"
 								isError={Boolean(formState.errors.phone)}
@@ -322,9 +394,33 @@ export const EnquiryForm = () => {
 					}}
 				/>
 			</FormGroup>
-			<Button type="submit" tabIndex={0}>
-				{resources.doSubmit}
-			</Button>
+			<FormGroup>
+				<Button
+					type="button"
+					variant="destructive"
+					disabled={!submitStatus.show || submitStatus.error}
+					tabIndex={0}
+					onClick={onClickCancel}>
+					{resources.doCancel}
+				</Button>
+				<Button type="submit" tabIndex={0}>
+					{submitStatus.show &&
+						submitStatus.error &&
+						resources.doTryAgain}
+					{!submitStatus.show && resources.doSubmit}
+					{submitStatus.show && !submitStatus.error && (
+						<Loader
+							className={cn(
+								styles.dotsLoaderContainer,
+								"text-primary-foreground text-base",
+							)}>
+							{new Array(3).fill(null).map(() => (
+								<Dot />
+							))}
+						</Loader>
+					)}
+				</Button>
+			</FormGroup>
 		</Form>
 	);
 };

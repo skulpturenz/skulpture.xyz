@@ -107,6 +107,9 @@ importers:
       vite-plugin-svgr:
         specifier: ^4.2.0
         version: 4.2.0(rollup@4.20.0)(typescript@5.5.4)(vite@5.3.5)
+      wretch:
+        specifier: ^2.9.0
+        version: 2.9.0
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.1.0
@@ -3697,6 +3700,10 @@ packages:
   wrap-ansi@8.1.0:
     resolution: {integrity: sha512-si7QWI6zUMq56bESFvagtmzMdGOtoxfR+Sez11Mobfc7tm+VkUckk9bW2UeffTGVUbOksxmSw0AA2gs8g71NCQ==}
     engines: {node: '>=12'}
+
+  wretch@2.9.0:
+    resolution: {integrity: sha512-kKp1xWQO+Vh9I6RJq7Yers2KKrmF7LXB00c9knMDn3IdB7etcQOarrsHArpj1sZ1Dlav8ss6R1DuUpDSTqmQew==}
+    engines: {node: '>=14'}
 
   y18n@5.0.8:
     resolution: {integrity: sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==}
@@ -7798,6 +7805,8 @@ snapshots:
       ansi-styles: 6.2.1
       string-width: 5.1.2
       strip-ansi: 7.1.0
+
+  wretch@2.9.0: {}
 
   y18n@5.0.8: {}
 

@@ -11,33 +11,33 @@ export interface FormGroupProps extends React.HTMLAttributes<HTMLDivElement> {
 	asChild?: boolean;
 }
 
-export const Form = ({
-	className,
-	flexDirection,
-	asChild,
-	...rest
-}: FormProps) => {
-	const classNames = cn(
-		"flex gap-6",
-		flexDirection === "row" ? "flex-row items-center" : "flex-col",
-	);
+export const Form = React.forwardRef<HTMLFormElement, FormProps>(
+	({ className, flexDirection, asChild, ...rest }, ref) => {
+		const classNames = cn(
+			"flex gap-6",
+			flexDirection === "row" ? "flex-row items-center" : "flex-col",
+		);
 
-	const child = asChild
-		? (React.Children.only(rest.children) as React.ReactElement<
-				Record<string, any>
-			>)
-		: null;
+		const child = asChild
+			? (React.Children.only(rest.children) as React.ReactElement<
+					Record<string, any>
+				>)
+			: null;
 
-	if (child && React.isValidElement(child)) {
-		const cloned = React.cloneElement(child, {
-			className: cn(classNames, child.props.className),
-		});
+		if (child && React.isValidElement(child)) {
+			const cloned = React.cloneElement(child, {
+				ref,
+				className: cn(classNames, child.props.className),
+			});
 
-		return cloned;
-	}
+			return cloned;
+		}
 
-	return <form {...rest} className={cn(classNames, className)} />;
-};
+		return (
+			<form {...rest} ref={ref} className={cn(classNames, className)} />
+		);
+	},
+);
 
 export const FormGroup = ({
 	className,

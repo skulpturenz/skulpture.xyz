@@ -19,6 +19,7 @@ import (
 	"github.com/dogmatiq/ferrite"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/go-chi/httplog/v2"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
@@ -152,6 +153,15 @@ func main() {
 	}
 
 	r.Use(middleware.Handle)
+	r.Use(cors.Handler(cors.Options{
+		AllowOriginFunc: func(r *http.Request, origin string) bool {
+			if GO_ENV.Value() != "development" {
+				return strings.Contains(origin, "skulpture.xyz") || strings.Contains(origin, "skulpture-xyz.pages.dev")
+			}
+
+			return true
+		},
+	}))
 
 	r.Post("/contact", handler)
 
@@ -385,6 +395,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func createGoogleSheetsService(ctx context.Context) *sheets.Service {
 	// Authenticate using ADC
 	// instance or account must have required permissions to docs api
+	// instance must have oauth scope: https://www.googleapis.com/auth/spreadsheets
 	service, err := sheets.NewService(ctx)
 	if err != nil {
 		slog.ErrorContext(ctx, "error", "gsheets service", err.Error())
@@ -398,7 +409,9 @@ func createGoogleSheetsService(ctx context.Context) *sheets.Service {
 
 func createGoogleDriveService(ctx context.Context) *drive.Service {
 	// Authenticate using ADC
-	// instance or account must have required permissions to docs api
+	// instance or account must have required permissions to drive api
+	// instance must have oauth scope: https://www.googleapis.com/auth/drive
+	// local run must have gdrive access enabled
 	service, err := drive.NewService(ctx)
 	if err != nil {
 		slog.ErrorContext(ctx, "error", "gdrive service", err.Error())
