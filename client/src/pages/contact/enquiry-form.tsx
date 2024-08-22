@@ -20,7 +20,7 @@ const constants = {
 	// From: https://emailregex.com/index.html
 	regexEmail:
 		/(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/gi,
-	regexPhone: /^[\+0-9]+$/gi,
+	regexMobile: /^\+[1-9]\d{1,14}$/,
 	regexFilename: /(?<name>.+)(?<extension>\.+\w+)/i,
 	attachmentAccept: [".pdf", ".docx", ".doc", ".ppt", ".pptx", ".txt", ".md"],
 	attachmentTotalSize: 5, // MB
@@ -44,11 +44,11 @@ const resources = {
 		email: {
 			label: "Email",
 			required: "Email must be specified",
-			pattern: "Must be a valid email address",
+			pattern: "Must be a valid email address such as test@example.com",
 		},
-		phone: {
+		mobile: {
 			label: "Phone",
-			pattern: "Must be a valid phone number",
+			pattern: "Must be a valid phone number such as +6498876986",
 		},
 		enquiry: {
 			label: "Enquiry",
@@ -143,6 +143,17 @@ export const EnquiryForm = ({ action = "" }) => {
 			abortController.abort();
 		};
 	}, []);
+
+	const toErrorMessageWithExample = (message: string) => {
+		const words = message.split(" ");
+
+		return (
+			<span>
+				{words.slice(0, -1).join(" ")}&nbsp;
+				<span className="italic font-semibold">{words.at(-1)}</span>
+			</span>
+		);
+	};
 
 	return (
 		<Form ref={formRef} method="POST" onSubmit={onSubmit}>
@@ -244,7 +255,14 @@ export const EnquiryForm = ({ action = "" }) => {
 								{...field}
 							/>
 							<Small aria-live="polite" className="h-2">
-								{formState.errors.email?.message as string}
+								{formState.errors.email?.type !== "pattern" &&
+									(formState.errors.email?.message as string)}
+
+								{formState.errors.email?.type === "pattern" &&
+									toErrorMessageWithExample(
+										formState.errors.email
+											?.message as string,
+									)}
 							</Small>
 						</>
 					)}
@@ -257,25 +275,29 @@ export const EnquiryForm = ({ action = "" }) => {
 					defaultValue=""
 					rules={{
 						pattern: {
-							value: constants.regexPhone,
-							message: resources.form.phone.pattern,
+							value: constants.regexMobile,
+							message: resources.form.mobile.pattern,
 						},
 					}}
 					render={({ field, formState }) => (
 						<>
 							<Input
 								type="tel"
-								name="mobile"
-								placeholder={resources.form.phone.label}
+								placeholder={resources.form.mobile.label}
 								autoComplete="home work mobile"
-								isError={Boolean(formState.errors.phone)}
-								pattern={constants.regexPhone
-									.toString()
-									.slice(1, -3)}
+								isError={Boolean(formState.errors.mobile)}
 								{...field}
 							/>
 							<Small aria-live="polite" className="h-2">
-								{formState.errors.phone?.message as string}
+								{formState.errors.mobile?.type !== "pattern" &&
+									(formState.errors.mobile
+										?.message as string)}
+
+								{formState.errors.mobile?.type === "pattern" &&
+									toErrorMessageWithExample(
+										formState.errors.mobile
+											?.message as string,
+									)}
 							</Small>
 						</>
 					)}
@@ -414,8 +436,8 @@ export const EnquiryForm = ({ action = "" }) => {
 								styles.dotsLoaderContainer,
 								"text-primary-foreground text-base",
 							)}>
-							{new Array(3).fill(null).map(() => (
-								<Dot />
+							{new Array(3).fill(null).map((_, idx) => (
+								<Dot key={idx} />
 							))}
 						</Loader>
 					)}
