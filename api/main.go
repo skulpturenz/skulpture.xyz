@@ -19,6 +19,7 @@ import (
 	"github.com/dogmatiq/ferrite"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/go-chi/httplog/v2"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
@@ -152,6 +153,15 @@ func main() {
 	}
 
 	r.Use(middleware.Handle)
+	r.Use(cors.Handler(cors.Options{
+		AllowOriginFunc: func(r *http.Request, origin string) bool {
+			if GO_ENV.Value() != "development" {
+				return strings.Contains(origin, "skulpture.xyz") || strings.ContainsAny(origin, "skulpture-xyz.pages.dev")
+			}
+
+			return true
+		},
+	}))
 
 	r.Post("/contact", handler)
 

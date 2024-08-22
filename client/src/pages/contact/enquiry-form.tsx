@@ -64,7 +64,7 @@ const resources = {
 	},
 };
 
-export const EnquiryForm = () => {
+export const EnquiryForm = ({ action = "" }) => {
 	const abortControllerRef = React.useRef(new AbortController());
 	const formRef = React.useRef<HTMLFormElement>(null);
 
@@ -118,12 +118,9 @@ export const EnquiryForm = () => {
 	const onSubmit = handleSubmit(() => {
 		resetSubmitStatus();
 
-		// TODO
 		const formData = new FormData(formRef.current);
 
-		console.log(formData.getAll("files"));
-
-		wretch(import.meta.env.API_BASE_URL)
+		wretch(action)
 			.addon(AbortAddon())
 			.signal(abortControllerRef.current)
 			.url("/contact")
@@ -263,7 +260,7 @@ export const EnquiryForm = () => {
 			<FormGroup>
 				<Controller
 					control={control}
-					name="phone"
+					name="mobile"
 					defaultValue=""
 					rules={{
 						pattern: {
@@ -275,7 +272,7 @@ export const EnquiryForm = () => {
 						<>
 							<Input
 								type="tel"
-								name="phone"
+								name="mobile"
 								placeholder={resources.form.phone.label}
 								autoComplete="home work mobile"
 								isError={Boolean(formState.errors.phone)}
