@@ -8,6 +8,7 @@ require (
 	github.com/dogmatiq/ferrite v1.3.0
 	github.com/go-chi/chi v1.5.5
 	github.com/go-chi/chi/v5 v5.0.12
+	github.com/go-chi/cors v1.2.1
 	github.com/go-chi/httplog/v2 v2.0.11
 	github.com/go-playground/validator/v10 v10.22.0
 	github.com/google/uuid v1.6.0
@@ -30,7 +31,6 @@ require (
 	github.com/dogmatiq/iago v0.4.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.4 // indirect
-	github.com/go-chi/cors v1.2.1 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
