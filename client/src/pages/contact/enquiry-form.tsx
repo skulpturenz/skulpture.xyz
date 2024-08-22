@@ -74,14 +74,7 @@ export const EnquiryForm = ({ action = "" }) => {
 		aborted: false,
 	});
 
-	// TODO: remove
-	const loadingSubmitStatus = {
-		show: true,
-		error: false,
-		aborted: false,
-	};
-
-	const [submitStatus, setSubmitStatus] = React.useState(loadingSubmitStatus);
+	const [submitStatus, setSubmitStatus] = React.useState(createSubmitStatus);
 	const resetSubmitStatus = () => setSubmitStatus(createSubmitStatus);
 	const submissionStart = () =>
 		setSubmitStatus(submitStatus => ({
