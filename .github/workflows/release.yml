@@ -2,7 +2,7 @@ name: Release
 
 on:
   pull_request:
-    branches: [master, staging]
+    branches: [master] #, staging
     types: [closed]
   workflow_dispatch:
 
@@ -46,5 +46,6 @@ jobs:
           prerelease: ${{ env.BRANCH_NAME == 'master' && false || true }}
           name: ${{ steps.bump-semver.outputs.new_version }}
           tag_name: ${{ steps.bump-semver.outputs.new_version }}
-          target_commitish: ${{ env.BRANCH_NAME == 'master' && 'staging' || 'dev' }}
+          target_commitish: dev
+          #target_commitish: ${{ env.BRANCH_NAME == 'master' && 'dev' || 'dev' }}
           generate_release_notes: true
