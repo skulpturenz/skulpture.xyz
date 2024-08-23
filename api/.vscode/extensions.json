@@ -1,0 +1,8 @@
+{
+	"recommendations": [
+		"golang.go",
+		"Gruntfuggly.todo-tree",
+		"IBM.output-colorizer"
+	],
+	"unwantedRecommendations": []
+}

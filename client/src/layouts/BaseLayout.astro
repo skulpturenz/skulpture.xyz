@@ -1,0 +1,128 @@
+---
+import "@/styles/globals.css";
+import { SEO } from "astro-seo";
+import { ThemeProvider } from "@/components/ui/theme-provider";
+import { Navigation, type NavigationItem } from "./navigation";
+import { Footer, FooterSection, ContactBlock } from "./footer";
+import { constants } from "@/components/constants";
+
+interface Props {
+	title: string;
+	description: string;
+	isContactBlockHidden?: boolean;
+}
+
+const { title, description, isContactBlockHidden } = Astro.props;
+
+const resources = {
+	navigation: {
+		about: "About",
+	},
+	footer: {
+		company: {
+			header: "Company",
+			about: "About",
+			contact: "Contact",
+		},
+		contact: {
+			header: "Contact",
+		},
+	},
+};
+
+const navigationItems: NavigationItem[] = [
+	{
+		label: resources.navigation.about,
+		pathname: "/about",
+	},
+];
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title} | {description}</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"
+			rel="stylesheet"
+		/>
+		<SEO title={title} description={description} />
+	</head>
+	<body>
+		<ThemeProvider
+			storageKey={`skulpture-theme-${import.meta.env.MODE}`}
+			client:only="react">
+			<Navigation items={navigationItems} client:load />
+			<slot />
+			{
+				!isContactBlockHidden && (
+					<div class="relative">
+						<div class="absolute -top-20 w-full xl:-top-40">
+							<div class={constants.contentContainer}>
+								<ContactBlock client:load />
+							</div>
+						</div>
+						<Footer className="pt-20 xl:pt-40">
+							<FooterSection>
+								<span>{resources.footer.company.header}</span>
+								<a
+									class="text-lg font-medium hover:underline hover:underline-offset-4"
+									href="/about">
+									{resources.footer.company.about}
+								</a>
+								<a
+									class="text-lg font-medium hover:underline hover:underline-offset-4"
+									href="/contact">
+									{resources.footer.company.contact}
+								</a>
+							</FooterSection>
+
+							<FooterSection>
+								<span>{resources.footer.contact.header}</span>
+								<a
+									class="text-lg font-medium hover:underline hover:underline-offset-4"
+									href="mailto:hey@skulpture.xyz">
+									hey@skulpture.xyz
+								</a>
+							</FooterSection>
+						</Footer>
+					</div>
+				)
+			}
+
+			{
+				isContactBlockHidden && (
+					<Footer>
+						<FooterSection>
+							<span>{resources.footer.company.header}</span>
+							<a
+								class="text-lg font-medium hover:underline hover:underline-offset-4"
+								href="/about">
+								{resources.footer.company.about}
+							</a>
+							<a
+								class="text-lg font-medium hover:underline hover:underline-offset-4"
+								href="/contact">
+								{resources.footer.company.contact}
+							</a>
+						</FooterSection>
+
+						<FooterSection>
+							<span>{resources.footer.contact.header}</span>
+							<a
+								class="text-lg font-medium hover:underline hover:underline-offset-4"
+								href="mailto:hey@skulpture.xyz">
+								hey@skulpture.xyz
+							</a>
+						</FooterSection>
+					</Footer>
+				)
+			}
+		</ThemeProvider>
+	</body>
+</html>

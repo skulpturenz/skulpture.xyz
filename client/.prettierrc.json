@@ -1,0 +1,19 @@
+{
+	"plugins": [
+		"prettier-plugin-astro",
+		"prettier-plugin-tailwindcss",
+		"prettier-plugin-organize-imports"
+	],
+	"tabWidth": 4,
+	"useTabs": true,
+	"semi": true,
+	"singleQuote": false,
+	"quoteProps": "as-needed",
+	"trailingComma": "all",
+	"bracketSpacing": true,
+	"bracketSameLine": true,
+	"arrowParens": "avoid",
+	"endOfLine": "lf",
+	"embeddedLanguageFormatting": "auto",
+	"printWidth": 80
+}

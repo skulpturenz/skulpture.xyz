@@ -1,0 +1,218 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { constants } from "@/components/constants";
+import { cn } from "@/lib/utils";
+import { Image } from "astro:assets";
+import astronautImage05x from "@/components/assets/images/astronaut-block-0.5x.png";
+import astronautImage075x from "@/components/assets/images/astronaut-block-0.75x.png";
+import astronautImage1x from "@/components/assets/images/astronaut-block-1x.png";
+
+const TITLE = "About";
+const DESCRIPTION = "Software, Delivery, Advisory";
+
+const resources = {
+	ui: {
+		sectionHeader:
+			"text-primary font-bold text-base sm:text-sm md:text-xs tracking-wide uppercase",
+		sectionSubtitle: "font-bold text-2xl lg:text-4xl tracking-tight",
+		sectionContainer: "flex flex-col items-center justify-center gap-12",
+		sectionHeaderContainer: "flex flex-col gap-6",
+	},
+	header: "About us",
+	banner: {
+		tagline: "Striving to deliver excellence.",
+		alt: "Serious business",
+	},
+	whyWhatWho: {
+		items: [
+			{
+				header: "Why?",
+				description: [
+					"Software acts as a force multiplier allowing our clients",
+					"to operate at levels which are otherwise not feasible and",
+					"our passion is to leverage our craft to build levers for our clients",
+				].join(" "),
+			},
+			{
+				header: "What?",
+				description: [
+					"We build software well to a high level of quality to minimise",
+					"operational costs over the long-term whilst advocating for and",
+					"fostering the culture necessary required to continue building",
+					"great products for our clients",
+				].join(" "),
+			},
+			{
+				header: "Who?",
+				description: [
+					"We work with individuals and small to medium sized businesses",
+					"to enable them to achieve greater heights",
+				].join(" "),
+			},
+		],
+	},
+	values: {
+		header: "Our values",
+		subtitle: "Partnerships driven by shared values",
+		items: [
+			{
+				header: "Respect",
+				description: [
+					"A commitment to an environment where differing",
+					"viewpoints are respected and compromises reached,",
+					"your success is equally our success",
+				].join(" "),
+			},
+			{
+				header: "Integrity",
+				description: [
+					"A promise to be transparent,",
+					"open and honest in our lines of communication",
+					"so that you are not caught off guard",
+				].join(" "),
+			},
+			{
+				header: "Collaboration",
+				description: [
+					"A promise to work with you to see the world through your eyes with our shades on",
+				].join(" "),
+			},
+			{
+				header: "Trust",
+				description: [
+					"A promise to work in your best interests always, short-term and long-term",
+				].join(" "),
+			},
+			{
+				header: "Excellence",
+				description: [
+					"A promise to keep our standards high to keep your systems operational, secure and reliable",
+				].join(" "),
+			},
+			{
+				header: "Simplicity",
+				description: [
+					"A promise to deliver simple solutions which solves today's",
+					"problems with an eye toward the future",
+				].join(" "),
+			},
+		],
+	},
+};
+---
+
+<BaseLayout title={TITLE} description={DESCRIPTION}>
+	<div class={cn(constants.pageContainer, "min-h-full")}>
+		<div
+			class={cn(
+				constants.contentContainer,
+				// h-[calc(100vh-6rem)] = 100vh - navigation bar height
+				"flex flex-col items-start justify-center h-20 lg:h-40 gap-8",
+			)}>
+			<h1 class="text-4xl font-bold tracking-tight lg:text-6xl">
+				{resources.header}
+			</h1>
+		</div>
+	</div>
+	<div
+		class={cn(
+			constants.pageContainer,
+			"bg-secondary text-secondary-foreground",
+			"min-h-full",
+		)}>
+		<div
+			class={cn(
+				constants.contentContainer,
+				resources.ui.sectionContainer,
+			)}>
+			<div class="flex h-full w-full flex-col gap-24">
+				{
+					resources.whyWhatWho.items.map(value => (
+						<div class={cn("flex flex-col gap-y-5")}>
+							<span class="col-span-2 text-2xl font-bold tracking-tight">
+								{value.header}
+							</span>
+							<span class="col-span-3 max-w-5xl text-base text-secondary-foreground/80">
+								{value.description}
+							</span>
+						</div>
+					))
+				}
+			</div>
+		</div>
+	</div>
+	<div
+		class={cn(constants.pageContainer, "flex items-center justify-center")}>
+		<span
+			class="text-center text-5xl font-bold tracking-tighter text-white lg:text-6xl">
+			{resources.banner.tagline}
+		</span>
+		<Image
+			srcset={[
+				`${astronautImage05x.src} 0.5x`,
+				`${astronautImage075x.src} 0.75x`,
+				`${astronautImage1x.src} 1x`,
+			].join(", ")}
+			src={astronautImage05x}
+			alt={resources.banner.alt}
+			class="absolute -z-10 h-screen w-auto object-cover brightness-75"
+		/>
+	</div>
+	<!-- `mb` same as `py` on `contentContainer` -->
+	<div class={cn(constants.pageContainer, "min-h-full mb-20 xl:mb-40")}>
+		<div
+			class={cn(
+				constants.contentContainer,
+				resources.ui.sectionContainer,
+			)}>
+			<div class={resources.ui.sectionHeaderContainer}>
+				<h1 class={cn(resources.ui.sectionHeader, "text-center")}>
+					{resources.values.header}
+				</h1>
+				<h2 class={cn(resources.ui.sectionSubtitle, "text-center")}>
+					{resources.values.subtitle}
+				</h2>
+			</div>
+			<div class="flex w-full flex-col md:grid md:grid-cols-2 md:gap-x-5">
+				{
+					resources.values.items.map((value, idx, arr) => {
+						const getBorder = () => {
+							if (idx === 0 || idx === 1) {
+								return "border-t-4";
+							}
+
+							if (idx === 3) {
+								return "border-b-4 md:border-y-4";
+							}
+
+							if (idx === 4) {
+								return "border-b-4";
+							}
+
+							if (idx === arr.length - 1) {
+								return "md:border-b-4";
+							}
+
+							return "border-y-4";
+						};
+
+						return (
+							<div
+								class={cn(
+									"flex flex-col gap-y-5 py-8 lg:grid lg:grid-cols-5",
+									getBorder(),
+								)}>
+								<span class="col-span-2 text-2xl font-bold tracking-tight">
+									{value.header}
+								</span>
+								<span class="col-span-3 text-base text-foreground/80">
+									{value.description}
+								</span>
+							</div>
+						);
+					})
+				}
+			</div>
+		</div>
+	</div>
+</BaseLayout>

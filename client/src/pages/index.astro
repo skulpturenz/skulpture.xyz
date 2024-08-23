@@ -1,0 +1,343 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Image } from "astro:assets";
+import astronautImage05x from "@/components/assets/images/astronaut-block-0.5x.png";
+import astronautImage075x from "@/components/assets/images/astronaut-block-0.75x.png";
+import astronautImage1x from "@/components/assets/images/astronaut-block-1x.png";
+import ponderingImage05x from "@/components/assets/images/pondering-block-0.5x.png";
+import ponderingImage075x from "@/components/assets/images/pondering-block-0.75x.png";
+import ponderingImage1x from "@/components/assets/images/pondering-block-1x.png";
+import { constants } from "@/components/constants";
+import { cn } from "@/lib/utils";
+import { Link } from "@/components/ui/button";
+import { topographyDark } from "@/components/assets";
+
+const TITLE = "Skulpture";
+const DESCRIPTION = "Software, Delivery, Advisory";
+
+const resources = {
+	ui: {
+		sectionHeader:
+			"text-primary font-bold text-base sm:text-sm md:text-xs tracking-wide uppercase",
+		sectionSubtitle: "font-bold text-2xl lg:text-4xl tracking-tight",
+		sectionContainer: "flex flex-col items-center justify-center gap-12",
+		sectionHeaderContainer: "flex flex-col gap-6",
+	},
+	intro: {
+		header: "Your idea, to fruition",
+		subtitle:
+			"Collaborate with us to find simple, reliable software solutions to your complex business problems.",
+		doContactUs: "Contact us",
+	},
+	banner: {
+		tagline: ["Building the future,", "today."],
+		alt: "Serious business",
+	},
+	services: {
+		header: "Our services",
+		subtitle: "No worries!",
+		items: [
+			{
+				header: "Business process improvement",
+				description: [
+					"Looking to streamline your business process?",
+					"Talk to us to identify which parts of your process we might be able",
+					"to automate to improve efficiency, lower cost and increase reliability",
+				].join(" "),
+				services: ["Consultation"],
+			},
+			{
+				header: "Product development",
+				description: [
+					"See an opportunity or an unfulfilled niche?",
+					"Talk to us to identify the minimum set of requirements required",
+					"to deliver a Minimum Viable Product (MVP) to your target market segment",
+				].join(" "),
+				services: ["Consultation"],
+			},
+			{
+				header: "Software development",
+				description: [
+					"Once we have identified the technical requirements for your product",
+					"or improvements to business process, we can build and improve upon a solution for it",
+				].join(" "),
+				services: [
+					"Web development",
+					"Mobile development",
+					"Desktop development",
+					"Prototypes",
+					"Unit and integration testing",
+				],
+			},
+			{
+				header: "Software delivery",
+				description: [
+					"With your solution developed,",
+					"it's time to put it in front of an audience to simplify and improve their lives.",
+					"We can help with everything else that comes with keeping the lights on",
+				].join(" "),
+				services: [
+					"Domain registration",
+					"Hosting",
+					"Ongoing maintenance",
+					"Performance monitoring",
+					"Application monitoring",
+				],
+			},
+			{
+				header: "Support & advisory",
+				description: "Not sure? Reach out",
+				services: [
+					"White label solution evaluation",
+					"Legacy system maintenance",
+					"Legacy system migration",
+					"Post project improvements",
+					"Post project support",
+				],
+			},
+		],
+	},
+	about: {
+		header: "Our cause",
+		subtitle: "Managing software throughout its lifecycle",
+		description: [
+			"We build and maintain software solutions for your business problems",
+			"through DevOps delivery and Agile development practices so that you can see faster,",
+			"more reliable results.",
+			"Software starts from an idea or business problem to grow into a fully",
+			"fledged solution which drives business growth, and we're pretty good at the in-between",
+		].join(" "),
+		doLearnMore: "Learn more",
+	},
+	process: {
+		header: "Our process",
+		subtitle: "Plan, execute, refine",
+		steps: [
+			{
+				idx: 1,
+				header: "Identify",
+				description: [
+					"Tell us about the problem you're trying to solve and the nature",
+					"and length of the timeframe needed",
+				].join(" "),
+			},
+			{
+				idx: 2,
+				header: "Plan",
+				description: [
+					"We work out an implementation plan along with time-frame",
+					"estimates for each step in the process",
+				].join(" "),
+			},
+			{
+				idx: 3,
+				header: "Execute",
+				description: [
+					"The focus is on delivering sooner rather than later so that you see results faster",
+				].join(" "),
+			},
+			{
+				idx: 4,
+				header: "Review",
+				description: [
+					"We review the deliverable with you and mark it as completed",
+				].join(" "),
+			},
+		],
+	},
+};
+---
+
+<BaseLayout title={TITLE} description={DESCRIPTION}>
+	<!--
+		Default `backgroundImage` based on default theme so that there is a pattern until `ThemeToggle` kicks in
+	-->
+	<div
+		id={constants.id.landingIntro}
+		style={{ backgroundImage: `url('${topographyDark.src}')` }}
+		class={cn(constants.pageContainer, "bg-cover", "min-h-full")}>
+		<div
+			class={cn(
+				constants.contentContainer,
+				// h-[calc(100vh-6rem)] = 100vh - navigation bar height
+				"flex flex-col items-start justify-center h-[calc(100vh-6rem)] gap-8",
+			)}>
+			<h1 class="mb-3 text-4xl font-bold tracking-tight lg:text-6xl">
+				{resources.intro.header}
+			</h1>
+			<p
+				class="max-w-lg text-xl tracking-tight text-foreground/75 lg:max-w-3xl lg:text-3xl">
+				{resources.intro.subtitle}
+			</p>
+			<Link href="/contact">
+				{resources.intro.doContactUs}
+			</Link>
+		</div>
+	</div>
+	<div
+		class={cn(
+			constants.pageContainer,
+			"bg-secondary text-secondary-foreground",
+		)}>
+		<div
+			class={cn(
+				constants.contentContainer,
+				resources.ui.sectionContainer,
+			)}>
+			<div class={resources.ui.sectionHeaderContainer}>
+				<h1 class={cn(resources.ui.sectionHeader, "text-center")}>
+					{resources.services.header}
+				</h1>
+				<h2 class={cn(resources.ui.sectionSubtitle, "text-center")}>
+					{resources.services.subtitle}
+				</h2>
+			</div>
+
+			<!-- Small screen sizes -->
+			<div
+				class="flex w-full flex-col gap-6 divide-y-4 divide-border/25 border-y-4 border-border/25 dark:divide-border dark:border-border lg:hidden">
+				{
+					resources.services.items.map((item, idx, arr) => (
+						<div class={cn("flex w-full flex-col gap-6")}>
+							<div class="mt-6 text-xl font-bold lg:text-3xl">
+								{item.header}
+							</div>
+							<div class="text-base text-secondary-foreground/90 lg:text-base">
+								<div class="max-w-2xl">{item.description}</div>
+							</div>
+							<div
+								class={cn(
+									idx === arr.length - 1 ? "mb-6" : "",
+									"font-medium text-secondary-foreground",
+								)}>
+								<ul class="space-y-1 text-base font-medium lg:text-lg">
+									{item.services.map(service => (
+										<li>{service}</li>
+									))}
+								</ul>
+							</div>
+						</div>
+					))
+				}
+			</div>
+
+			<!-- Large screen sizes -->
+			<div
+				class="hidden grid-flow-row items-start justify-center gap-6 lg:grid lg:grid-cols-10 lg:gap-20">
+				{
+					resources.services.items.map(item => (
+						<>
+							<div class="row-span-1 h-1 bg-border/25 dark:bg-border lg:col-span-10 lg:row-auto" />
+							<div class="row-span-1 text-xl font-bold lg:col-span-3 lg:row-auto lg:text-3xl">
+								{item.header}
+							</div>
+							<div class="row-span-1 text-base text-secondary-foreground/90 lg:col-span-4 lg:row-auto lg:text-base">
+								<div class="max-w-md">{item.description}</div>
+							</div>
+							<div class="row-span-1 font-medium text-secondary-foreground lg:col-span-3 lg:row-auto">
+								<ul class="space-y-1 text-base font-medium lg:text-lg">
+									{item.services.map(service => (
+										<li>{service}</li>
+									))}
+								</ul>
+							</div>
+							<div class="row-span-1 hidden h-1 bg-border/25 last:block dark:bg-border lg:col-span-10 lg:row-auto" />
+						</>
+					))
+				}
+			</div>
+		</div>
+	</div>
+	<div
+		class={cn(constants.pageContainer, "flex items-center justify-center")}>
+		<span
+			class="text-center text-5xl tracking-tighter text-white lg:text-6xl">
+			<span class="font-bold">
+				{resources.banner.tagline.at(0)}
+			</span>&nbsp;{resources.banner.tagline.at(1)}
+		</span>
+		<Image
+			srcset={[
+				`${astronautImage05x.src} 0.5x`,
+				`${astronautImage075x.src} 0.75x`,
+				`${astronautImage1x.src} 1x`,
+			].join(", ")}
+			src={astronautImage05x}
+			alt={resources.banner.alt}
+			class="absolute -z-10 h-screen w-auto object-cover brightness-75"
+		/>
+	</div>
+	<div
+		class={cn(
+			constants.pageContainer,
+			constants.contentContainer,
+			"flex flex-col lg:flex-row items-center gap-32",
+		)}>
+		<Image
+			srcset={[
+				`${ponderingImage05x.src} 0.5x`,
+				`${ponderingImage075x.src} 0.75x`,
+				`${ponderingImage1x.src} 1x`,
+			].join(", ")}
+			src={ponderingImage05x}
+			alt={resources.banner.alt}
+			class="h-auto w-full lg:h-auto lg:w-1/2"
+		/>
+		<div class="flex flex-col gap-6">
+			<h1 class={resources.ui.sectionHeader}>
+				{resources.about.header}
+			</h1>
+			<h2 class={resources.ui.sectionSubtitle}>
+				{resources.about.subtitle}
+			</h2>
+			<p class="text-base text-foreground/80">
+				{resources.about.description}
+			</p>
+			<Link href="/about" variant="outline" className="max-w-min">
+				{resources.about.doLearnMore}
+			</Link>
+		</div>
+	</div>
+	<div
+		class={cn(
+			constants.pageContainer,
+			// `calc(5rem + 5rem)` = 0.5 * lg:footer height + page padding
+			// `calc(10rem + 5rem)` = 0.5 * xl:footer height + page padding
+			"min-h-full lg:pb-[calc(5rem+5rem)] xl:pb-[calc(10rem+5rem)]",
+			"bg-secondary text-secondary-foreground",
+		)}>
+		<div
+			class={cn(
+				constants.contentContainer,
+				resources.ui.sectionContainer,
+			)}>
+			<div class={resources.ui.sectionHeaderContainer}>
+				<h1 class={cn(resources.ui.sectionHeader, "text-center")}>
+					{resources.process.header}
+				</h1>
+				<h2 class={cn(resources.ui.sectionSubtitle, "text-center")}>
+					{resources.process.subtitle}
+				</h2>
+			</div>
+			<!-- `mb` same as `py` on `contentContainer` -->
+			<div
+				class="mb-20 flex w-full flex-col gap-5 lg:mb-0 lg:flex-row lg:justify-between">
+				{
+					resources.process.steps.map(step => (
+						<div class="flex flex-col gap-5 border-t-4 border-border/25 dark:border-border lg:w-72">
+							<span class="mt-5 text-5xl font-light text-primary">
+								{step.idx}
+							</span>
+							<span class="text-2xl font-bold tracking-tight">
+								{step.header}
+							</span>
+							<span class="text-secondary-foreground/90">
+								{step.description}
+							</span>
+						</div>
+					))
+				}
+			</div>
+		</div>
+	</div>
+</BaseLayout>
