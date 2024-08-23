@@ -124,12 +124,11 @@ const resources = {
 			class={cn(
 				constants.contentContainer,
 				resources.ui.sectionContainer,
-				"h-screen",
 			)}>
-			<div class="flex h-full w-full flex-col justify-between">
+			<div class="flex h-full w-full flex-col gap-24">
 				{
-					resources.whyWhatWho.items.map((value, idx) => (
-						<div class={cn("flex flex-col gap-y-5 py-8")}>
+					resources.whyWhatWho.items.map(value => (
+						<div class={cn("flex flex-col gap-y-5")}>
 							<span class="col-span-2 text-2xl font-bold tracking-tight">
 								{value.header}
 							</span>
@@ -160,7 +159,7 @@ const resources = {
 		/>
 	</div>
 	<!-- `mb` same as `py` on `contentContainer` -->
-	<div class={cn(constants.pageContainer, "mb-20 xl:mb-40")}>
+	<div class={cn(constants.pageContainer, "min-h-full mb-20 xl:mb-40")}>
 		<div
 			class={cn(
 				constants.contentContainer,
