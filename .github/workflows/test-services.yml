@@ -54,5 +54,4 @@ jobs:
             GOOGLE_APPLICATION_CREDENTIALS="${{ steps.auth.outputs.credentials_file_path }}" \
             docker compose -f docker-compose.test.yml up -d
             
-            docker compose exec landing-api go test
-            docker compose logs landing-api
+            docker compose exec landing-api go test || docker compose logs landing-api && exit 1
