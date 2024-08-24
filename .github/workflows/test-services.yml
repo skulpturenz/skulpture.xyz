@@ -51,6 +51,7 @@ jobs:
             export OTEL_EXPORTER_OTLP_ENDPOINT="http://telemetry.skulpture.xyz"
             export OTEL_EXPORTER_OTLP_AUTH_TOKEN="1234"
             export TEST_POSTMARK_TEMPLATE="${{ secrets.POSTMARK_TEMPLATE }}"
+            export TEST_POSTMARK_SERVER_TOKEN="${{ secrets.POSTMARK_SERVER_TOKEN }}"
             export TEST_POSTMARK_ACCOUNT_TOKEN="${{ secrets.POSTMARK_ACCOUNT_TOKEN }}"
             export GO_ENV="test"
             export GOOGLE_APPLICATION_CREDENTIALS="${{ steps.auth.outputs.credentials_file_path }}"
