@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 'dev' #${{ env.BRANCH_NAME == 'master' && 'dev' }}
+          ref: "dev" #${{ env.BRANCH_NAME == 'master' && 'dev' }}
           lfs: true
 
       - uses: actions-ecosystem/action-release-label@v1
@@ -35,7 +35,7 @@ jobs:
         with:
           current_version: ${{ steps.get-latest-tag.outputs.tag }}
           level: ${{ steps.release-label.outputs.level }}
-    
+
       - uses: actions-ecosystem/action-push-tag@v1
         if: ${{ steps.release-label.outputs.level != null }}
         with:
