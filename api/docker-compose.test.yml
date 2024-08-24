@@ -2,6 +2,8 @@ services:
   landing-api:
     build:
       context: .
+    volumes:
+      - ${GOOGLE_APPLICATION_CREDENTIALS}:/credentials.json
     environment:
       LOG_LEVEL: ${LOG_LEVEL}
       OTEL_SERVICE_NAME: landing-api
@@ -13,4 +15,4 @@ services:
       POSTMARK_SERVER_TOKEN: ${TEST_POSTMARK_SERVER_TOKEN}
       POSTMARK_ACCOUNT_TOKEN: ${TEST_POSTMARK_ACCOUNT_TOKEN}
       GO_ENV: "production"
-      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS}
+      GOOGLE_APPLICATION_CREDENTIALS: /credentials.json
