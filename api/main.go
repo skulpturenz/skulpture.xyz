@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	enums "skulpture/landing/enums"
 	"strings"
 	"sync"
 	"time"
@@ -89,8 +90,9 @@ var (
 				WithDefault("Sheet1").
 				Required()
 	GO_ENV = ferrite.
-		String("GO_ENV", "Golang environment").
-		WithDefault("Development").
+		Enum("GO_ENV", "Golang environment").
+		WithMembers(string(enums.Production), string(enums.Development), string(enums.Test)).
+		WithDefault(string(enums.Development)).
 		Required()
 )
 
@@ -124,7 +126,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 
 	var store limiter.Store
-	if GO_ENV.Value() == "Development" {
+	if GO_ENV.Value() == string(enums.Development) {
 		noopStore, err := noopstore.New()
 		if err != nil {
 			slog.ErrorContext(ctx, "error", "init", err.Error())
@@ -155,7 +157,7 @@ func main() {
 	r.Use(middleware.Handle)
 	r.Use(cors.Handler(cors.Options{
 		AllowOriginFunc: func(r *http.Request, origin string) bool {
-			if GO_ENV.Value() != "development" {
+			if GO_ENV.Value() != string(enums.Development) {
 				return strings.Contains(origin, "skulpture.xyz") || strings.Contains(origin, "skulpture-xyz.pages.dev")
 			}
 
