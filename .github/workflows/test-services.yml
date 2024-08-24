@@ -1,0 +1,59 @@
+name: Test services
+
+on:
+  push:
+    branches: [master, staging, dev]
+  workflow_dispatch:
+
+jobs:
+  up:
+    environment: "test"
+
+    permissions:
+      contents: read
+      id-token: write
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure GCP credentials
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+          token_format: "access_token"
+          access_token_scopes: |
+            https://www.googleapis.com/auth/cloud-platform
+            https://www.googleapis.com/auth/drive
+            https://www.googleapis.com/auth/spreadsheets
+          create_credentials_file: true
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - name: Set up Docker Compose
+        uses: KengoTODA/actions-setup-docker-compose@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Test API
+        working-directory: api
+        run: |
+            export LOG_LEVEL="DEBUG"
+            export OTEL_SERVICE_NAME="landing-api-test"
+            export TEST_GDRIVE_FOLDER_ID="${{ secrets.GDRIVE_FOLDER_ID }}"
+            export TEST_GSHEETS_SPREADSHEET_ID="${{ secrets.GSHEETS_SPREADSHEET_ID }}"
+            export OTEL_EXPORTER_OTLP_ENDPOINT="http://telemetry.skulpture.xyz"
+            export OTEL_EXPORTER_OTLP_AUTH_TOKEN="1234"
+            export TEST_POSTMARK_TEMPLATE="${{ secrets.POSTMARK_TEMPLATE }}"
+            export TEST_POSTMARK_ACCOUNT_TOKEN="${{ secrets.POSTMARK_ACCOUNT_TOKEN }}"
+            export GO_ENV="test"
+            export GOOGLE_APPLICATION_CREDENTIALS="${{ steps.auth.outputs.credentials_file_path }}"
+
+            docker-compose -f docker-compose.test.yml up -d
+            docker-compose exec landing-api go test
