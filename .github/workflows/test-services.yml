@@ -2,7 +2,7 @@ name: Test services
 
 on:
   push:
-    # branches: [master, staging, dev]
+    branches: [master, staging, dev]
   workflow_dispatch:
 
 jobs:
