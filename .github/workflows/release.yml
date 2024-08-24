@@ -20,9 +20,6 @@ jobs:
         with:
           ref: 'dev' #${{ env.BRANCH_NAME == 'master' && 'dev' }}
 
-      - name: Install GIT LFS
-        run: sudo apt install git-lfs
-
       - uses: actions-ecosystem/action-release-label@v1
         id: release-label
         if: ${{ github.event.pull_request.merged == true }}
@@ -42,7 +39,7 @@ jobs:
       # The action currently fails if the repository uses GIT LFS
       - name: Push tags
         run: |
-          git tag -a ${{ steps.bump-semver.outputs.new_version }}
+          git tag ${{ steps.bump-semver.outputs.new_version }}
           git push origin --no-verify --tag
 
       - uses: softprops/action-gh-release@v2
