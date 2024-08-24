@@ -52,7 +52,7 @@ jobs:
             TEST_POSTMARK_TEMPLATE="${{ secrets.POSTMARK_TEMPLATE }}" TEST_POSTMARK_SERVER_TOKEN="${{ secrets.POSTMARK_SERVER_TOKEN }}" \
             TEST_POSTMARK_ACCOUNT_TOKEN="${{ secrets.POSTMARK_ACCOUNT_TOKEN }}" GO_ENV="test" \
             GOOGLE_APPLICATION_CREDENTIALS="${{ steps.auth.outputs.credentials_file_path }}" \
-            docker compose -f docker-compose.test.yml up
+            docker compose -f docker-compose.test.yml up -d
             
             docker compose exec -e LOG_LEVEL="DEBUG" -e OTEL_SERVICE_NAME="landing-api-test" \
             -e TEST_GDRIVE_FOLDER_ID="${{ secrets.GDRIVE_FOLDER_ID }}" -e TEST_GSHEETS_SPREADSHEET_ID="${{ secrets.GSHEETS_SPREADSHEET_ID }}" \
