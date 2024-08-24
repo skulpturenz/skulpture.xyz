@@ -1,12 +1,7 @@
-networks:
-  default:
-    name: landing
-    driver: overlay
-    attachable: true
-
 services:
   landing-api:
-    image: skulpture/landing-api:${TAG:-latest}
+    build:
+      context: .
     environment:
       LOG_LEVEL: ${LOG_LEVEL}
       OTEL_SERVICE_NAME: landing-api
