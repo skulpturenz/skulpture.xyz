@@ -21,6 +21,9 @@ jobs:
           ref: 'dev' #${{ env.BRANCH_NAME == 'master' && 'dev' }}
           lfs: true
 
+      - name: Install GIT LFS
+        run: sudo apt install git-lfs
+
       - uses: actions-ecosystem/action-release-label@v1
         id: release-label
         if: ${{ github.event.pull_request.merged == true }}
