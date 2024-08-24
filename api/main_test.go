@@ -33,7 +33,7 @@ func TestCreateEnquiry(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := http.Post("localhost:80/contact", contentType, form)
+	res, err := http.Post("http://localhost:80/contact", contentType, form)
 	if err != nil {
 		t.Fatal(err)
 	}
