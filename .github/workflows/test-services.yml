@@ -38,7 +38,7 @@ jobs:
       - name: Test API
         uses: adambirds/docker-compose-action@v1.3.0
         with:
-          compose_file: "./api/docker-compose.yml"
+          compose-file: "./api/docker-compose.yml"
           test-container: "landing-api"
           test-command: "go test"
         env:
