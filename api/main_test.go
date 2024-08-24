@@ -43,7 +43,7 @@ func TestCreateEnquiry(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	assert.Equal(t, http.StatusCreated, res.StatusCode, res.Status, string(body))
+	assert.Equal(t, http.StatusCreated, res.StatusCode, strings.Join([]string{res.Status, string(body)}, "\n"))
 }
 
 // From: https://stackoverflow.com/a/20397167
