@@ -2,7 +2,7 @@ name: Release
 
 on:
   pull_request:
-    branches: [master, staging]
+    branches: [master] #, staging
     types: [closed]
   workflow_dispatch:
 
@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ env.BRANCH_NAME == 'master' && 'staging' || 'dev' }}
+          ref: "dev" #${{ env.BRANCH_NAME == 'master' && 'dev' }}
 
       - uses: actions-ecosystem/action-release-label@v1
         id: release-label
@@ -34,7 +34,7 @@ jobs:
         with:
           current_version: ${{ steps.get-latest-tag.outputs.tag }}
           level: ${{ steps.release-label.outputs.level }}
-    
+
       - uses: actions-ecosystem/action-push-tag@v1
         if: ${{ steps.release-label.outputs.level != null }}
         with:
@@ -46,5 +46,5 @@ jobs:
           prerelease: ${{ env.BRANCH_NAME == 'master' && false || true }}
           name: ${{ steps.bump-semver.outputs.new_version }}
           tag_name: ${{ steps.bump-semver.outputs.new_version }}
-          target_commitish: ${{ env.BRANCH_NAME == 'master' && 'staging' || 'dev' }}
+          target_commitish: dev #${{ env.BRANCH_NAME == 'master' && 'dev' || 'dev' }}
           generate_release_notes: true

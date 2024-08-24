@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	enums "skulpture/landing/enums"
 	"strings"
 	"sync"
 	"time"
@@ -89,8 +90,9 @@ var (
 				WithDefault("Sheet1").
 				Required()
 	GO_ENV = ferrite.
-		String("GO_ENV", "Golang environment").
-		WithDefault("Development").
+		Enum("GO_ENV", "Golang environment").
+		WithMembers(string(enums.Production), string(enums.Development), string(enums.Test)).
+		WithDefault(string(enums.Development)).
 		Required()
 )
 
@@ -124,7 +126,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 
 	var store limiter.Store
-	if GO_ENV.Value() == "Development" {
+	if GO_ENV.Value() != string(enums.Production) {
 		noopStore, err := noopstore.New()
 		if err != nil {
 			slog.ErrorContext(ctx, "error", "init", err.Error())
@@ -155,7 +157,7 @@ func main() {
 	r.Use(middleware.Handle)
 	r.Use(cors.Handler(cors.Options{
 		AllowOriginFunc: func(r *http.Request, origin string) bool {
-			if GO_ENV.Value() != "development" {
+			if GO_ENV.Value() != string(enums.Development) {
 				return strings.Contains(origin, "skulpture.xyz") || strings.Contains(origin, "skulpture-xyz.pages.dev")
 			}
 
@@ -180,7 +182,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		uuid      string
 		Email     string `json:"email" validate:"required,email"`
-		Mobile    string `json:"mobile" validate:"e164"`
+		Mobile    string `json:"mobile"`
 		FirstName string `json:"firstName" validate:"required"`
 		LastName  string `json:"lastName" validate:"required"`
 		Enquiry   string `json:"enquiry" validate:"required"`
@@ -205,6 +207,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			err := validationErrs[i]
 
 			errs = append(errs, fmt.Sprintf("- %s", err.Error()))
+		}
+
+		if body.Mobile != "" {
+			err := validate.Var(body.Mobile, "e164")
+
+			if err != nil {
+				errs = append(errs, fmt.Sprintf("- %s", err.Error()))
+			}
 		}
 
 		slog.ErrorContext(r.Context(), "error", "enquiry", body)
@@ -390,6 +400,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	slog.DebugContext(r.Context(), "sent", "postmark message id", res.MessageID, "to", res.To, "at", res.SubmittedAt, "lead", body.uuid)
+
+	w.WriteHeader(http.StatusCreated)
 }
 
 func createGoogleSheetsService(ctx context.Context) *sheets.Service {
