@@ -11,7 +11,7 @@
 	],
 	"containerEnv": {
 		"SERVICE_NAME": "skulpture-landing",
-		"GO_ENV": "Development"
+		"GO_ENV": "development"
 		// "GOOGLE_PROJECT": ""
 		// "OTEL_EXPORTER_OTLP_ENDPOINT": "",
 		// "OTEL_EXPORTER_OTLP_HEADERS": "",
