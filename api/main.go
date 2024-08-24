@@ -126,7 +126,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 
 	var store limiter.Store
-	if GO_ENV.Value() == string(enums.Development) {
+	if GO_ENV.Value() != string(enums.Production) {
 		noopStore, err := noopstore.New()
 		if err != nil {
 			slog.ErrorContext(ctx, "error", "init", err.Error())
