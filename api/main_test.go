@@ -38,7 +38,12 @@ func TestCreateEnquiry(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	assert.Equal(t, http.StatusCreated, res.StatusCode, res.Status)
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusCreated, res.StatusCode, res.Status, string(body))
 }
 
 // From: https://stackoverflow.com/a/20397167
