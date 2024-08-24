@@ -126,7 +126,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 
 	var store limiter.Store
-	if GO_ENV.Value() == string(enums.Development) {
+	if GO_ENV.Value() != string(enums.Production) {
 		noopStore, err := noopstore.New()
 		if err != nil {
 			slog.ErrorContext(ctx, "error", "init", err.Error())
@@ -182,7 +182,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		uuid      string
 		Email     string `json:"email" validate:"required,email"`
-		Mobile    string `json:"mobile" validate:"e164"`
+		Mobile    string `json:"mobile"`
 		FirstName string `json:"firstName" validate:"required"`
 		LastName  string `json:"lastName" validate:"required"`
 		Enquiry   string `json:"enquiry" validate:"required"`
@@ -207,6 +207,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			err := validationErrs[i]
 
 			errs = append(errs, fmt.Sprintf("- %s", err.Error()))
+		}
+
+		if body.Mobile != "" {
+			err := validate.Var(body.Mobile, "e164")
+
+			if err != nil {
+				errs = append(errs, fmt.Sprintf("- %s", err.Error()))
+			}
 		}
 
 		slog.ErrorContext(r.Context(), "error", "enquiry", body)
@@ -392,6 +400,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	slog.DebugContext(r.Context(), "sent", "postmark message id", res.MessageID, "to", res.To, "at", res.SubmittedAt, "lead", body.uuid)
+
+	w.WriteHeader(http.StatusCreated)
 }
 
 func createGoogleSheetsService(ctx context.Context) *sheets.Service {
