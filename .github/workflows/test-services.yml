@@ -29,6 +29,7 @@ jobs:
             https://www.googleapis.com/auth/cloud-platform
             https://www.googleapis.com/auth/drive
             https://www.googleapis.com/auth/spreadsheets
+          create_credentials_file: true
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
@@ -56,3 +57,4 @@ jobs:
           TEST_POSTMARK_SERVER_TOKEN: "1234"
           TEST_POSTMARK_ACCOUNT_TOKEN: "1234"
           GO_ENV: "production"
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
