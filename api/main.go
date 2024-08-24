@@ -392,6 +392,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	slog.DebugContext(r.Context(), "sent", "postmark message id", res.MessageID, "to", res.To, "at", res.SubmittedAt, "lead", body.uuid)
+
+	w.WriteHeader(http.StatusCreated)
 }
 
 func createGoogleSheetsService(ctx context.Context) *sheets.Service {
