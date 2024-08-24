@@ -3,6 +3,8 @@ name: Test services
 on:
   push:
     branches: [master, staging, dev]
+  pull_request:
+    branches: [master, staging, dev]
   workflow_dispatch:
 
 jobs:
