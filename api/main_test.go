@@ -12,6 +12,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	API_URL = "http://127.0.0.1:80/contact"
+)
+
 func TestCreateEnquiry(t *testing.T) {
 	file, err := os.CreateTemp(os.TempDir(), "create_enquiry")
 	if err != nil {
@@ -33,7 +37,7 @@ func TestCreateEnquiry(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := http.Post("http://localhost:80/contact", contentType, form)
+	res, err := http.Post(API_URL, contentType, form)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,7 +70,7 @@ func TestValidateFirstNameRequired(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := http.Post("http://localhost:80/contact", contentType, form)
+	res, err := http.Post(API_URL, contentType, form)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +103,7 @@ func TestValidateLastNameRequired(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := http.Post("http://localhost:80/contact", contentType, form)
+	res, err := http.Post(API_URL, contentType, form)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -132,7 +136,7 @@ func TestValidateEmailRequired(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := http.Post("http://localhost:80/contact", contentType, form)
+	res, err := http.Post(API_URL, contentType, form)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -166,7 +170,7 @@ func TestValidateEmailFormat(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := http.Post("http://localhost:80/contact", contentType, form)
+	res, err := http.Post(API_URL, contentType, form)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -199,7 +203,7 @@ func TestValidateMobileOptional(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := http.Post("http://localhost:80/contact", contentType, form)
+	res, err := http.Post(API_URL, contentType, form)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -233,7 +237,7 @@ func TestValidateMobileFormat(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := http.Post("http://localhost:80/contact", contentType, form)
+	res, err := http.Post(API_URL, contentType, form)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -266,7 +270,39 @@ func TestValidateEnquiryRequired(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := http.Post("http://localhost:80/contact", contentType, form)
+	res, err := http.Post(API_URL, contentType, form)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode, strings.Join([]string{res.Status, string(body)}, "\n"))
+}
+
+func TestValidateFilesOptional(t *testing.T) {
+	file, err := os.CreateTemp(os.TempDir(), "create_enquiry")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(file.Name())
+
+	enquiry := map[string]io.Reader{
+		"firstName": strings.NewReader("Test"),
+		"lastName":  strings.NewReader("123"),
+		"email":     strings.NewReader("test"),
+		"mobile":    strings.NewReader("+6412345678"),
+	}
+
+	contentType, form, err := createMultipartForm(enquiry)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	res, err := http.Post(API_URL, contentType, form)
 	if err != nil {
 		t.Fatal(err)
 	}
