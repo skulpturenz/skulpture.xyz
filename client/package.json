@@ -3,7 +3,7 @@
 	"description": "SaaS as a Service",
 	"type": "module",
 	"private": true,
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"scripts": {
 		"dev": "astro dev",
 		"start": "astro dev",
