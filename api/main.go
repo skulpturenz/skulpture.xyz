@@ -7,8 +7,6 @@ import (
 	"log/slog"
 	"mime/multipart"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"os"
 	enums "skulpture/landing/enums"
 	"strings"
