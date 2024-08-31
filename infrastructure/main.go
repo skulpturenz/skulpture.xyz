@@ -43,7 +43,7 @@ func main() {
 
 		instance, err := compute.NewInstance(ctx, COMPUTE_INSTANCE_NAME.Value(), &compute.InstanceArgs{
 			Name:        pulumi.String(COMPUTE_INSTANCE_NAME.Value()),
-			MachineType: pulumi.String("f1-micro"),
+			MachineType: pulumi.String("e2-micro"),
 			Zone:        pulumi.String("australia-southeast1-c"),
 			Tags: pulumi.ToStringArray([]string{
 				"allow-cloudflare",
