@@ -131,6 +131,16 @@ func main() {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Recoverer)
 
+	r.Use(cors.Handler(cors.Options{
+		AllowOriginFunc: func(r *http.Request, origin string) bool {
+			if GO_ENV.Value() != string(enums.Development) {
+				return strings.Contains(origin, "skulpture.xyz") || strings.Contains(origin, "skulpture-xyz.pages.dev")
+			}
+
+			return true
+		},
+	}))
+
 	var store limiter.Store
 	if GO_ENV.Value() != string(enums.Production) {
 		noopStore, err := noopstore.New()
@@ -159,19 +169,9 @@ func main() {
 		slog.ErrorContext(ctx, "error", "init", err.Error())
 		panic(err)
 	}
-
-	r.Use(middleware.Handle)
-	r.Use(cors.Handler(cors.Options{
-		AllowOriginFunc: func(r *http.Request, origin string) bool {
-			if GO_ENV.Value() != string(enums.Development) {
-				return strings.Contains(origin, "skulpture.xyz") || strings.Contains(origin, "skulpture-xyz.pages.dev")
-			}
-
-			return true
-		},
-	}))
-
 	r.Route("/api/v1", func(r chi.Router) {
+		r.Use(middleware.Handle)
+
 		r.Post("/contact", handler)
 	})
 
