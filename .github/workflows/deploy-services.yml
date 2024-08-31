@@ -135,17 +135,6 @@ jobs:
           passphrase: ${{ secrets.GCP_SSH_PASSPHRASE }}
           port: 22
           script: |
-            sudo su
-
-            # TODO: before, updated env wasn't being applied when just updating a stack like this
-            # TODO: if we refer to a node specifically by ip, there are issues with nginx not being able
-            # to resolve the hostname because it caches
-            docker stack rm ${{ env.STACK_NAME }}
-            docker system prune -af
-
-            sleep 30s
-
-            docker pull skulpture/kryptos
             # TODO: pull latest
             export $(docker run --rm --env-file ${{ env.ENV_FILE }} skulpture/kryptos:staging cat | xargs)
             
@@ -160,3 +149,5 @@ jobs:
             docker stack deploy --compose-file ${{ env.LOGS_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }}
             sleep 30s
             docker stack deploy --compose-file ${{ env.PROXY_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }}
+            sleep 30s
+            docker system prune -af

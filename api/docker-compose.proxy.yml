@@ -12,7 +12,7 @@ services:
         published: 443
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 3
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     secrets:
@@ -24,8 +24,8 @@ services:
       - landing
     ulimits:
       nofile:
-        soft: 15000
-        hard: 15000
+        soft: 20000
+        hard: 20000
 
 networks:
   landing:
