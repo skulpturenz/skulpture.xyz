@@ -21,7 +21,7 @@ services:
       GO_ENV: ${GO_ENV}
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: 2
     ulimits:
       nofile:
         soft: 20000
