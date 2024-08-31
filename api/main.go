@@ -7,6 +7,8 @@ import (
 	"log/slog"
 	"mime/multipart"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	enums "skulpture/landing/enums"
 	"strings"
@@ -89,6 +91,10 @@ var (
 				String("GSHEETS_SHEET_NAME", "Google sheets sheet name").
 				WithDefault("Sheet1").
 				Required()
+	FRONTEND_URL = ferrite.
+			String("FRONTEND_URL", "Frontend URL").
+			WithDefault("https://skulpture-xyz.pages.dev").
+			Required()
 	GO_ENV = ferrite.
 		Enum("GO_ENV", "Golang environment").
 		WithMembers(string(enums.Production), string(enums.Development), string(enums.Test)).
@@ -125,6 +131,16 @@ func main() {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Recoverer)
 
+	r.Use(cors.Handler(cors.Options{
+		AllowOriginFunc: func(r *http.Request, origin string) bool {
+			if GO_ENV.Value() != string(enums.Development) {
+				return strings.Contains(origin, "skulpture.xyz") || strings.Contains(origin, "skulpture-xyz.pages.dev")
+			}
+
+			return true
+		},
+	}))
+
 	var store limiter.Store
 	if GO_ENV.Value() != string(enums.Production) {
 		noopStore, err := noopstore.New()
@@ -153,19 +169,24 @@ func main() {
 		slog.ErrorContext(ctx, "error", "init", err.Error())
 		panic(err)
 	}
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Use(middleware.Handle)
 
-	r.Use(middleware.Handle)
-	r.Use(cors.Handler(cors.Options{
-		AllowOriginFunc: func(r *http.Request, origin string) bool {
-			if GO_ENV.Value() != string(enums.Development) {
-				return strings.Contains(origin, "skulpture.xyz") || strings.Contains(origin, "skulpture-xyz.pages.dev")
-			}
+		r.Post("/contact", handler)
+	})
 
-			return true
-		},
-	}))
+	target, err := url.Parse(FRONTEND_URL.Value())
+	if err != nil {
+		panic(err)
+	}
 
-	r.Post("/contact", handler)
+	proxy := httputil.NewSingleHostReverseProxy(target)
+	proxy.Director = func(r *http.Request) {
+		r.Host = target.Host
+		r.URL.Scheme = target.Scheme
+		r.URL.Host = target.Host
+	}
+	r.Get("/*", proxy.ServeHTTP)
 
 	http.ListenAndServe(":80", r)
 }
