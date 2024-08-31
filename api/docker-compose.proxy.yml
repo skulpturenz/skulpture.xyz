@@ -12,7 +12,7 @@ services:
         published: 443
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: 2
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     secrets:

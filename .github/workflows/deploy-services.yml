@@ -125,7 +125,6 @@ jobs:
         env:
           STACK_NAME: ${{ matrix.service }}
           SERVICES_DOCKER_COMPOSE_FILE: docker-compose.yml
-          LOGS_DOCKER_COMPOSE_FILE: docker-compose.logs.yml
           PROXY_DOCKER_COMPOSE_FILE: docker-compose.proxy.yml
           ENV_FILE: ~/.env
         with:
@@ -144,10 +143,8 @@ jobs:
 
             cd landing-${{ env.BRANCH_NAME }}/${{ matrix.service }}
 
-            docker stack deploy --compose-file ${{ env.SERVICES_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }}
+            docker stack deploy --compose-file ${{ env.SERVICES_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }} --detach=false
             sleep 30s
-            docker stack deploy --compose-file ${{ env.LOGS_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }}
-            sleep 30s
-            docker stack deploy --compose-file ${{ env.PROXY_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }}
+            docker stack deploy --compose-file ${{ env.PROXY_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }} --detach=false
             sleep 30s
             docker system prune -af
