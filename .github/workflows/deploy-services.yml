@@ -144,7 +144,5 @@ jobs:
             cd landing-${{ env.BRANCH_NAME }}/${{ matrix.service }}
 
             docker stack deploy --compose-file ${{ env.SERVICES_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }} --detach=false
-            sleep 30s
             docker stack deploy --compose-file ${{ env.PROXY_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }} --detach=false
-            sleep 30s
             docker system prune -af
