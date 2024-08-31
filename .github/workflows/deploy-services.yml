@@ -38,7 +38,7 @@ jobs:
       - name: "Install dependencies: infrastructure"
         run: go mod download
         working-directory: infrastructure
-
+        
       - name: "Deploy stack: skulpture/landing/prod"
         uses: pulumi/actions@v5
         with:
@@ -66,7 +66,7 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -87,7 +87,7 @@ jobs:
           tags: |
             skulpture/landing-api:${{ env.TAG }}
 
-  deploy:
+  deploy:    
     permissions:
       contents: read
       id-token: write
@@ -125,7 +125,6 @@ jobs:
         env:
           STACK_NAME: ${{ matrix.service }}
           SERVICES_DOCKER_COMPOSE_FILE: docker-compose.yml
-          LOGS_DOCKER_COMPOSE_FILE: docker-compose.logs.yml
           PROXY_DOCKER_COMPOSE_FILE: docker-compose.proxy.yml
           ENV_FILE: ~/.env
         with:
@@ -135,28 +134,17 @@ jobs:
           passphrase: ${{ secrets.GCP_SSH_PASSPHRASE }}
           port: 22
           script: |
-            sudo su
-
-            # TODO: before, updated env wasn't being applied when just updating a stack like this
-            # TODO: if we refer to a node specifically by ip, there are issues with nginx not being able
-            # to resolve the hostname because it caches
-            docker stack rm ${{ env.STACK_NAME }}
-            docker system prune -af
-
-            sleep 30s
-
-            docker pull skulpture/kryptos
             # TODO: pull latest
             export $(docker run --rm --env-file ${{ env.ENV_FILE }} skulpture/kryptos:staging cat | xargs)
-
+            
             if [[ "${{ env.BRANCH_NAME }}" != "master" ]]; then
               export TAG=${{ env.BRANCH_NAME }}
             fi
 
             cd landing-${{ env.BRANCH_NAME }}/${{ matrix.service }}
 
-            docker stack deploy --compose-file ${{ env.SERVICES_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }}
+            docker stack deploy --compose-file ${{ env.SERVICES_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }} --detach=false
             sleep 30s
-            docker stack deploy --compose-file ${{ env.LOGS_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }}
+            docker stack deploy --compose-file ${{ env.PROXY_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }} --detach=false
             sleep 30s
-            docker stack deploy --compose-file ${{ env.PROXY_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }}
+            docker system prune -af
