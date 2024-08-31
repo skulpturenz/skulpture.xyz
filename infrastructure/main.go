@@ -124,7 +124,7 @@ func main() {
 			ZoneId:  pulumi.String(CLOUDFLARE_ZONE_ID.Value()),
 			Name:    pulumi.String("@"),
 			Content: static.Address,
-			Type:    pulumi.String("CNAME"),
+			Type:    pulumi.String("A"),
 			Proxied: pulumi.Bool(true),
 		})
 		if err != nil {
