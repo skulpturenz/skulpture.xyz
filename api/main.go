@@ -181,10 +181,10 @@ func main() {
 	}
 
 	proxy := httputil.NewSingleHostReverseProxy(target)
-	proxy.Director = func(req *http.Request) {
-		req.Host = target.Host
-		req.URL.Scheme = target.Scheme
-		req.URL.Host = target.Host
+	proxy.Director = func(r *http.Request) {
+		r.Host = target.Host
+		r.URL.Scheme = target.Scheme
+		r.URL.Host = target.Host
 	}
 	r.Get("/*", proxy.ServeHTTP)
 

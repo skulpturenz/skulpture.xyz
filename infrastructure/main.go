@@ -122,9 +122,9 @@ func main() {
 
 		_, err = cloudflare.NewRecord(ctx, COMPUTE_INSTANCE_NAME.Value(), &cloudflare.RecordArgs{
 			ZoneId:  pulumi.String(CLOUDFLARE_ZONE_ID.Value()),
-			Name:    pulumi.String("landing"),
+			Name:    pulumi.String("@"),
 			Content: static.Address,
-			Type:    pulumi.String("CNAME"),
+			Type:    pulumi.String("A"),
 			Proxied: pulumi.Bool(true),
 		})
 		if err != nil {
