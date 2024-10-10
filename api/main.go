@@ -416,8 +416,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		slog.ErrorContext(r.Context(), "error", "postmark", err.Error())
-
-		return
 	}
 
 	slog.DebugContext(r.Context(), "sent", "postmark message id", res.MessageID, "to", res.To, "at", res.SubmittedAt, "lead", body.uuid)
