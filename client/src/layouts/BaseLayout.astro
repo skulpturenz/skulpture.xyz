@@ -27,6 +27,9 @@ const resources = {
 		contact: {
 			header: "Contact",
 		},
+		links: {
+			header: "Links",
+		},
 	},
 };
 
@@ -92,7 +95,7 @@ const navigationItems: NavigationItem[] = [
 							</FooterSection>
 
 							<FooterSection>
-								<span>Links</span>
+								<span>{resources.footer.links.header}</span>
 								<a href="#" id="shielded-logo" class="h-8 w-8">
 									<img
 										alt="shielded"
@@ -128,6 +131,16 @@ const navigationItems: NavigationItem[] = [
 								class="text-lg font-medium hover:underline hover:underline-offset-4"
 								href="mailto:hey@skulpture.xyz">
 								hey@skulpture.xyz
+							</a>
+						</FooterSection>
+
+						<FooterSection>
+							<span>{resources.footer.links.header}</span>
+							<a href="#" id="shielded-logo" class="h-8 w-8">
+								<img
+									alt="shielded"
+									src="https://shielded.co.nz/img/custom-logo.png"
+								/>
 							</a>
 						</FooterSection>
 					</Footer>
