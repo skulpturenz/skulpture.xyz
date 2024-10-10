@@ -41,7 +41,7 @@ export const Footer = ({ className, children }: FooterProps) => {
 				</div>
 
 				<div>
-					<div className="flex flex-wrap gap-32">{children}</div>
+					<div className="flex flex-wrap gap-20">{children}</div>
 				</div>
 			</div>
 

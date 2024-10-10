@@ -90,6 +90,16 @@ const navigationItems: NavigationItem[] = [
 									hey@skulpture.xyz
 								</a>
 							</FooterSection>
+
+							<FooterSection>
+								<span>Links</span>
+								<a href="#" id="shielded-logo" class="h-8 w-8">
+									<img
+										alt="shielded"
+										src="https://shielded.co.nz/img/custom-logo.png"
+									/>
+								</a>
+							</FooterSection>
 						</Footer>
 					</div>
 				)
@@ -126,3 +136,37 @@ const navigationItems: NavigationItem[] = [
 		</ThemeProvider>
 	</body>
 </html>
+
+<script is:inline src="https://staticcdn.co.nz/embed/embed.js"></script>
+<script is:inline>
+	(async () => {
+		// https://stackoverflow.com/a/61511955
+		const isSelectorPresent = selector =>
+			new Promise(resolve => {
+				if (document.querySelector(selector)) {
+					return resolve(document.querySelector(selector));
+				}
+
+				const observer = new MutationObserver(() => {
+					if (document.querySelector(selector)) {
+						observer.disconnect();
+						resolve(document.querySelector(selector));
+					}
+				});
+
+				observer.observe(document.body, {
+					childList: true,
+					subtree: true,
+				});
+			});
+
+		await isSelectorPresent("#shielded-logo");
+
+		var frameName = new ds07o6pcmkorn({
+			openElementId: "#shielded-logo",
+			modalID: "modal",
+		});
+
+		frameName.init();
+	})();
+</script>
