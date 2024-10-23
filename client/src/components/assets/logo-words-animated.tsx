@@ -38,7 +38,7 @@ const draw: Variants = {
 					bounce: 0,
 				},
 				fillOpacity: {
-					ease: "linear",
+					ease: "easeInOut",
 					delay: 0.25 * delay + maxDelay,
 					duration: 0,
 				},
