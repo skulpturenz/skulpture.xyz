@@ -1,4 +1,4 @@
-import { ArrowRight, LogoIconAnimated, LogoWords } from "@/components/assets";
+import { ArrowRight, LogoIcon, LogoWordsAnimated } from "@/components/assets";
 import { constants } from "@/components/constants";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -26,10 +26,7 @@ export const Footer = ({ className, children }: FooterProps) => {
 			<div className="mt-24 flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-0">
 				<div className="flex flex-col gap-8">
 					<a href="/">
-						<LogoIconAnimated
-							delay={0.5}
-							className="h-10 w-auto text-primary"
-						/>
+						<LogoIcon className="h-10 w-auto text-primary" />
 						<span className="sr-only">{resources.skulpture}</span>
 					</a>
 					<span className="text-regular font-medium lg:text-xl">
@@ -45,7 +42,10 @@ export const Footer = ({ className, children }: FooterProps) => {
 			</div>
 
 			<a href="/">
-				<LogoWords className="h-auto w-full text-foreground" />
+				<LogoWordsAnimated
+					delay={0.5}
+					className="h-auto w-full text-foreground"
+				/>
 			</a>
 		</footer>
 	);
