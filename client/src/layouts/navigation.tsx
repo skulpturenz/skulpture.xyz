@@ -1,4 +1,4 @@
-import { Bars, LogoDark, LogoLight } from "@/components/assets";
+import { Bars, LogoIconAnimated } from "@/components/assets";
 import { constants } from "@/components/constants";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -49,8 +49,7 @@ export const Navigation = ({ items }: NavigationProps) => {
 						</div>
 						<div className="flex flex-shrink-0 items-center">
 							<a href="/">
-								<LogoLight className="h-6 w-auto dark:hidden" />
-								<LogoDark className="hidden h-6 w-auto dark:block" />
+								<LogoIconAnimated className="h-6 w-auto text-primary" />
 								<span className="sr-only">
 									{resources.skulpture}
 								</span>
