@@ -65,6 +65,7 @@ export const LogoWordsAnimated: React.FC<LogoWordsAnimatedProps> = ({
 		viewport={{ once: true }}>
 		{paths.map((definition, i, arr) => (
 			<motion.path
+				key={definition}
 				d={definition}
 				fill="currentColor"
 				stroke="currentColor"
