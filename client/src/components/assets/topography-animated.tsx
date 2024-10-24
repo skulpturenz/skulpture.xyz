@@ -61,7 +61,7 @@ export const TopographyAnimated: React.FC<TopographyAnimatedProps> = ({
 			stroke="currentColor"
 			initial="hidden"
 			whileInView="visible"
-			preserveAspectRatio="xMidYMid meet">
+			preserveAspectRatio="xMidYMid slice">
 			{PATHS.map((definition, i, arr) => (
 				<motion.path
 					key={definition}
