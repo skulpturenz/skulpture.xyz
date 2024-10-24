@@ -1,5 +1,3 @@
-import { topographyDark, topographyLight } from "@/components/assets";
-import { constants } from "@/components/constants";
 import { Button } from "@/components/ui/button";
 import {
 	DEFAULT_THEME,
@@ -61,17 +59,6 @@ export const ToggleTheme = ({
 
 	React.useEffect(() => {
 		const nextTheme = getNextTheme();
-
-		const landingPattern =
-			nextTheme === "dark" ? topographyDark : topographyLight;
-		const landingIntroSection = document.getElementById(
-			constants.id.landingIntro,
-		) as HTMLElement | null;
-
-		landingIntroSection?.style.setProperty(
-			"background-image",
-			`url('${landingPattern.src}')`,
-		);
 	}, [theme]);
 
 	const nextTheme = () => {
