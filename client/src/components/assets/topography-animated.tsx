@@ -11,36 +11,23 @@ const PATHS = SVGPathCommander.splitPath(
 export interface TopographyAnimatedProps
 	extends React.ComponentProps<typeof motion.svg> {
 	delay?: number;
-	duration?: number;
 }
 
 const draw: Variants = {
 	hidden: { pathLength: 0, fillOpacity: 0, strokeWidth: 0, opacity: 0 },
-	visible: ({ duration, delay, maxDelay }) => {
-		const calculateDuration = (scale: number) =>
-			Math.min(1 + scale * 1.5, 10);
-
+	visible: ({ delay }) => {
 		return {
 			pathLength: 1,
-			fillOpacity: 0.25,
 			strokeOpacity: 0.25,
 			opacity: 1,
 			strokeWidth: 1,
 			transition: {
-				strokeWidth: {
-					delay,
-				},
 				pathLength: {
 					repeat: Infinity,
 					type: "spring",
-					duration: calculateDuration(duration),
-					bounce: 0,
-				},
-				fillOpacity: {
-					repeat: Infinity,
-					ease: "backInOut",
-					delay: 0.25 * delay + maxDelay,
-					duration: 0,
+					delay,
+					duration: 10,
+					bounce: 0.5,
 				},
 			},
 		};
@@ -48,7 +35,6 @@ const draw: Variants = {
 };
 
 export const TopographyAnimated: React.FC<TopographyAnimatedProps> = ({
-	duration = 2,
 	delay = 0,
 	...props
 }) => {
@@ -62,20 +48,20 @@ export const TopographyAnimated: React.FC<TopographyAnimatedProps> = ({
 			initial="hidden"
 			whileInView="visible"
 			preserveAspectRatio="xMidYMid slice">
-			{PATHS.map((definition, i, arr) => (
-				<motion.path
-					key={definition}
-					d={definition}
-					fill="currentColor"
-					stroke="currentColor"
-					variants={draw}
-					custom={{
-						duration,
-						delay: delay + 0.5 * i,
-						maxDelay: delay + arr.length,
-					}}
-				/>
-			))}
+			{PATHS.slice(0, Math.floor(PATHS.length / 2)).map(
+				(definition, i) => (
+					<motion.path
+						key={definition}
+						d={definition}
+						fill="currentColor"
+						stroke="currentColor"
+						variants={draw}
+						custom={{
+							delay: delay + 1.5 * i,
+						}}
+					/>
+				),
+			)}
 		</motion.svg>
 	);
 };
