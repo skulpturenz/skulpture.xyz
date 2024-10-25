@@ -67,7 +67,7 @@ export interface ContactBlockProps {
 
 export const ContactBlock = ({ className }: ContactBlockProps) => (
 	<>
-		<a href="/contact" rel="noopener noreferrer" target="_blank">
+		<a href="/contact">
 			<div
 				className={cn(
 					className,
