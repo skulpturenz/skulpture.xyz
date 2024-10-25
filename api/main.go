@@ -356,69 +356,73 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	slog.DebugContext(r.Context(), "processed", "enquiry", fmt.Sprintf("%+v", body))
 
-	sheetRange := fmt.Sprintf("%s!A1", GSHEETS_SHEET_NAME.Value())
+	captureEnquiry := func() {
+		ctx := context.WithoutCancel(r.Context())
 
-	links := []string{}
-	for _, file := range body.files {
-		links = append(links, fmt.Sprintf("- %s", file.WebViewLink))
-	}
+		sheetRange := fmt.Sprintf("%s!A1", GSHEETS_SHEET_NAME.Value())
 
-	_, err = sheetsService.
-		Spreadsheets.
-		Values.
-		Append(GSHEETS_SPREADSHEET_ID.Value(), sheetRange, &sheets.ValueRange{
-			Values: [][]interface{}{
-				{
-					body.Email,
-					body.uuid,
-					body.FirstName,
-					body.LastName,
-					body.Mobile,
-					body.Enquiry,
-					strings.Join(links, "\n"),
-				},
-			},
-		}).
-		ValueInputOption("RAW").
-		InsertDataOption("INSERT_ROWS").
-		Context(r.Context()).
-		Do()
-	if err != nil {
-		slog.ErrorContext(r.Context(), "error", "gsheets", err.Error())
-
-		http.Error(w, "Failed to capture enquiry", http.StatusInternalServerError)
-
+		links := []string{}
 		for _, file := range body.files {
-			go driveService.Files.
-				Delete(file.Id).
-				Do()
+			links = append(links, fmt.Sprintf("- %s", file.WebViewLink))
 		}
 
-		return
+		_, err = sheetsService.
+			Spreadsheets.
+			Values.
+			Append(GSHEETS_SPREADSHEET_ID.Value(), sheetRange, &sheets.ValueRange{
+				Values: [][]interface{}{
+					{
+						body.Email,
+						body.uuid,
+						body.FirstName,
+						body.LastName,
+						body.Mobile,
+						body.Enquiry,
+						strings.Join(links, "\n"),
+					},
+				},
+			}).
+			ValueInputOption("RAW").
+			InsertDataOption("INSERT_ROWS").
+			Context(ctx).
+			Do()
+		if err != nil {
+			slog.ErrorContext(ctx, "error", "gsheets", err.Error())
+
+			for _, file := range body.files {
+				go driveService.Files.
+					Delete(file.Id).
+					Do()
+			}
+
+			return
+		}
+
+		templateId := POSTMARK_TEMPLATE.Value()
+		postmarkFrom := POSTMARK_FROM.Value()
+
+		res, err := postmarkClient.SendTemplatedEmail(ctx, postmark.TemplatedEmail{
+			TemplateID: int64(templateId),
+			From:       postmarkFrom,
+			To:         body.Email,
+			TrackOpens: true,
+			TemplateModel: map[string]any{
+				"uuid":      body.uuid,
+				"email":     body.Email,
+				"firstName": body.FirstName,
+				"lastName":  body.LastName,
+				"mobile":    body.Email,
+				"enquiry":   body.Enquiry,
+			},
+		})
+		if err != nil {
+			slog.ErrorContext(ctx, "error", "postmark", err.Error())
+		}
+
+		slog.DebugContext(ctx, "sent", "postmark message id", res.MessageID, "to", res.To, "at", res.SubmittedAt, "lead", body.uuid)
 	}
 
-	templateId := POSTMARK_TEMPLATE.Value()
-	postmarkFrom := POSTMARK_FROM.Value()
-
-	res, err := postmarkClient.SendTemplatedEmail(context.Background(), postmark.TemplatedEmail{
-		TemplateID: int64(templateId),
-		From:       postmarkFrom,
-		To:         body.Email,
-		TrackOpens: true,
-		TemplateModel: map[string]any{
-			"uuid":      body.uuid,
-			"email":     body.Email,
-			"firstName": body.FirstName,
-			"lastName":  body.LastName,
-			"mobile":    body.Email,
-			"enquiry":   body.Enquiry,
-		},
-	})
-	if err != nil {
-		slog.ErrorContext(r.Context(), "error", "postmark", err.Error())
-	}
-
-	slog.DebugContext(r.Context(), "sent", "postmark message id", res.MessageID, "to", res.To, "at", res.SubmittedAt, "lead", body.uuid)
+	go captureEnquiry()
 
 	w.WriteHeader(http.StatusCreated)
 }
