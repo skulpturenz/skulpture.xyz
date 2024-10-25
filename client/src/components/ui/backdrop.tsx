@@ -30,10 +30,6 @@ export const Backdrop = React.forwardRef<HTMLDivElement, BackdropProps>(
 			</AnimatePresence>
 		);
 
-		if (import.meta.env.SSR) {
-			return <Backdrop {...rest}>{children}</Backdrop>;
-		}
-
 		React.useEffect(() => {
 			if (!show) {
 				return;
@@ -47,6 +43,10 @@ export const Backdrop = React.forwardRef<HTMLDivElement, BackdropProps>(
 				body.style.setProperty("overflow", "auto");
 			};
 		});
+
+		if (import.meta.env.SSR) {
+			return <Backdrop {...rest}>{children}</Backdrop>;
+		}
 
 		return ReactDOM.createPortal(
 			<Backdrop {...rest}>{children}</Backdrop>,
