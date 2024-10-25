@@ -107,8 +107,8 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 	(
 		{
 			className,
-			type,
-			isError,
+			type: _type,
+			isError: _isError,
 			onChange: controlledOnChange,
 			onInvalidSelection,
 			isFileValid,
@@ -131,6 +131,18 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 			} else if (ref) {
 				ref.current = instance;
 			}
+		};
+
+		const onDragLeave = () => {
+			setShowBackdrop(false);
+		};
+		const onDrop = (event: DragEvent | React.DragEvent<HTMLDivElement>) => {
+			event.preventDefault();
+
+			const dataTransfer = onlyValid(event.dataTransfer.files);
+			select(dataTransfer);
+
+			setShowBackdrop(false);
 		};
 
 		const onlyValid = (files: FileList) => {
@@ -202,11 +214,6 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 
 			controlledOnChange?.([...dataTransfer.files]);
 		};
-		const reset = () => {
-			select(new DataTransfer());
-			setSelections([]);
-			setShowBackdrop(false);
-		};
 
 		const onClickBrowse: React.MouseEventHandler<
 			HTMLButtonElement | HTMLDivElement | null
@@ -232,26 +239,6 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 		const onChange: React.ChangeEventHandler<HTMLInputElement> = event => {
 			const dataTransfer = onlyValid(event.target.files);
 			select(dataTransfer);
-		};
-
-		const onDragEnter = () => {
-			setShowBackdrop(true);
-		};
-		const onDragOver = (
-			event: DragEvent | React.DragEvent<HTMLDivElement>,
-		) => {
-			event.preventDefault();
-		};
-		const onDragLeave = () => {
-			setShowBackdrop(false);
-		};
-		const onDrop = (event: DragEvent | React.DragEvent<HTMLDivElement>) => {
-			event.preventDefault();
-
-			const dataTransfer = onlyValid(event.dataTransfer.files);
-			select(dataTransfer);
-
-			setShowBackdrop(false);
 		};
 
 		const numberOfFilesSelected = inputFileRef.current?.files.length ?? 0;
@@ -289,29 +276,43 @@ const InputFile = React.forwardRef<HTMLInputElement, InputFileProps>(
 		};
 
 		React.useEffect(() => {
+			const onDragEnter = () => {
+				setShowBackdrop(true);
+			};
+			const onDragOver = (
+				event: DragEvent | React.DragEvent<HTMLDivElement>,
+			) => {
+				event.preventDefault();
+			};
+
 			window.addEventListener("dragenter", onDragEnter);
 			window.addEventListener("dragover", onDragOver);
 			backdropRef.current?.addEventListener("dragleave", onDragLeave);
 			backdropRef.current?.addEventListener("drop", onDrop);
 
+			const backdrop = backdropRef.current;
+
 			return () => {
 				window.removeEventListener("dragenter", onDragEnter);
 				window.removeEventListener("dragover", onDragOver);
-				backdropRef.current?.removeEventListener(
-					"dragleave",
-					onDragLeave,
-				);
-				backdropRef.current?.removeEventListener("drop", onDrop);
+				backdrop?.removeEventListener("dragleave", onDragLeave);
+				backdrop?.removeEventListener("drop", onDrop);
 			};
-		}, []);
+		}, [onlyValid, select, onDrop]);
 
 		React.useEffect(() => {
 			if (value) {
 				return;
 			}
 
+			const reset = () => {
+				select(new DataTransfer());
+				setSelections([]);
+				setShowBackdrop(false);
+			};
+
 			reset();
-		}, [value]);
+		}, [value, select, setSelections, setShowBackdrop]);
 
 		const SelectedFile = ({ file, validationResult }: FileSelection) => {
 			const Container = noHover() ? Popover : HoverCard;
