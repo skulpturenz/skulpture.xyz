@@ -20,7 +20,7 @@ export const Form = React.forwardRef<HTMLFormElement, FormProps>(
 
 		const child = asChild
 			? (React.Children.only(rest.children) as React.ReactElement<
-					Record<string, any>
+					Record<string, unknown>
 				>)
 			: null;
 
@@ -52,7 +52,7 @@ export const FormGroup = ({
 
 	const child = asChild
 		? (React.Children.only(rest.children) as React.ReactElement<
-				Record<string, any>
+				Record<string, unknown>
 			>)
 		: null;
 

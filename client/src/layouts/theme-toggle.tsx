@@ -55,11 +55,7 @@ export const ToggleTheme = ({
 		const nextTheme = getNextTheme();
 
 		root.classList.add(nextTheme);
-	}, [theme]);
-
-	React.useEffect(() => {
-		const nextTheme = getNextTheme();
-	}, [theme]);
+	}, [theme, getNextTheme]);
 
 	const nextTheme = () => {
 		const validThemes: Theme[] = ["light", "dark", "system"];
