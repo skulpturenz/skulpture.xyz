@@ -58,12 +58,14 @@ const navigationItems: NavigationItem[] = [
 		<SEO title={title} description={description} />
 		<ViewTransitions />
 	</head>
-	<body transition:animate={slide({ duration: "0.25s" })}>
+	<body>
 		<ThemeProvider
 			storageKey={`skulpture-theme-${import.meta.env.MODE}`}
 			client:only="react">
 			<Navigation items={navigationItems} client:load />
-			<slot />
+			<div transition:animate={slide({ duration: "0.25s" })}>
+				<slot />
+			</div>
 			{
 				!isContactBlockHidden && (
 					<div class="relative">
