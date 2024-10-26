@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Navigation, type NavigationItem } from "./navigation";
 import { Footer, FooterSection, ContactBlock } from "./footer";
 import { constants } from "@/components/constants";
-import { ViewTransitions, slide } from "astro:transitions";
+import { ViewTransitions } from "astro:transitions";
 
 interface Props {
 	title: string;
@@ -63,7 +63,7 @@ const navigationItems: NavigationItem[] = [
 			storageKey={`skulpture-theme-${import.meta.env.MODE}`}
 			client:only="react">
 			<Navigation items={navigationItems} client:load />
-			<div transition:animate={slide({ duration: "0.25s" })}>
+			<div transition:animate="fade">
 				<slot />
 			</div>
 			{
