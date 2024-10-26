@@ -16,7 +16,13 @@ export const Backdrop = React.forwardRef<HTMLDivElement, BackdropProps>(
 					<motion.div
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
-						transition={{ duration: 0.15 }}>
+						transition={{ duration: 0.15 }}
+						// TODO: there is a bug here, something is applying `will-change: transform`
+						// which breaks animations
+						// working in `v1.0.11`, not working in `v1.1.0`
+						// bad commit:
+						// - https://github.com/skulpturenz/skulpture.xyz/pull/140/commits/77c8fe72adea1640ce75e5dacb028c6cce752675
+						style={{ willChange: "auto" }}>
 						<div
 							ref={ref}
 							className={cn(
@@ -42,7 +48,7 @@ export const Backdrop = React.forwardRef<HTMLDivElement, BackdropProps>(
 			return () => {
 				body.style.setProperty("overflow", "auto");
 			};
-		});
+		}, [show]);
 
 		if (import.meta.env.SSR) {
 			return <Backdrop {...rest}>{children}</Backdrop>;
