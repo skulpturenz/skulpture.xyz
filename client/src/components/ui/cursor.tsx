@@ -19,6 +19,17 @@ export const Cursor = ({}: CursorProps) => {
 		};
 	};
 
+	// https://stackoverflow.com/a/50302305
+	const isMobile = () => {
+		if (import.meta.env.SSR) {
+			return false;
+		}
+
+		return window.matchMedia(
+			"(pointer:none), (pointer:coarse), (hover:none), (hover:on-demand)",
+		).matches;
+	};
+
 	const cursorXSpring = useSpring(getDefaultMousePosition().x, springConfig);
 	const cursorYSpring = useSpring(getDefaultMousePosition().y, springConfig);
 
@@ -26,6 +37,29 @@ export const Cursor = ({}: CursorProps) => {
 	const heightSpring = useSpring(16, springConfig);
 
 	React.useLayoutEffect(() => {
+		if (!isMobile()) {
+			return;
+		}
+
+		const style = document.createElement("style");
+		style.innerHTML = `
+			* {
+				cursor: auto;
+			}
+		`;
+
+		const node: HTMLStyleElement = document.head.appendChild(style);
+
+		return () => {
+			node.remove();
+		};
+	}, []);
+
+	React.useLayoutEffect(() => {
+		if (isMobile()) {
+			return;
+		}
+
 		const style = document.createElement("style");
 		style.innerHTML = `
 			* {
@@ -41,6 +75,10 @@ export const Cursor = ({}: CursorProps) => {
 	}, []);
 
 	React.useEffect(() => {
+		if (isMobile()) {
+			return;
+		}
+
 		const onMouseMove = (event: MouseEvent) => {
 			const hasText = [].reduce.call(
 				(event.target as HTMLElement).childNodes,
@@ -73,6 +111,10 @@ export const Cursor = ({}: CursorProps) => {
 			window.removeEventListener("mousemove", onMouseMove);
 		};
 	}, []);
+
+	if (isMobile()) {
+		return null;
+	}
 
 	return (
 		<>
