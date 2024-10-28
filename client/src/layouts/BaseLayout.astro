@@ -6,6 +6,7 @@ import { Navigation, type NavigationItem } from "./navigation";
 import { Footer, FooterSection, ContactBlock } from "./footer";
 import { constants } from "@/components/constants";
 import { ViewTransitions } from "astro:transitions";
+import { Cursor } from "@/components/ui/cursor";
 
 interface Props {
 	title: string;
@@ -62,6 +63,8 @@ const navigationItems: NavigationItem[] = [
 		<ThemeProvider
 			storageKey={`skulpture-theme-${import.meta.env.MODE}`}
 			client:only="react">
+			<Cursor client:only="react" />
+
 			<Navigation items={navigationItems} client:load />
 			<div transition:animate="fade">
 				<slot />
