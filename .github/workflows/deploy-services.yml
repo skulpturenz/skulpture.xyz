@@ -38,7 +38,7 @@ jobs:
       - name: "Install dependencies: infrastructure"
         run: go mod download
         working-directory: infrastructure
-        
+
       - name: "Deploy stack: skulpture/landing/prod"
         uses: pulumi/actions@v5
         with:
@@ -66,7 +66,7 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -87,7 +87,7 @@ jobs:
           tags: |
             skulpture/landing-api:${{ env.TAG }}
 
-  deploy:    
+  deploy:
     permissions:
       contents: read
       id-token: write
@@ -136,10 +136,6 @@ jobs:
           script: |
             # TODO: pull latest
             export $(docker run --rm --env-file ${{ env.ENV_FILE }} skulpture/kryptos:staging cat | xargs)
-            
-            if [[ "${{ env.BRANCH_NAME }}" != "master" ]]; then
-              export TAG=${{ env.BRANCH_NAME }}
-            fi
 
             cd landing-${{ env.BRANCH_NAME }}/${{ matrix.service }}
 

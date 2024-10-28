@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Navigation, type NavigationItem } from "./navigation";
 import { Footer, FooterSection, ContactBlock } from "./footer";
 import { constants } from "@/components/constants";
+import { ViewTransitions } from "astro:transitions";
+import { Cursor } from "@/components/ui/cursor";
 
 interface Props {
 	title: string;
@@ -55,13 +57,18 @@ const navigationItems: NavigationItem[] = [
 			rel="stylesheet"
 		/>
 		<SEO title={title} description={description} />
+		<ViewTransitions />
 	</head>
 	<body>
 		<ThemeProvider
 			storageKey={`skulpture-theme-${import.meta.env.MODE}`}
 			client:only="react">
+			<Cursor client:only="react" />
+
 			<Navigation items={navigationItems} client:load />
-			<slot />
+			<div transition:animate="fade">
+				<slot />
+			</div>
 			{
 				!isContactBlockHidden && (
 					<div class="relative">

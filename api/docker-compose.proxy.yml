@@ -10,6 +10,8 @@ services:
     ports:
       - target: 443
         published: 443
+      - target: 2053
+        published: 2053
     deploy:
       mode: replicated
       replicas: 2
