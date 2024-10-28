@@ -143,7 +143,11 @@ const navigationItems: NavigationItem[] = [
 
 						<FooterSection>
 							<span>{resources.footer.links.header}</span>
-							<a href="#" id="shielded-logo" class="h-8 w-8">
+							<a
+								href="#"
+								id="shielded-logo"
+								class="h-8 w-8"
+								transition:persist>
 								<img
 									alt="shielded"
 									src="https://shielded.co.nz/img/custom-logo.png"
@@ -159,7 +163,7 @@ const navigationItems: NavigationItem[] = [
 
 <script is:inline src="https://staticcdn.co.nz/embed/embed.js"></script>
 <script is:inline>
-	(async () => {
+	const initShieldedSite = async () => {
 		// https://stackoverflow.com/a/61511955
 		const isSelectorPresent = selector =>
 			new Promise(resolve => {
@@ -188,5 +192,11 @@ const navigationItems: NavigationItem[] = [
 		});
 
 		frameName.init();
-	})();
+	};
+
+	initShieldedSite();
+
+	// https://stackoverflow.com/a/77910937
+	// `transition:persist` didn't work
+	document.addEventListener("astro:after-swap", initShieldedSite);
 </script>
