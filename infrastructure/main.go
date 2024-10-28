@@ -131,6 +131,17 @@ func main() {
 			return err
 		}
 
+		_, err = cloudflare.NewRecord(ctx, fmt.Sprintf("%s-dev", COMPUTE_INSTANCE_NAME.Value()), &cloudflare.RecordArgs{
+			ZoneId:  pulumi.String(CLOUDFLARE_ZONE_ID.Value()),
+			Name:    pulumi.String("dev"),
+			Content: static.Address,
+			Type:    pulumi.String("A"),
+			Proxied: pulumi.Bool(true),
+		})
+		if err != nil {
+			return err
+		}
+
 		pool, err := iam.LookupWorkloadIdentityPool(ctx, &iam.LookupWorkloadIdentityPoolArgs{
 			WorkloadIdentityPoolId: "shared-resources",
 		})
