@@ -82,7 +82,7 @@ func main() {
 				sudo chmod 0600 /etc/letsencrypt/dnscloudflare.ini &&
 				sudo chmod +x /etc/letsencrypt/renewal-hooks/deploy/reload-services.sh &&
 				sudo chmod 0600 /etc/letsencrypt/renewal-hooks/deploy/reload-services.sh &&
-				sudo certbot certonly -d landing.skulpture.xyz \
+				sudo certbot certonly -d dev.skulpture.xyz,skulpture.xyz \
 					--dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/dnscloudflare.ini \
 					--non-interactive --agree-tos \
 					--register-unsafely-without-email \
@@ -123,6 +123,17 @@ func main() {
 		_, err = cloudflare.NewRecord(ctx, COMPUTE_INSTANCE_NAME.Value(), &cloudflare.RecordArgs{
 			ZoneId:  pulumi.String(CLOUDFLARE_ZONE_ID.Value()),
 			Name:    pulumi.String("@"),
+			Content: static.Address,
+			Type:    pulumi.String("A"),
+			Proxied: pulumi.Bool(true),
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = cloudflare.NewRecord(ctx, fmt.Sprintf("%s-dev", COMPUTE_INSTANCE_NAME.Value()), &cloudflare.RecordArgs{
+			ZoneId:  pulumi.String(CLOUDFLARE_ZONE_ID.Value()),
+			Name:    pulumi.String("dev"),
 			Content: static.Address,
 			Type:    pulumi.String("A"),
 			Proxied: pulumi.Bool(true),
