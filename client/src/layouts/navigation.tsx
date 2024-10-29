@@ -49,7 +49,14 @@ export const Navigation = ({ items }: NavigationProps) => {
 						</div>
 						<div className="flex flex-shrink-0 items-center">
 							<a href="/">
-								<LogoIconAnimated className="h-6 w-auto text-primary" />
+								<div className="relative">
+									<LogoIconAnimated className="h-6 w-auto text-primary" />
+									{import.meta.env.DEV && (
+										<span className="text-white p-[0.1rem] rounded-md font-black absolute -top-2 bg-red-500 -right-3 rotate-[35deg] text-xs">
+											DEV
+										</span>
+									)}
+								</div>
 								<span className="sr-only">
 									{resources.skulpture}
 								</span>
