@@ -1,13 +1,11 @@
-import { motion, useSpring, type SpringOptions } from "framer-motion";
+import { motion, useSpring, useTransform, useVelocity } from "framer-motion";
 import React from "react";
 
 export interface CursorProps {}
 
 export const Cursor = ({}: CursorProps) => {
-	const springConfig: SpringOptions = {
-		damping: 37.5,
-		stiffness: 1000,
-	};
+	const DIMENSION = 24;
+	const DIMENSION_TEXT = 48;
 
 	const getDefaultMousePosition = () => {
 		const clientX = sessionStorage.getItem("mouseMoveX");
@@ -30,11 +28,24 @@ export const Cursor = ({}: CursorProps) => {
 		).matches;
 	};
 
-	const cursorXSpring = useSpring(getDefaultMousePosition().x, springConfig);
-	const cursorYSpring = useSpring(getDefaultMousePosition().y, springConfig);
+	const cursorXSpring = useSpring(getDefaultMousePosition().x, {
+		damping: 37.5,
+		stiffness: 1000,
+	});
+	const cursorYSpring = useSpring(getDefaultMousePosition().y, {
+		damping: 37.5,
+		stiffness: 1000,
+	});
+	const dimensionSpring = useSpring(DIMENSION, {
+		damping: 37.5,
+		stiffness: 1000,
+	});
 
-	const widthSpring = useSpring(16, springConfig);
-	const heightSpring = useSpring(16, springConfig);
+	const xSmooth = useSpring(cursorXSpring, { damping: 50, stiffness: 500 });
+	const xVelocity = useVelocity(xSmooth);
+	const scale = useTransform(xVelocity, [-1500, 0, 1500], [3, 1, 3], {
+		clamp: false,
+	});
 
 	React.useLayoutEffect(() => {
 		if (!isMobile()) {
@@ -80,26 +91,31 @@ export const Cursor = ({}: CursorProps) => {
 		}
 
 		const onMouseMove = (event: MouseEvent) => {
-			const hasText = [].reduce.call(
-				(event.target as HTMLElement).childNodes,
-				(acc: string, element: HTMLElement) => {
-					if (element.nodeType === Node.TEXT_NODE) {
-						return element.textContent.trim();
-					}
+			const isEmphasised = [].some.call(
+				[...(event.target as HTMLElement).childNodes, event.target],
+				(element: Node) => {
+					const hasText =
+						element?.nodeType === Node.TEXT_NODE &&
+						Boolean(element.textContent.trim());
 
-					return acc;
+					const isClickable = (element as HTMLElement)?.matches?.(
+						"a,button",
+					);
+
+					const isImage = (element as HTMLElement)?.matches?.(
+						"path,img,svg",
+					);
+
+					return hasText || isClickable || isImage;
 				},
-				"",
 			);
 
-			const width = hasText ? 48 : 16;
-			const height = hasText ? 48 : 16;
+			const newDimension = isEmphasised ? DIMENSION_TEXT : DIMENSION;
 
 			cursorXSpring.set(event.clientX - 8);
 			cursorYSpring.set(event.clientY - 8);
 
-			widthSpring.set(width);
-			heightSpring.set(height);
+			dimensionSpring.set(newDimension);
 
 			sessionStorage.setItem("mouseMoveX", `${event.clientX}`);
 			sessionStorage.setItem("mouseMoveY", `${event.clientY}`);
@@ -121,10 +137,11 @@ export const Cursor = ({}: CursorProps) => {
 			<motion.div
 				className="cursor fixed left-0 top-0 rounded-full bg-white mix-blend-difference z-[999] pointer-events-none"
 				style={{
-					width: widthSpring,
-					height: heightSpring,
+					width: dimensionSpring,
+					height: dimensionSpring,
 					translateX: cursorXSpring,
 					translateY: cursorYSpring,
+					scale,
 				}}
 			/>
 		</>
