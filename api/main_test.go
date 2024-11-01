@@ -10,10 +10,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"pgregory.net/rapid"
 )
 
 const (
-	API_URL = "http://127.0.0.1:80/api/v1/contact"
+	API_URL      = "http://127.0.0.1:80/api/v1/contact"
+	ONE_MEGABYTE = 1 << 20
 )
 
 func TestCreateEnquiry(t *testing.T) {
@@ -23,16 +25,16 @@ func TestCreateEnquiry(t *testing.T) {
 	}
 	defer os.Remove(file.Name())
 
-	enquiry := map[string]io.Reader{
+	formData := map[string]io.Reader{
 		"firstName": strings.NewReader("Test"),
 		"lastName":  strings.NewReader("123"),
-		"email":     strings.NewReader("test@test.com"),
+		"email":     strings.NewReader("test@example.com"),
 		"mobile":    strings.NewReader("+64123412342"),
 		"enquiry":   strings.NewReader("Hello world"),
 		"files":     file,
 	}
 
-	contentType, form, err := createMultipartForm(enquiry)
+	contentType, form, err := createMultipartForm(formData)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -150,37 +152,43 @@ func TestValidateEmailRequired(t *testing.T) {
 }
 
 func TestValidateEmailFormat(t *testing.T) {
-	file, err := os.CreateTemp(os.TempDir(), "create_enquiry")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.Remove(file.Name())
+	rapid.Check(t, func(t *rapid.T) {
+		var (
+			email = rapid.String().Draw(t, "email")
+		)
 
-	enquiry := map[string]io.Reader{
-		"firstName": strings.NewReader("Test"),
-		"lastName":  strings.NewReader("123"),
-		"email":     strings.NewReader("test"),
-		"mobile":    strings.NewReader("+64123412342"),
-		"enquiry":   strings.NewReader("Hello world"),
-		"files":     file,
-	}
+		file, err := os.CreateTemp(os.TempDir(), "create_enquiry")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer os.Remove(file.Name())
 
-	contentType, form, err := createMultipartForm(enquiry)
-	if err != nil {
-		t.Fatal(err)
-	}
+		enquiry := map[string]io.Reader{
+			"firstName": strings.NewReader("Test"),
+			"lastName":  strings.NewReader("123"),
+			"email":     strings.NewReader(email),
+			"mobile":    strings.NewReader("+64123412342"),
+			"enquiry":   strings.NewReader("Hello world"),
+			"files":     file,
+		}
 
-	res, err := http.Post(API_URL, contentType, form)
-	if err != nil {
-		t.Fatal(err)
-	}
+		contentType, form, err := createMultipartForm(enquiry)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
+		res, err := http.Post(API_URL, contentType, form)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	assert.Equal(t, http.StatusBadRequest, res.StatusCode, strings.Join([]string{res.Status, string(body)}, "\n"))
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode, strings.Join([]string{res.Status, string(body)}, "\n"))
+	})
 }
 
 func TestValidateMobileOptional(t *testing.T) {
@@ -217,37 +225,43 @@ func TestValidateMobileOptional(t *testing.T) {
 }
 
 func TestValidateMobileFormat(t *testing.T) {
-	file, err := os.CreateTemp(os.TempDir(), "create_enquiry")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.Remove(file.Name())
+	rapid.Check(t, func(t *rapid.T) {
+		var (
+			mobile = rapid.String().Draw(t, "mobile")
+		)
 
-	enquiry := map[string]io.Reader{
-		"firstName": strings.NewReader("Test"),
-		"lastName":  strings.NewReader("123"),
-		"email":     strings.NewReader("test"),
-		"mobile":    strings.NewReader("12345678"),
-		"enquiry":   strings.NewReader("Hello world"),
-		"files":     file,
-	}
+		file, err := os.CreateTemp(os.TempDir(), "create_enquiry")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer os.Remove(file.Name())
 
-	contentType, form, err := createMultipartForm(enquiry)
-	if err != nil {
-		t.Fatal(err)
-	}
+		enquiry := map[string]io.Reader{
+			"firstName": strings.NewReader("Test"),
+			"lastName":  strings.NewReader("123"),
+			"email":     strings.NewReader("test"),
+			"mobile":    strings.NewReader(mobile),
+			"enquiry":   strings.NewReader("Hello world"),
+			"files":     file,
+		}
 
-	res, err := http.Post(API_URL, contentType, form)
-	if err != nil {
-		t.Fatal(err)
-	}
+		contentType, form, err := createMultipartForm(enquiry)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
+		res, err := http.Post(API_URL, contentType, form)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	assert.Equal(t, http.StatusBadRequest, res.StatusCode, strings.Join([]string{res.Status, string(body)}, "\n"))
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode, strings.Join([]string{res.Status, string(body)}, "\n"))
+	})
 }
 
 func TestValidateEnquiryRequired(t *testing.T) {
@@ -313,6 +327,47 @@ func TestValidateFilesOptional(t *testing.T) {
 	}
 
 	assert.Equal(t, http.StatusBadRequest, res.StatusCode, strings.Join([]string{res.Status, string(body)}, "\n"))
+}
+
+func TestValidateFileSize(t *testing.T) {
+	rapid.Check(t, func(t *rapid.T) {
+		var (
+			fileSize = rapid.Int64Range(21*ONE_MEGABYTE, 40*ONE_MEGABYTE).Draw(t, "fileSize")
+		)
+
+		file, err := os.CreateTemp(os.TempDir(), "create_enquiry")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer os.Remove(file.Name())
+		file.Truncate(fileSize)
+
+		formData := map[string]io.Reader{
+			"firstName": strings.NewReader("Test"),
+			"lastName":  strings.NewReader("123"),
+			"email":     strings.NewReader("test@test.com"),
+			"mobile":    strings.NewReader("+64123412342"),
+			"enquiry":   strings.NewReader("Hello world"),
+			"files":     file,
+		}
+
+		contentType, form, err := createMultipartForm(formData)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		res, err := http.Post(API_URL, contentType, form)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, http.StatusInternalServerError, res.StatusCode, strings.Join([]string{res.Status, string(body)}, "\n"))
+	})
 }
 
 // From: https://stackoverflow.com/a/20397167
