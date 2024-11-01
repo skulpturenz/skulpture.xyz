@@ -15,7 +15,7 @@ import (
 
 const (
 	API_URL      = "http://127.0.0.1:80/api/v1/contact"
-	one_megabyte = 1 << 20
+	ONE_MEGABYTE = 1 << 20
 )
 
 func TestCreateEnquiry(t *testing.T) {
@@ -332,7 +332,7 @@ func TestValidateFilesOptional(t *testing.T) {
 func TestValidateFileSize(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		var (
-			fileSize = rapid.Int64Range(21*one_megabyte, 40*one_megabyte).Draw(t, "fileSize")
+			fileSize = rapid.Int64Range(21*ONE_MEGABYTE, 40*ONE_MEGABYTE).Draw(t, "fileSize")
 		)
 
 		file, err := os.CreateTemp(os.TempDir(), "create_enquiry")
