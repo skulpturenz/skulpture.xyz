@@ -230,14 +230,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			errs = append(errs, fmt.Sprintf("- %s", err.Error()))
 		}
 
-		if body.Mobile != "" {
-			err := validate.Var(body.Mobile, "e164")
-
-			if err != nil {
-				errs = append(errs, fmt.Sprintf("- %s", err.Error()))
-			}
-		}
-
 		slog.ErrorContext(r.Context(), "error", "enquiry", body)
 		http.Error(w, fmt.Sprintf("Invalid field values:\n%s", strings.Join(errs, "\n")), http.StatusBadRequest)
 

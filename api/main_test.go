@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	API_URL          = "http://127.0.0.1:80/api/v1/contact"
-	one_megabyte     = 1 << 20
+	API_URL      = "http://127.0.0.1:80/api/v1/contact"
+	one_megabyte = 1 << 20
+	// from: https://github.com/go-playground/validator/blob/master/regexes.go
 	emailRegexString = "^(?:(?:(?:(?:[a-zA-Z]|\\d|[!#\\$%&'\\*\\+\\-\\/=\\?\\^_`{\\|}~]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])+(?:\\.([a-zA-Z]|\\d|[!#\\$%&'\\*\\+\\-\\/=\\?\\^_`{\\|}~]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])+)*)|(?:(?:\\x22)(?:(?:(?:(?:\\x20|\\x09)*(?:\\x0d\\x0a))?(?:\\x20|\\x09)+)?(?:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]|\\x21|[\\x23-\\x5b]|[\\x5d-\\x7e]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])|(?:(?:[\\x01-\\x09\\x0b\\x0c\\x0d-\\x7f]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}]))))*(?:(?:(?:\\x20|\\x09)*(?:\\x0d\\x0a))?(\\x20|\\x09)+)?(?:\\x22))))@(?:(?:(?:[a-zA-Z]|\\d|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])|(?:(?:[a-zA-Z]|\\d|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])(?:[a-zA-Z]|\\d|-|\\.|~|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])*(?:[a-zA-Z]|\\d|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])))\\.)+(?:(?:[a-zA-Z]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])|(?:(?:[a-zA-Z]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])(?:[a-zA-Z]|\\d|-|\\.|~|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])*(?:[a-zA-Z]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])))\\.?$"
 	e164RegexString  = "^\\+[1-9]?[0-9]{7,14}$"
 )
@@ -166,37 +167,43 @@ func TestValidateEmailRequired(t *testing.T) {
 }
 
 func TestValidateEmailFormat(t *testing.T) {
-	file, err := os.CreateTemp(os.TempDir(), "create_enquiry")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.Remove(file.Name())
+	rapid.Check(t, func(t *rapid.T) {
+		var (
+			email = rapid.String().Draw(t, "email")
+		)
 
-	enquiry := map[string]io.Reader{
-		"firstName": strings.NewReader("Test"),
-		"lastName":  strings.NewReader("123"),
-		"email":     strings.NewReader("test"),
-		"mobile":    strings.NewReader("+64123412342"),
-		"enquiry":   strings.NewReader("Hello world"),
-		"files":     file,
-	}
+		file, err := os.CreateTemp(os.TempDir(), "create_enquiry")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer os.Remove(file.Name())
 
-	contentType, form, err := createMultipartForm(enquiry)
-	if err != nil {
-		t.Fatal(err)
-	}
+		enquiry := map[string]io.Reader{
+			"firstName": strings.NewReader("Test"),
+			"lastName":  strings.NewReader("123"),
+			"email":     strings.NewReader(email),
+			"mobile":    strings.NewReader("+64123412342"),
+			"enquiry":   strings.NewReader("Hello world"),
+			"files":     file,
+		}
 
-	res, err := http.Post(API_URL, contentType, form)
-	if err != nil {
-		t.Fatal(err)
-	}
+		contentType, form, err := createMultipartForm(enquiry)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
+		res, err := http.Post(API_URL, contentType, form)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	assert.Equal(t, http.StatusBadRequest, res.StatusCode, strings.Join([]string{res.Status, string(body)}, "\n"))
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode, strings.Join([]string{res.Status, string(body)}, "\n"))
+	})
 }
 
 func TestValidateMobileOptional(t *testing.T) {
@@ -233,37 +240,43 @@ func TestValidateMobileOptional(t *testing.T) {
 }
 
 func TestValidateMobileFormat(t *testing.T) {
-	file, err := os.CreateTemp(os.TempDir(), "create_enquiry")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.Remove(file.Name())
+	rapid.Check(t, func(t *rapid.T) {
+		var (
+			mobile = rapid.String().Draw(t, "mobile")
+		)
 
-	enquiry := map[string]io.Reader{
-		"firstName": strings.NewReader("Test"),
-		"lastName":  strings.NewReader("123"),
-		"email":     strings.NewReader("test"),
-		"mobile":    strings.NewReader("12345678"),
-		"enquiry":   strings.NewReader("Hello world"),
-		"files":     file,
-	}
+		file, err := os.CreateTemp(os.TempDir(), "create_enquiry")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer os.Remove(file.Name())
 
-	contentType, form, err := createMultipartForm(enquiry)
-	if err != nil {
-		t.Fatal(err)
-	}
+		enquiry := map[string]io.Reader{
+			"firstName": strings.NewReader("Test"),
+			"lastName":  strings.NewReader("123"),
+			"email":     strings.NewReader("test"),
+			"mobile":    strings.NewReader(mobile),
+			"enquiry":   strings.NewReader("Hello world"),
+			"files":     file,
+		}
 
-	res, err := http.Post(API_URL, contentType, form)
-	if err != nil {
-		t.Fatal(err)
-	}
+		contentType, form, err := createMultipartForm(enquiry)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
+		res, err := http.Post(API_URL, contentType, form)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	assert.Equal(t, http.StatusBadRequest, res.StatusCode, strings.Join([]string{res.Status, string(body)}, "\n"))
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode, strings.Join([]string{res.Status, string(body)}, "\n"))
+	})
 }
 
 func TestValidateEnquiryRequired(t *testing.T) {
