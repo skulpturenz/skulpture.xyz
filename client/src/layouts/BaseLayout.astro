@@ -7,6 +7,7 @@ import { Footer, FooterSection, ContactBlock } from "./footer";
 import { constants } from "@/components/constants";
 import { ViewTransitions } from "astro:transitions";
 import { Cursor } from "@/components/ui/cursor";
+import { GoogleFontsOptimizer } from "astro-google-fonts-optimizer";
 
 interface Props {
 	title: string;
@@ -50,11 +51,8 @@ const navigationItems: NavigationItem[] = [
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title} | {description}</title>
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link
-			href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"
-			rel="stylesheet"
+		<GoogleFontsOptimizer
+			url="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"
 		/>
 		<SEO title={title} description={description} />
 		<ViewTransitions />
