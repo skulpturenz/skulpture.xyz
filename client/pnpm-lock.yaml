@@ -53,12 +53,18 @@ importers:
       '@types/react-dom':
         specifier: ^18.3.1
         version: 18.3.1
+      '@zokki/astro-brotli':
+        specifier: ^1.0.1
+        version: 1.0.1(astro@4.16.2(rollup@4.24.0)(typescript@5.6.3))(glob@10.4.5)
       astro:
         specifier: ^4.16.2
         version: 4.16.2(rollup@4.24.0)(typescript@5.6.3)
       astro-font:
         specifier: ^0.1.81
         version: 0.1.81
+      astro-google-fonts-optimizer:
+        specifier: ^0.2.2
+        version: 0.2.2
       astro-robots-txt:
         specifier: ^1.0.0
         version: 1.0.0
@@ -1402,6 +1408,15 @@ packages:
   '@vscode/l10n@0.0.18':
     resolution: {integrity: sha512-KYSIHVmslkaCDyw013pphY+d7x1qV8IZupYfeIfzNA+nsaWHbn5uPuQRvdRFsa9zFzGeudPuoGoZ1Op4jrJXIQ==}
 
+  '@zokki/astro-brotli@1.0.1':
+    resolution: {integrity: sha512-+UMvLWvkiiH5Tx1qzuwIMbOliQIvyxTOZHdh68CkXLxfglyqShMGjoJsygQ5/5DAWA/AenYfoCBkBmZTC36Krw==}
+    peerDependencies:
+      astro: '*'
+      glob: '>= 10'
+
+  '@zokki/integration-utils@1.1.0':
+    resolution: {integrity: sha512-vx/esVZLZdnn5pO+yFtS/Qd9nDzrqVo8mEpVuY8DcEijusXUJRM4/M3wa4700wDjTw5eXSyDhSsX5MCXwwM1Rw==}
+
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
     peerDependencies:
@@ -1506,6 +1521,9 @@ packages:
 
   astro-font@0.1.81:
     resolution: {integrity: sha512-rbrv/+ZSYdgyjBlhkAqfCjMxqqo6iEwnSo/rAdDt/POILsF0ChxMFhefIIzKEukrRGtVjEj1lrLRYk+AdV9scQ==}
+
+  astro-google-fonts-optimizer@0.2.2:
+    resolution: {integrity: sha512-YQxp/ExF3NzUomAGuu1VKecO7/ETRnhnE50gqwAqfpbGPZFj4MYa4XxK1ukBg3R63QmKuE5uurOiKmXiLzttuw==}
 
   astro-robots-txt@1.0.0:
     resolution: {integrity: sha512-6JQSLid4gMhoWjOm85UHLkgrw0+hHIjnJVIUqxjU2D6feKlVyYukMNYjH44ZDZBK1P8hNxd33PgWlHzCASvedA==}
@@ -5090,6 +5108,16 @@ snapshots:
 
   '@vscode/l10n@0.0.18': {}
 
+  '@zokki/astro-brotli@1.0.1(astro@4.16.2(rollup@4.24.0)(typescript@5.6.3))(glob@10.4.5)':
+    dependencies:
+      '@zokki/integration-utils': 1.1.0
+      astro: 4.16.2(rollup@4.24.0)(typescript@5.6.3)
+      glob: 10.4.5
+
+  '@zokki/integration-utils@1.1.0':
+    dependencies:
+      glob: 10.4.5
+
   acorn-jsx@5.3.2(acorn@8.12.1):
     dependencies:
       acorn: 8.12.1
@@ -5229,6 +5257,8 @@ snapshots:
       - typescript
 
   astro-font@0.1.81: {}
+
+  astro-google-fonts-optimizer@0.2.2: {}
 
   astro-robots-txt@1.0.0:
     dependencies:
