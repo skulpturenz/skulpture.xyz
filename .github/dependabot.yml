@@ -1,0 +1,26 @@
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    target-branch: "dev"
+    directories:
+      - "api"
+      - "infrastructure"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-type: "all"
+    assignees: "nmathew98"
+    commit-message:
+      prefix: "[golang] "
+
+  - package-ecosystem: "npm"
+    target-branch: "dev"
+    directories:
+      - "client"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-type: "all"
+    assignees: "nmathew98"
+    commit-message:
+      prefix: "[npm] "
