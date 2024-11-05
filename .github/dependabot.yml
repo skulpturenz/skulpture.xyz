@@ -12,7 +12,7 @@ updates:
     assignees:
       - "nmathew98"
     commit-message:
-      prefix: "[golang] "
+      prefix: "[gomod] "
 
   - package-ecosystem: "npm"
     target-branch: "dev"
