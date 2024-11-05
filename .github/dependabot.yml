@@ -9,9 +9,10 @@ updates:
       interval: "weekly"
     allow:
       - dependency-type: "all"
-    assignees: "nmathew98"
+    assignees:
+      - "nmathew98"
     commit-message:
-      prefix: "[golang] "
+      prefix: "[gomod] "
 
   - package-ecosystem: "npm"
     target-branch: "dev"
@@ -21,6 +22,7 @@ updates:
       interval: "weekly"
     allow:
       - dependency-type: "all"
-    assignees: "nmathew98"
+    assignees:
+      - "nmathew98"
     commit-message:
       prefix: "[npm] "
