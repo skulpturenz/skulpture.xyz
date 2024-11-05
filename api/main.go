@@ -203,7 +203,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		uuid      string
 		Email     string `json:"email" validate:"required,email"`
-		Mobile    string `json:"mobile"`
+		Mobile    string `json:"mobile" validate:"omitempty,e164"`
 		FirstName string `json:"firstName" validate:"required"`
 		LastName  string `json:"lastName" validate:"required"`
 		Enquiry   string `json:"enquiry" validate:"required"`
@@ -228,14 +228,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			err := validationErrs[i]
 
 			errs = append(errs, fmt.Sprintf("- %s", err.Error()))
-		}
-
-		if body.Mobile != "" {
-			err := validate.Var(body.Mobile, "e164")
-
-			if err != nil {
-				errs = append(errs, fmt.Sprintf("- %s", err.Error()))
-			}
 		}
 
 		slog.ErrorContext(r.Context(), "error", "enquiry", body)
