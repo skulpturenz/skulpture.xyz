@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
     environment:
       LOG_LEVEL: ${LOG_LEVEL}
-      OTEL_SERVICE_NAME: landing-api
+      OTEL_SERVICE_NAME: landing-api-prod
       GDRIVE_FOLDER_ID: ${GDRIVE_FOLDER_ID}
       GSHEETS_SPREADSHEET_ID: ${GSHEETS_SPREADSHEET_ID}
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
@@ -31,7 +31,7 @@ services:
     restart: unless-stopped
     environment:
       LOG_LEVEL: ${LOG_LEVEL}
-      OTEL_SERVICE_NAME: landing-api
+      OTEL_SERVICE_NAME: landing-api-dev
       GDRIVE_FOLDER_ID: ${GDRIVE_FOLDER_ID_DEV}
       GSHEETS_SPREADSHEET_ID: ${GSHEETS_SPREADSHEET_ID_DEV}
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
