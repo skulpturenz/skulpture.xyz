@@ -117,8 +117,8 @@ importers:
         specifier: ^4.2.0
         version: 4.2.0(rollup@4.24.0)(typescript@5.6.3)(vite@5.4.8)
       wretch:
-        specifier: ^2.10.0
-        version: 2.10.0
+        specifier: ^2.11.0
+        version: 2.11.0
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.1.0
@@ -3779,8 +3779,8 @@ packages:
     resolution: {integrity: sha512-G8ura3S+3Z2G+mkgNRq8dqaFZAuxfsxpBB8OCTGRTCtp+l/v9nbFNmCUP1BZMts3G1142MsZfn6eeUKrr4PD1Q==}
     engines: {node: '>=18'}
 
-  wretch@2.10.0:
-    resolution: {integrity: sha512-umAgGsgEfWVm2GT9Gl+Uyl2AI0q1P8WqXMGiDbSf5QImZW7bdnUbTUrgXYzYH+VmtlM6RqwJQH7JNizSNwt6kw==}
+  wretch@2.11.0:
+    resolution: {integrity: sha512-zbFW4PnPSS5RFQabHRkCAcMQjmFGrEQLcJwYe4YGXL9KWXneu03Dtaz2JUeqEkOwNDMjdfHEHPL+AIZJwE+y1g==}
     engines: {node: '>=14'}
 
   xxhash-wasm@1.0.2:
@@ -7978,7 +7978,7 @@ snapshots:
       string-width: 7.2.0
       strip-ansi: 7.1.0
 
-  wretch@2.10.0: {}
+  wretch@2.11.0: {}
 
   xxhash-wasm@1.0.2: {}
 
