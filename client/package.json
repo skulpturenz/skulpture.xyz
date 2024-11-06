@@ -50,7 +50,7 @@
 		"tailwindcss-animate": "^1.0.7",
 		"typescript": "^5.6.3",
 		"vite-plugin-svgr": "^4.2.0",
-		"wretch": "^2.10.0"
+		"wretch": "^2.11.0"
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3.1.0",
