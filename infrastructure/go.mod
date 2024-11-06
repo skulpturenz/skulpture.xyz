@@ -5,8 +5,8 @@ go 1.23.0
 require (
 	github.com/dogmatiq/ferrite v1.4.0
 	github.com/pulumi/pulumi-cloudflare/sdk/v5 v5.36.0
-	github.com/pulumi/pulumi-gcp/sdk/v7 v7.37.0
-	github.com/pulumi/pulumi/sdk/v3 v3.128.0
+	github.com/pulumi/pulumi-gcp/sdk/v7 v7.38.0
+	github.com/pulumi/pulumi/sdk/v3 v3.129.0
 )
 
 require (
