@@ -473,6 +473,7 @@ func initOtel(ctx context.Context) func(context.Context) error {
 		resource.WithAttributes(
 			attribute.String("service.name", OTEL_SERVICE_NAME.Value()),
 			attribute.String("library.language", "go"),
+			attribute.String("deployment.environment", GO_ENV.Value()),
 		),
 	)
 	if err != nil {

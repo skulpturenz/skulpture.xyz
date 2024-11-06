@@ -6,14 +6,14 @@ require (
 	github.com/agoda-com/opentelemetry-go/otelslog v0.2.0
 	github.com/agoda-com/opentelemetry-logs-go v0.5.1
 	github.com/dogmatiq/ferrite v1.4.0
-	github.com/go-chi/chi v1.5.5
+	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-chi/cors v1.2.1
 	github.com/go-chi/httplog/v2 v2.1.1
 	github.com/go-playground/validator/v10 v10.22.1
 	github.com/google/uuid v1.6.0
 	github.com/mrz1836/postmark v1.6.5
-	github.com/samber/slog-multi v1.2.3
+	github.com/samber/slog-multi v1.2.4
 	github.com/sethvargo/go-limiter v1.0.0
 	github.com/stretchr/testify v1.9.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.56.0
@@ -26,7 +26,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/auth v0.9.9 // indirect
+	cloud.google.com/go/auth v0.10.0 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.4 // indirect
 	cloud.google.com/go/compute/metadata v0.5.2 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
