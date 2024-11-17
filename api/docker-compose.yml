@@ -32,12 +32,8 @@ services:
         soft: 20000
         hard: 20000
     depends_on:
-      landing-api-prod:
-        condition: service_healthy
-        restart: true
-      landing-api-dev:
-        condition: service_healthy
-        restart: true
+      - landing-api-prod
+      - landing-api-dev
 
   landing-api-prod:
     image: skulpture/landing-api:latest
