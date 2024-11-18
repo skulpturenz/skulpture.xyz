@@ -52,6 +52,7 @@ services:
     deploy:
       mode: replicated
       replicas: 2
+      endpoint_mode: vip
     ulimits:
       nofile:
         soft: 20000
@@ -81,6 +82,7 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+      endpoint_mode: vip
     ulimits:
       nofile:
         soft: 20000
