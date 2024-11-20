@@ -313,7 +313,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		body.driveFiles = driveFiles
 		body.driveFileWebViewLinks = driveLinks
-		body.Enquiry = fmt.Sprintf("\nAttached files:\n%s", strings.Join(driveLinks, "\n"))
+		body.Enquiry = fmt.Sprintf("%s\nAttached files:\n%s", body.Enquiry, strings.Join(driveLinks, "\n"))
 	}
 
 	slog.DebugContext(r.Context(), "processed", "enquiry", fmt.Sprintf("%+v", body))
