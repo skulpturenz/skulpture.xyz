@@ -78,7 +78,7 @@ var (
 			WithDefault("hey@skulpture.xyz").
 			Required()
 	POSTMARK_SUPPORT_EMAIL = ferrite.String("POSTMARK_ADMIN_EMAIL", "Support email").
-				Required()
+				Optional()
 	POSTMARK_SERVER_TOKEN = ferrite.
 				String("POSTMARK_SERVER_TOKEN", "Postmark server token").
 				Required()
@@ -377,11 +377,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 				slog.ErrorContext(ctx, "error", "postmark", err.Error())
 			}
 
-			postmarkClient.SendEmail(ctx, postmark.Email{
-				From:     postmarkFrom,
-				To:       POSTMARK_SUPPORT_EMAIL.Value(),
-				TextBody: fmt.Sprintf("New enquiry from %s", body.Email),
-			})
+			supportEmail, ok := POSTMARK_SUPPORT_EMAIL.Value()
+			if ok {
+				postmarkClient.SendEmail(ctx, postmark.Email{
+					From:     postmarkFrom,
+					To:       supportEmail,
+					TextBody: fmt.Sprintf("New enquiry from %s", body.Email),
+				})
+			}
 
 			slog.DebugContext(ctx, "sent", "postmark message id", res.MessageID, "to", res.To, "at", res.SubmittedAt, "lead", body.uuid)
 		})
