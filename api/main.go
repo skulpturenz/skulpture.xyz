@@ -31,7 +31,6 @@ import (
 	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/sethvargo/go-limiter/noopstore"
-	"github.com/sourcegraph/conc"
 	"github.com/sourcegraph/conc/iter"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -313,86 +312,86 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		body.driveFiles = driveFiles
 		body.driveFileWebViewLinks = driveLinks
-		body.Enquiry = fmt.Sprintf("%s\nAttached files:\n%s", body.Enquiry, strings.Join(driveLinks, "\n"))
+
+		updatedEnquiry := fmt.Sprintf("%s\nAttached files:\n%s", body.Enquiry, strings.Join(driveLinks, "\n"))
+		body.Enquiry = updatedEnquiry
 	}
 
 	slog.DebugContext(r.Context(), "processed", "enquiry", fmt.Sprintf("%+v", body))
 
-	captureEnquiry := func(wg *conc.WaitGroup) {
-		wg.Go(func() {
-			ctx := context.WithoutCancel(r.Context())
+	captureEnquiry := func() {
+		ctx := context.WithoutCancel(r.Context())
 
-			sheetRange := fmt.Sprintf("%s!A1", GSHEETS_SHEET_NAME.Value())
+		sheetRange := fmt.Sprintf("%s!A1", GSHEETS_SHEET_NAME.Value())
 
-			_, err = sheetsService.
-				Spreadsheets.
-				Values.
-				Append(GSHEETS_SPREADSHEET_ID.Value(), sheetRange, &sheets.ValueRange{
-					Values: [][]interface{}{
-						{
-							body.Email,
-							body.uuid,
-							body.FirstName,
-							body.LastName,
-							body.Mobile,
-							body.Enquiry,
-							strings.Join(body.driveFileWebViewLinks, "\n"),
-						},
+		_, err = sheetsService.
+			Spreadsheets.
+			Values.
+			Append(GSHEETS_SPREADSHEET_ID.Value(), sheetRange, &sheets.ValueRange{
+				Values: [][]interface{}{
+					{
+						body.Email,
+						body.uuid,
+						body.FirstName,
+						body.LastName,
+						body.Mobile,
+						body.Enquiry,
+						strings.Join(body.driveFileWebViewLinks, "\n"),
 					},
-				}).
-				ValueInputOption("RAW").
-				InsertDataOption("INSERT_ROWS").
-				Context(ctx).
-				Do()
-			if err != nil {
-				slog.ErrorContext(ctx, "error", "gsheets", err.Error())
-
-				for _, file := range body.driveFiles {
-					go driveService.Files.
-						Delete(file.Id).
-						Do()
-				}
-
-				return
-			}
-
-			templateId := POSTMARK_TEMPLATE.Value()
-			postmarkFrom := POSTMARK_FROM.Value()
-
-			res, err := postmarkClient.SendTemplatedEmail(ctx, postmark.TemplatedEmail{
-				TemplateID: int64(templateId),
-				From:       postmarkFrom,
-				To:         body.Email,
-				TrackOpens: true,
-				TemplateModel: map[string]any{
-					"uuid":      body.uuid,
-					"email":     body.Email,
-					"firstName": body.FirstName,
-					"lastName":  body.LastName,
-					"mobile":    body.Email,
-					"enquiry":   body.Enquiry,
 				},
-			})
-			if err != nil {
-				slog.ErrorContext(ctx, "error", "postmark", err.Error())
+			}).
+			ValueInputOption("RAW").
+			InsertDataOption("INSERT_ROWS").
+			Context(ctx).
+			Do()
+		if err != nil {
+			slog.ErrorContext(ctx, "error", "gsheets", err.Error())
+
+			for _, file := range body.driveFiles {
+				go driveService.Files.
+					Delete(file.Id).
+					Do()
 			}
 
-			supportEmail, ok := POSTMARK_SUPPORT_EMAIL.Value()
-			if ok {
-				postmarkClient.SendEmail(ctx, postmark.Email{
-					From:     postmarkFrom,
-					To:       supportEmail,
-					TextBody: fmt.Sprintf("New enquiry from %s", body.Email),
-				})
-			}
+			return
+		}
 
-			slog.DebugContext(ctx, "sent", "postmark message id", res.MessageID, "to", res.To, "at", res.SubmittedAt, "lead", body.uuid)
+		templateId := POSTMARK_TEMPLATE.Value()
+		postmarkFrom := POSTMARK_FROM.Value()
+
+		res, err := postmarkClient.SendTemplatedEmail(ctx, postmark.TemplatedEmail{
+			TemplateID: int64(templateId),
+			From:       postmarkFrom,
+			To:         body.Email,
+			TrackOpens: true,
+			TemplateModel: map[string]any{
+				"uuid":      body.uuid,
+				"email":     body.Email,
+				"firstName": body.FirstName,
+				"lastName":  body.LastName,
+				"mobile":    body.Email,
+				"enquiry":   body.Enquiry,
+			},
 		})
+		if err != nil {
+			slog.ErrorContext(ctx, "error", "postmark", err.Error())
+		}
+
+		supportEmail, ok := POSTMARK_SUPPORT_EMAIL.Value()
+		if ok {
+			postmarkClient.SendEmail(ctx, postmark.Email{
+				From:     postmarkFrom,
+				To:       supportEmail,
+				TextBody: fmt.Sprintf("New enquiry from %s", body.Email),
+			})
+		}
+
+		slog.DebugContext(ctx, "sent", "postmark message id", res.MessageID, "to", res.To, "at", res.SubmittedAt, "lead", body.uuid)
 	}
 
-	wg := conc.NewWaitGroup()
-	defer wg.Wait()
-	captureEnquiry(wg)
+	// not waiting for goroutine to properly complete
+	// since whether it completes successfully or not has no effect
+	go captureEnquiry()
 
 	w.WriteHeader(http.StatusCreated)
 }
