@@ -99,8 +99,8 @@ importers:
         specifier: ^0.33.5
         version: 0.33.5
       svg-path-commander:
-        specifier: ^2.1.3
-        version: 2.1.3
+        specifier: ^2.1.5
+        version: 2.1.5
       tailwind-merge:
         specifier: ^2.5.3
         version: 2.5.3
@@ -3537,8 +3537,8 @@ packages:
   svg-parser@2.0.4:
     resolution: {integrity: sha512-e4hG1hRwoOdRb37cIMSgzNsxyzKfayW6VOflrwvR+/bzrkyxY/31WkbgnQpgtrNp1SdpJvpUAGTa/ZoiPNDuRQ==}
 
-  svg-path-commander@2.1.3:
-    resolution: {integrity: sha512-pCjubViDY02/Kmtu7wzpUqJI8wpjwRJ+jBdSB+MafI+kfAYZZmT8M1UUlqicyvP673/PTD4cuqtzEUxoM8du9w==}
+  svg-path-commander@2.1.5:
+    resolution: {integrity: sha512-ZCvZikOtsnOWXuMjnqw+Mw6Awdi5pfbCQ/jXMEj0Jf2dyfBphs9E5I4F+6vOe6b4IfRfnHKT7zcI0iLnL3svRQ==}
     engines: {node: '>=16', pnpm: '>=8.6.0'}
 
   synckit@0.9.2:
@@ -7897,7 +7897,7 @@ snapshots:
 
   svg-parser@2.0.4: {}
 
-  svg-path-commander@2.1.3:
+  svg-path-commander@2.1.5:
     dependencies:
       '@thednp/dommatrix': 2.0.8
 
