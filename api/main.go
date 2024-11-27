@@ -12,7 +12,6 @@ import (
 	"os"
 	enums "skulpture/landing/enums"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/agoda-com/opentelemetry-go/otelslog"
@@ -32,6 +31,7 @@ import (
 	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/sethvargo/go-limiter/noopstore"
+	"github.com/sourcegraph/conc/iter"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -76,6 +76,8 @@ var (
 	POSTMARK_FROM = ferrite.String("POSTMARK_FROM", "Postmark from").
 			WithDefault("hey@skulpture.xyz").
 			Required()
+	POSTMARK_SUPPORT_EMAIL = ferrite.String("POSTMARK_ADMIN_EMAIL", "Support email").
+				Optional()
 	POSTMARK_SERVER_TOKEN = ferrite.
 				String("POSTMARK_SERVER_TOKEN", "Postmark server token").
 				Required()
@@ -201,13 +203,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	defer r.MultipartForm.RemoveAll()
 
 	var body struct {
-		uuid      string
-		Email     string `json:"email" validate:"required,email"`
-		Mobile    string `json:"mobile" validate:"omitempty,e164"`
-		FirstName string `json:"firstName" validate:"required"`
-		LastName  string `json:"lastName" validate:"required"`
-		Enquiry   string `json:"enquiry" validate:"required"`
-		files     []*drive.File
+		uuid                  string
+		Email                 string `json:"email" validate:"required,email"`
+		Mobile                string `json:"mobile" validate:"omitempty,e164"`
+		FirstName             string `json:"firstName" validate:"required"`
+		LastName              string `json:"lastName" validate:"required"`
+		Enquiry               string `json:"enquiry" validate:"required"`
+		driveFiles            []*drive.File
+		driveFileWebViewLinks []string
 	}
 
 	body.uuid = uuid.NewString()
@@ -253,37 +256,23 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		slog.DebugContext(r.Context(), "stats", "gdrive usage", about.StorageQuota.UsageInDrive, "gdrive limit", about.StorageQuota.Limit)
 
-		uploadedFiles := make(chan drive.File)
-		failedToUpload := make(chan int)
-
 		uploadCtx, cancel := context.WithCancel(r.Context())
+		driveFiles, err := iter.MapErr(files, func(fileHeader **multipart.FileHeader) (*drive.File, error) {
+			slog.DebugContext(r.Context(), "begin", "upload", (*fileHeader).Filename, "size", (*fileHeader).Size)
 
-		var fileUploadWg sync.WaitGroup
-		uploadFile := func(fileHeader *multipart.FileHeader, idx int, wg *sync.WaitGroup) {
-			defer wg.Done()
-
-			select {
-			case <-uploadCtx.Done():
-				return
-			default:
-			}
-
-			slog.DebugContext(r.Context(), "begin", "upload", fileHeader.Filename, "size", fileHeader.Size)
-
-			file, err := fileHeader.Open()
+			file, err := (*fileHeader).Open()
 			if err != nil {
-
-				failedToUpload <- idx
-				slog.ErrorContext(r.Context(), "error", "open file", fileHeader.Filename, "email", body.Email)
+				slog.ErrorContext(r.Context(), "error", "open file", (*fileHeader).Filename, "email", body.Email)
 
 				cancel()
-				return
+
+				return nil, err
 			}
 			defer file.Close()
 
 			res, err := driveService.Files.
 				Create(&drive.File{
-					Name: fmt.Sprintf("%s - %s (%s)", body.Email, fileHeader.Filename, GO_ENV.Value()),
+					Name: fmt.Sprintf("%s - %s (%s)", body.Email, (*fileHeader).Filename, GO_ENV.Value()),
 					Properties: map[string]string{
 						"lead":        body.uuid,
 						"email":       body.Email,
@@ -298,52 +287,34 @@ func handler(w http.ResponseWriter, r *http.Request) {
 				Fields("id, webViewLink").
 				Context(uploadCtx).
 				Do()
-
 			if err != nil {
-				failedToUpload <- idx
 				slog.ErrorContext(r.Context(), "error", "upload", err.Error(), "email", body.Email)
 
 				cancel()
-				return
+				return nil, err
 			}
 
-			slog.DebugContext(r.Context(), "end", "upload", fileHeader.Filename, "link", res.WebViewLink)
+			slog.DebugContext(r.Context(), "end", "upload", (*fileHeader).Filename, "link", res.WebViewLink)
 
-			uploadedFiles <- *res
-		}
-		for idx, fileHeader := range files {
-			fileUploadWg.Add(1)
-			go uploadFile(fileHeader, idx, &fileUploadWg)
-		}
-
-		go func() {
-			fileUploadWg.Wait()
-			close(uploadedFiles)
-			close(failedToUpload)
-		}()
-
-		select {
-		case <-uploadCtx.Done():
-			for file := range uploadedFiles {
+			return res, nil
+		})
+		if err != nil {
+			for _, driveFile := range driveFiles {
 				go driveService.Files.
-					Delete(file.Id).
+					Delete(driveFile.Id).
 					Do()
 			}
-
-			http.Error(w, "Failed to upload", http.StatusInternalServerError)
-
-			return
-		default:
 		}
 
-		attachedFiles := []string{}
-		body.files = []*drive.File{}
-		for file := range uploadedFiles {
-			attachedFiles = append(attachedFiles, fmt.Sprintf("- %s", file.WebViewLink))
-			body.files = append(body.files, &file)
-		}
-		enquiryWithFiles := fmt.Appendf([]byte(body.Enquiry), "\nAttached files:\n%s", strings.Join(attachedFiles, "\n"))
-		body.Enquiry = string(enquiryWithFiles)
+		driveLinks := iter.Map(driveFiles, func(driveFile **drive.File) string {
+			return fmt.Sprintf("- %s", (*driveFile).WebViewLink)
+		})
+
+		body.driveFiles = driveFiles
+		body.driveFileWebViewLinks = driveLinks
+
+		updatedEnquiry := fmt.Sprintf("%s\nAttached files:\n%s", body.Enquiry, strings.Join(driveLinks, "\n"))
+		body.Enquiry = updatedEnquiry
 	}
 
 	slog.DebugContext(r.Context(), "processed", "enquiry", fmt.Sprintf("%+v", body))
@@ -352,11 +323,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithoutCancel(r.Context())
 
 		sheetRange := fmt.Sprintf("%s!A1", GSHEETS_SHEET_NAME.Value())
-
-		links := []string{}
-		for _, file := range body.files {
-			links = append(links, fmt.Sprintf("- %s", file.WebViewLink))
-		}
 
 		_, err = sheetsService.
 			Spreadsheets.
@@ -370,7 +336,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 						body.LastName,
 						body.Mobile,
 						body.Enquiry,
-						strings.Join(links, "\n"),
+						strings.Join(body.driveFileWebViewLinks, "\n"),
 					},
 				},
 			}).
@@ -381,7 +347,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			slog.ErrorContext(ctx, "error", "gsheets", err.Error())
 
-			for _, file := range body.files {
+			for _, file := range body.driveFiles {
 				go driveService.Files.
 					Delete(file.Id).
 					Do()
@@ -411,9 +377,20 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			slog.ErrorContext(ctx, "error", "postmark", err.Error())
 		}
 
+		supportEmail, ok := POSTMARK_SUPPORT_EMAIL.Value()
+		if ok {
+			postmarkClient.SendEmail(ctx, postmark.Email{
+				From:     postmarkFrom,
+				To:       supportEmail,
+				TextBody: fmt.Sprintf("New enquiry from %s", body.Email),
+			})
+		}
+
 		slog.DebugContext(ctx, "sent", "postmark message id", res.MessageID, "to", res.To, "at", res.SubmittedAt, "lead", body.uuid)
 	}
 
+	// not waiting for goroutine to properly complete
+	// since whether it completes successfully or not has no effect
 	go captureEnquiry()
 
 	w.WriteHeader(http.StatusCreated)
