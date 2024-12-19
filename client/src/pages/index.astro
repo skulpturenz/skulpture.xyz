@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { Link } from "@/components/ui/button";
 import { TopographyAnimated } from "@/components/assets/topography-animated";
 import { Topography } from "@/components/assets";
+import Snowfall from "react-snowfall";
 
 const TITLE = "Skulpture";
 const DESCRIPTION = "Software, Delivery, Advisory";
@@ -147,9 +148,12 @@ const resources = {
 		],
 	},
 };
+
+const isDecember = new Date().getMonth() === 11;
 ---
 
 <BaseLayout title={TITLE} description={DESCRIPTION}>
+	{isDecember && <Snowfall style={{ position: "fixed" }} client:load />}
 	<div
 		id={constants.id.landingIntro}
 		class={cn(constants.pageContainer, "py-0", "bg-cover", "min-h-full")}>
