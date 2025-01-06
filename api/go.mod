@@ -13,7 +13,7 @@ require (
 	github.com/go-playground/validator/v10 v10.23.0
 	github.com/google/uuid v1.6.0
 	github.com/mrz1836/postmark v1.6.7
-	github.com/samber/slog-multi v1.2.4
+	github.com/samber/slog-multi v1.3.3
 	github.com/sethvargo/go-limiter v1.0.0
 	github.com/sourcegraph/conc v0.3.0
 	github.com/stretchr/testify v1.10.0
