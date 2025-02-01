@@ -60,8 +60,8 @@ importers:
         specifier: ^5.1.9
         version: 5.1.9(jiti@1.21.6)(rollup@4.32.0)(typescript@5.7.2)(yaml@2.6.0)
       astro-font:
-        specifier: ^0.1.81
-        version: 0.1.81
+        specifier: ^1.0.0
+        version: 1.0.0
       astro-google-fonts-optimizer:
         specifier: ^0.2.2
         version: 0.2.2
@@ -1665,8 +1665,8 @@ packages:
     resolution: {integrity: sha512-AGsGgcg7Jg9UpyCDgvl/EkdYpe1oMkFdmC2Zl+KWneoieLCtQIFjmcY8yt41gcNx4mby0w8BBJQcBmPuf8UAoQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  astro-font@0.1.81:
-    resolution: {integrity: sha512-rbrv/+ZSYdgyjBlhkAqfCjMxqqo6iEwnSo/rAdDt/POILsF0ChxMFhefIIzKEukrRGtVjEj1lrLRYk+AdV9scQ==}
+  astro-font@1.0.0:
+    resolution: {integrity: sha512-g0Oobl1oBg/GHaAzA2HdIWjbQic19wfSswHvBO+N+wKgWCfCjh0ANiOA3UBzMgUHJ67wqfoM4NZTq9+parkhOw==}
 
   astro-google-fonts-optimizer@0.2.2:
     resolution: {integrity: sha512-YQxp/ExF3NzUomAGuu1VKecO7/ETRnhnE50gqwAqfpbGPZFj4MYa4XxK1ukBg3R63QmKuE5uurOiKmXiLzttuw==}
@@ -5726,7 +5726,7 @@ snapshots:
       - supports-color
       - typescript
 
-  astro-font@0.1.81: {}
+  astro-font@1.0.0: {}
 
   astro-google-fonts-optimizer@0.2.2: {}
 
