@@ -1,6 +1,6 @@
 module skulpture/landing
 
-go 1.23.0
+go 1.24.3
 
 require (
 	github.com/agoda-com/opentelemetry-go/otelslog v0.3.0
