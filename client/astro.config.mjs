@@ -4,7 +4,6 @@ import { brotli } from "@zokki/astro-brotli";
 import robotsTxt from "astro-robots-txt";
 import { defineConfig } from "astro/config";
 import svgr from "vite-plugin-svgr";
-
 import tailwindcss from "@tailwindcss/vite";
 
 // https://astro.build/config
