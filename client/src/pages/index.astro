@@ -10,7 +10,6 @@ import ponderingImage1x from "@/components/assets/images/pondering-block-1x.png"
 import { constants } from "@/components/constants";
 import { cn } from "@/lib/utils";
 import { Link } from "@/components/ui/button";
-import { TopographyAnimated } from "@/components/assets/topography-animated";
 import { Topography } from "@/components/assets";
 import Snowfall from "react-snowfall";
 
@@ -148,21 +147,20 @@ const resources = {
 		],
 	},
 };
-
-const isDecember = new Date().getMonth() === 11;
 ---
 
 <BaseLayout title={TITLE} description={DESCRIPTION}>
-	{isDecember && <Snowfall style={{ position: "fixed" }} client:load />}
+	{
+		new Date().getMonth() === 11 && (
+			<Snowfall style={{ position: "fixed" }} client:load />
+		)
+	}
+
 	<div
 		id={constants.id.landingIntro}
 		class={cn(constants.pageContainer, "py-0", "bg-cover", "min-h-full")}>
-		<TopographyAnimated
-			client:load
-			className="absolute -z-10 h-[calc(100vh-4rem)] w-full object-cover text-black/60 dark:text-primary"
-		/>
 		<Topography
-			className="absolute -z-10 h-[calc(100vh-4rem)] w-full object-cover text-black/5 dark:text-primary/5"
+			className="dark:text-primary/5 absolute -z-10 h-[calc(100vh-4rem)] w-full object-cover text-black/5"
 		/>
 		<div
 			class={cn(
@@ -171,12 +169,12 @@ const isDecember = new Date().getMonth() === 11;
 				"flex flex-col items-start justify-center h-[calc(100vh-4rem)]",
 			)}>
 			<div
-				class="flex flex-col items-start justify-center gap-8 rounded-md bg-background/25 p-12">
+				class="bg-background/25 flex flex-col items-start justify-center gap-8 rounded-md p-12">
 				<h1 class="mb-3 text-4xl font-bold tracking-tight lg:text-6xl">
 					{resources.intro.header}
 				</h1>
 				<p
-					class="max-w-lg text-xl tracking-tight text-foreground/75 lg:max-w-3xl lg:text-3xl">
+					class="text-foreground/75 max-w-lg text-xl tracking-tight lg:max-w-3xl lg:text-3xl">
 					{resources.intro.subtitle}
 				</p>
 				<Link href="/contact">
@@ -206,20 +204,20 @@ const isDecember = new Date().getMonth() === 11;
 
 			<!-- Small screen sizes -->
 			<div
-				class="flex w-full flex-col gap-6 divide-y-4 divide-border/25 border-y-4 border-border/25 dark:divide-border dark:border-border lg:hidden">
+				class="divide-border/25 border-border/25 dark:divide-border dark:border-border flex w-full flex-col gap-6 divide-y-4 border-y-4 lg:hidden">
 				{
 					resources.services.items.map((item, idx, arr) => (
 						<div class={cn("flex w-full flex-col gap-6")}>
 							<div class="mt-6 text-xl font-bold lg:text-3xl">
 								{item.header}
 							</div>
-							<div class="text-base text-secondary-foreground/90 lg:text-base">
+							<div class="text-secondary-foreground/90 text-base lg:text-base">
 								<div class="max-w-2xl">{item.description}</div>
 							</div>
 							<div
 								class={cn(
 									idx === arr.length - 1 ? "mb-6" : "",
-									"font-medium text-secondary-foreground",
+									"text-secondary-foreground font-medium",
 								)}>
 								<ul class="space-y-1 text-base font-medium lg:text-lg">
 									{item.services.map(service => (
@@ -238,21 +236,21 @@ const isDecember = new Date().getMonth() === 11;
 				{
 					resources.services.items.map(item => (
 						<>
-							<div class="row-span-1 h-1 bg-border/25 dark:bg-border lg:col-span-10 lg:row-auto" />
+							<div class="bg-border/25 dark:bg-border row-span-1 h-1 lg:col-span-10 lg:row-auto" />
 							<div class="row-span-1 text-xl font-bold lg:col-span-3 lg:row-auto lg:text-3xl">
 								{item.header}
 							</div>
-							<div class="row-span-1 text-base text-secondary-foreground/90 lg:col-span-4 lg:row-auto lg:text-base">
+							<div class="text-secondary-foreground/90 row-span-1 text-base lg:col-span-4 lg:row-auto lg:text-base">
 								<div class="max-w-md">{item.description}</div>
 							</div>
-							<div class="row-span-1 font-medium text-secondary-foreground lg:col-span-3 lg:row-auto">
+							<div class="text-secondary-foreground row-span-1 font-medium lg:col-span-3 lg:row-auto">
 								<ul class="space-y-1 text-base font-medium lg:text-lg">
 									{item.services.map(service => (
 										<li>{service}</li>
 									))}
 								</ul>
 							</div>
-							<div class="row-span-1 hidden h-1 bg-border/25 last:block dark:bg-border lg:col-span-10 lg:row-auto" />
+							<div class="bg-border/25 dark:bg-border row-span-1 hidden h-1 last:block lg:col-span-10 lg:row-auto" />
 						</>
 					))
 				}
@@ -301,7 +299,7 @@ const isDecember = new Date().getMonth() === 11;
 			<h2 class={resources.ui.sectionSubtitle}>
 				{resources.about.subtitle}
 			</h2>
-			<p class="text-base text-foreground/80">
+			<p class="text-foreground/80 text-base">
 				{resources.about.description}
 			</p>
 			<Link href="/about" variant="outline" className="max-w-min">
@@ -335,8 +333,8 @@ const isDecember = new Date().getMonth() === 11;
 				class="mb-20 flex w-full flex-col gap-5 lg:mb-0 lg:flex-row lg:justify-between">
 				{
 					resources.process.steps.map(step => (
-						<div class="flex flex-col gap-5 border-t-4 border-border/25 dark:border-border lg:w-72">
-							<span class="mt-5 text-5xl font-light text-primary">
+						<div class="border-border/25 dark:border-border flex flex-col gap-5 border-t-4 lg:w-72">
+							<span class="text-primary mt-5 text-5xl font-light">
 								{step.idx}
 							</span>
 							<span class="text-2xl font-bold tracking-tight">
