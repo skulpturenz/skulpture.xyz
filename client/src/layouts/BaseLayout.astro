@@ -5,7 +5,6 @@ import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Navigation, type NavigationItem } from "./navigation";
 import { Footer, FooterSection, ContactBlock } from "./footer";
 import { constants } from "@/components/constants";
-import { ViewTransitions } from "astro:transitions";
 import { Cursor } from "@/components/ui/cursor";
 import { GoogleFontsOptimizer } from "astro-google-fonts-optimizer";
 
@@ -55,7 +54,6 @@ const navigationItems: NavigationItem[] = [
 			url="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"
 		/>
 		<SEO title={title} description={description} />
-		<ViewTransitions />
 	</head>
 	<body>
 		<ThemeProvider
@@ -64,7 +62,7 @@ const navigationItems: NavigationItem[] = [
 			<Cursor client:only="react" />
 
 			<Navigation items={navigationItems} client:load />
-			<div transition:animate="fade">
+			<div>
 				<slot />
 			</div>
 			{
@@ -141,11 +139,7 @@ const navigationItems: NavigationItem[] = [
 
 						<FooterSection>
 							<span>{resources.footer.links.header}</span>
-							<a
-								href="#"
-								id="shielded-logo"
-								class="h-8 w-8"
-								transition:persist>
+							<a href="#" id="shielded-logo" class="h-8 w-8">
 								<img
 									alt="shielded"
 									src="https://shielded.co.nz/img/custom-logo.png"
@@ -193,8 +187,4 @@ const navigationItems: NavigationItem[] = [
 	};
 
 	initShieldedSite();
-
-	// https://stackoverflow.com/a/77910937
-	// `transition:persist` didn't work
-	document.addEventListener("astro:after-swap", initShieldedSite);
 </script>

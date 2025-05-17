@@ -10,7 +10,6 @@ import ponderingImage1x from "@/components/assets/images/pondering-block-1x.png"
 import { constants } from "@/components/constants";
 import { cn } from "@/lib/utils";
 import { Link } from "@/components/ui/button";
-import { TopographyAnimated } from "@/components/assets/topography-animated";
 import { Topography } from "@/components/assets";
 import Snowfall from "react-snowfall";
 
@@ -148,19 +147,18 @@ const resources = {
 		],
 	},
 };
-
-const isDecember = new Date().getMonth() === 11;
 ---
 
 <BaseLayout title={TITLE} description={DESCRIPTION}>
-	{isDecember && <Snowfall style={{ position: "fixed" }} client:load />}
+	{
+		new Date().getMonth() === 11 && (
+			<Snowfall style={{ position: "fixed" }} client:load />
+		)
+	}
+
 	<div
 		id={constants.id.landingIntro}
 		class={cn(constants.pageContainer, "py-0", "bg-cover", "min-h-full")}>
-		<TopographyAnimated
-			client:load
-			className="dark:text-primary absolute -z-10 h-[calc(100vh-4rem)] w-full object-cover text-black/60"
-		/>
 		<Topography
 			className="dark:text-primary/5 absolute -z-10 h-[calc(100vh-4rem)] w-full object-cover text-black/5"
 		/>
