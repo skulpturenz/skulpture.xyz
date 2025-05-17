@@ -19,7 +19,7 @@ import (
 	"github.com/agoda-com/opentelemetry-logs-go/exporters/otlp/otlplogs/otlplogshttp"
 	sdklog "github.com/agoda-com/opentelemetry-logs-go/sdk/logs"
 	"github.com/dogmatiq/ferrite"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/httplog/v2"
@@ -56,6 +56,10 @@ var (
 			WithMembers(slog.LevelDebug, slog.LevelError, slog.LevelInfo, slog.LevelWarn).
 			WithDefault(slog.LevelInfo).
 			Required()
+	ENABLE_TELEMETRY = ferrite.
+				Bool("ENABLE_TELEMETRY", "Enable telemetry").
+				WithDefault(true).
+				Required()
 	OTEL_SERVICE_NAME = ferrite.
 				String("OTEL_SERVICE_NAME", "OpenTelemetry service name").
 				Required()
@@ -113,22 +117,16 @@ func init() {
 func main() {
 	ctx := context.Background()
 
-	cleanup := initOtel(ctx)
-	defer cleanup(ctx)
-
 	driveService = createGoogleDriveService(ctx)
 	postmarkClient = createPostmarkClient(ctx)
 	sheetsService = createGoogleSheetsService(ctx)
 
 	r := chi.NewRouter()
+
+	cleanup := initOtel(ctx, r)
+	defer cleanup(ctx)
+
 	r.Use(middleware.RequestID)
-	r.Use(otelhttp.NewMiddleware(OTEL_SERVICE_NAME.Value()))
-	r.Use(httplog.RequestLogger(httplog.NewLogger(OTEL_SERVICE_NAME.Value(), httplog.Options{
-		Concise: true,
-		Tags: map[string]string{
-			"env": GO_ENV.Value(),
-		},
-	})))
 	r.Use(middleware.Heartbeat("/ping"))
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Recoverer)
@@ -435,7 +433,13 @@ func createPostmarkClient(ctx context.Context) *postmark.Client {
 	return client
 }
 
-func initOtel(ctx context.Context) func(context.Context) error {
+func initOtel(ctx context.Context, r *chi.Mux) func(context.Context) error {
+	if !ENABLE_TELEMETRY.Value() {
+		return func(context.Context) error { // noop cleanup
+			return nil
+		}
+	}
+
 	exporter, err := otlptrace.New(
 		ctx,
 		otlptracehttp.NewClient(),
@@ -483,6 +487,14 @@ func initOtel(ctx context.Context) func(context.Context) error {
 		),
 	)
 	slog.SetDefault(otelLogger)
+
+	r.Use(otelhttp.NewMiddleware(OTEL_SERVICE_NAME.Value()))
+	r.Use(httplog.RequestLogger(httplog.NewLogger(OTEL_SERVICE_NAME.Value(), httplog.Options{
+		Concise: true,
+		Tags: map[string]string{
+			"env": GO_ENV.Value(),
+		},
+	})))
 
 	return func(ctx context.Context) error {
 		loggerErr := loggerProvider.Shutdown((ctx))
