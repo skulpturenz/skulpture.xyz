@@ -80,7 +80,6 @@ services:
       POSTMARK_ACCOUNT_TOKEN: ${POSTMARK_ACCOUNT_TOKEN}
       ENABLE_TELEMETRY: ${ENABLE_TELEMETRY}
       GO_ENV: "development"
-      FRONTEND_URL: "https://dev.skulpture-xyz.pages.dev"
     deploy:
       mode: replicated
       replicas: 1

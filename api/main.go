@@ -7,8 +7,6 @@ import (
 	"log/slog"
 	"mime/multipart"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"os"
 	enums "skulpture/landing/enums"
 	"strings"
@@ -97,10 +95,6 @@ var (
 				String("GSHEETS_SHEET_NAME", "Google sheets sheet name").
 				WithDefault("Sheet1").
 				Required()
-	FRONTEND_URL = ferrite.
-			String("FRONTEND_URL", "Frontend URL").
-			WithDefault("https://skulpture-xyz.pages.dev").
-			Required()
 	GO_ENV = ferrite.
 		Enum("GO_ENV", "Golang environment").
 		WithMembers(string(enums.Production), string(enums.Development), string(enums.Test)).
@@ -174,19 +168,6 @@ func main() {
 
 		r.Post("/contact", handler)
 	})
-
-	target, err := url.Parse(FRONTEND_URL.Value())
-	if err != nil {
-		panic(err)
-	}
-
-	proxy := httputil.NewSingleHostReverseProxy(target)
-	proxy.Director = func(r *http.Request) {
-		r.Host = target.Host
-		r.URL.Scheme = target.Scheme
-		r.URL.Host = target.Host
-	}
-	r.Get("/*", proxy.ServeHTTP)
 
 	http.ListenAndServe(":80", r)
 }
