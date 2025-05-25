@@ -56,7 +56,7 @@ var (
 			Required()
 	ENABLE_TELEMETRY = ferrite.
 				Bool("ENABLE_TELEMETRY", "Enable telemetry").
-				WithDefault(true).
+				WithDefault(false).
 				Required()
 	OTEL_SERVICE_NAME = ferrite.
 				String("OTEL_SERVICE_NAME", "OpenTelemetry service name").
