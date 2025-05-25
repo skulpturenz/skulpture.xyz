@@ -37,6 +37,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/sheets/v4"
 )
@@ -63,13 +64,13 @@ var (
 				Required()
 	OTEL_EXPORTER_OTLP_ENDPOINT = ferrite.
 					String("OTEL_EXPORTER_OTLP_ENDPOINT", "OpenTelemetry exporter endpoint").
-					Required()
+					Optional()
 	OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = ferrite.
 						String("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "OpenTelemetry traces exporter endpoint").
 						Optional()
 	OTEL_EXPORTER_OTLP_HEADERS = ferrite.
 					String("OTEL_EXPORTER_OTLP_HEADERS", "OpenTelemetry exporter headers").
-					Required()
+					Optional()
 	OTEL_EXPORTER_OTLP_TRACES_HEADERS = ferrite.
 						String("OTEL_EXPORTER_OTLP_TRACES_HEADERS", "OpenTelemetry exporter headers").
 						Optional()
@@ -416,6 +417,11 @@ func createPostmarkClient(ctx context.Context) *postmark.Client {
 
 func initOtel(ctx context.Context, r *chi.Mux) func(context.Context) error {
 	if !ENABLE_TELEMETRY.Value() {
+		// https://github.com/open-telemetry/opentelemetry-go/discussions/2659#discussioncomment-10798740
+		otel.SetTracerProvider(
+			noop.NewTracerProvider(),
+		)
+
 		return func(context.Context) error { // noop cleanup
 			return nil
 		}
