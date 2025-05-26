@@ -6,6 +6,10 @@ on:
     types: [closed]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   BRANCH_NAME: ${{ github.base_ref || github.ref_name }}
 
