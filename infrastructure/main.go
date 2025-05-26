@@ -154,8 +154,9 @@ func main() {
 		}
 
 		_, err = cloudflare.NewRecord(ctx, fmt.Sprintf("%s-client-dev", COMPUTE_INSTANCE_NAME.Value()), &cloudflare.RecordArgs{
-			ZoneId:  pulumi.String(CLOUDFLARE_ZONE_ID.Value()),
-			Name:    pulumi.String("dev"),
+			ZoneId: pulumi.String(CLOUDFLARE_ZONE_ID.Value()),
+			Name:   pulumi.String("dev"),
+			// https://developers.cloudflare.com/pages/how-to/custom-branch-aliases/
 			Content: pulumi.String("dev.skulpture-xyz.pages.dev"),
 			Type:    pulumi.String("CNAME"),
 			Proxied: pulumi.Bool(true),
