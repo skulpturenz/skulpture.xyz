@@ -64,13 +64,13 @@ var (
 				Required()
 	OTEL_EXPORTER_OTLP_ENDPOINT = ferrite.
 					String("OTEL_EXPORTER_OTLP_ENDPOINT", "OpenTelemetry exporter endpoint").
-					Optional()
+					Required()
 	OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = ferrite.
 						String("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "OpenTelemetry traces exporter endpoint").
 						Optional()
 	OTEL_EXPORTER_OTLP_HEADERS = ferrite.
 					String("OTEL_EXPORTER_OTLP_HEADERS", "OpenTelemetry exporter headers").
-					Optional()
+					Required()
 	OTEL_EXPORTER_OTLP_TRACES_HEADERS = ferrite.
 						String("OTEL_EXPORTER_OTLP_TRACES_HEADERS", "OpenTelemetry exporter headers").
 						Optional()
