@@ -15,7 +15,7 @@
 	},
 	"dependencies": {
 		"@astrojs/check": "^0.9.4",
-		"@astrojs/react": "^4.2.7",
+		"@astrojs/react": "^4.3.0",
 		"@astrojs/sitemap": "^3.4.0",
 		"@headlessui/react": "^2.2.3",
 		"@radix-ui/react-hover-card": "^1.1.13",
