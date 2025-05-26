@@ -7,8 +7,6 @@ import (
 	"log/slog"
 	"mime/multipart"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"os"
 	enums "skulpture/landing/enums"
 	"strings"
@@ -39,6 +37,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/sheets/v4"
 )
@@ -58,7 +57,7 @@ var (
 			Required()
 	ENABLE_TELEMETRY = ferrite.
 				Bool("ENABLE_TELEMETRY", "Enable telemetry").
-				WithDefault(true).
+				WithDefault(false).
 				Required()
 	OTEL_SERVICE_NAME = ferrite.
 				String("OTEL_SERVICE_NAME", "OpenTelemetry service name").
@@ -97,10 +96,6 @@ var (
 				String("GSHEETS_SHEET_NAME", "Google sheets sheet name").
 				WithDefault("Sheet1").
 				Required()
-	FRONTEND_URL = ferrite.
-			String("FRONTEND_URL", "Frontend URL").
-			WithDefault("https://skulpture-xyz.pages.dev").
-			Required()
 	GO_ENV = ferrite.
 		Enum("GO_ENV", "Golang environment").
 		WithMembers(string(enums.Production), string(enums.Development), string(enums.Test)).
@@ -174,19 +169,6 @@ func main() {
 
 		r.Post("/contact", handler)
 	})
-
-	target, err := url.Parse(FRONTEND_URL.Value())
-	if err != nil {
-		panic(err)
-	}
-
-	proxy := httputil.NewSingleHostReverseProxy(target)
-	proxy.Director = func(r *http.Request) {
-		r.Host = target.Host
-		r.URL.Scheme = target.Scheme
-		r.URL.Host = target.Host
-	}
-	r.Get("/*", proxy.ServeHTTP)
 
 	http.ListenAndServe(":80", r)
 }
@@ -435,6 +417,11 @@ func createPostmarkClient(ctx context.Context) *postmark.Client {
 
 func initOtel(ctx context.Context, r *chi.Mux) func(context.Context) error {
 	if !ENABLE_TELEMETRY.Value() {
+		// https://github.com/open-telemetry/opentelemetry-go/discussions/2659#discussioncomment-10798740
+		otel.SetTracerProvider(
+			noop.NewTracerProvider(),
+		)
+
 		return func(context.Context) error { // noop cleanup
 			return nil
 		}

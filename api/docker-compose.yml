@@ -43,12 +43,12 @@ services:
       OTEL_SERVICE_NAME: landing-api-prod
       GDRIVE_FOLDER_ID: ${GDRIVE_FOLDER_ID}
       GSHEETS_SPREADSHEET_ID: ${GSHEETS_SPREADSHEET_ID}
+      ENABLE_TELEMETRY: "${ENABLE_TELEMETRY}"
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
       OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Bearer ${OTEL_EXPORTER_OTLP_AUTH_TOKEN}"
       POSTMARK_TEMPLATE: ${POSTMARK_TEMPLATE}
       POSTMARK_SERVER_TOKEN: ${POSTMARK_SERVER_TOKEN}
       POSTMARK_ACCOUNT_TOKEN: ${POSTMARK_ACCOUNT_TOKEN}
-      ENABLE_TELEMETRY: ${ENABLE_TELEMETRY}
       GO_ENV: "production"
     deploy:
       mode: replicated
@@ -59,7 +59,7 @@ services:
         soft: 20000
         hard: 20000
     healthcheck:
-      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost || exit 1" ]
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost/ping || exit 1" ]
       interval: 1m30s
       timeout: 30s
       retries: 5
@@ -73,14 +73,13 @@ services:
       OTEL_SERVICE_NAME: landing-api-dev
       GDRIVE_FOLDER_ID: ${GDRIVE_FOLDER_ID_DEV}
       GSHEETS_SPREADSHEET_ID: ${GSHEETS_SPREADSHEET_ID_DEV}
+      ENABLE_TELEMETRY: "${ENABLE_TELEMETRY}"
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
       OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Bearer ${OTEL_EXPORTER_OTLP_AUTH_TOKEN}"
       POSTMARK_TEMPLATE: ${POSTMARK_TEMPLATE_DEV}
       POSTMARK_SERVER_TOKEN: ${POSTMARK_SERVER_TOKEN}
       POSTMARK_ACCOUNT_TOKEN: ${POSTMARK_ACCOUNT_TOKEN}
-      ENABLE_TELEMETRY: ${ENABLE_TELEMETRY}
       GO_ENV: "development"
-      FRONTEND_URL: "https://dev.skulpture-xyz.pages.dev"
     deploy:
       mode: replicated
       replicas: 1
@@ -90,7 +89,7 @@ services:
         soft: 20000
         hard: 20000
     healthcheck:
-      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost || exit 1" ]
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost/ping || exit 1" ]
       interval: 1m30s
       timeout: 30s
       retries: 5

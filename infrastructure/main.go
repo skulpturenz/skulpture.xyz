@@ -122,7 +122,7 @@ func main() {
 
 		_, err = cloudflare.NewRecord(ctx, COMPUTE_INSTANCE_NAME.Value(), &cloudflare.RecordArgs{
 			ZoneId:  pulumi.String(CLOUDFLARE_ZONE_ID.Value()),
-			Name:    pulumi.String("@"),
+			Name:    pulumi.String("landing-api-master"),
 			Content: static.Address,
 			Type:    pulumi.String("A"),
 			Proxied: pulumi.Bool(true),
@@ -131,11 +131,34 @@ func main() {
 			return err
 		}
 
+		_, err = cloudflare.NewRecord(ctx, fmt.Sprintf("%s-client", COMPUTE_INSTANCE_NAME.Value()), &cloudflare.RecordArgs{
+			ZoneId:  pulumi.String(CLOUDFLARE_ZONE_ID.Value()),
+			Name:    pulumi.String("@"),
+			Content: pulumi.String("skulpture-xyz.pages.dev"),
+			Type:    pulumi.String("CNAME"),
+			Proxied: pulumi.Bool(true),
+		})
+		if err != nil {
+			return err
+		}
+
 		_, err = cloudflare.NewRecord(ctx, fmt.Sprintf("%s-dev", COMPUTE_INSTANCE_NAME.Value()), &cloudflare.RecordArgs{
 			ZoneId:  pulumi.String(CLOUDFLARE_ZONE_ID.Value()),
-			Name:    pulumi.String("dev"),
+			Name:    pulumi.String("landing-api-dev"),
 			Content: static.Address,
 			Type:    pulumi.String("A"),
+			Proxied: pulumi.Bool(true),
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = cloudflare.NewRecord(ctx, fmt.Sprintf("%s-client-dev", COMPUTE_INSTANCE_NAME.Value()), &cloudflare.RecordArgs{
+			ZoneId: pulumi.String(CLOUDFLARE_ZONE_ID.Value()),
+			Name:   pulumi.String("dev"),
+			// https://developers.cloudflare.com/pages/how-to/custom-branch-aliases/
+			Content: pulumi.String("dev.skulpture-xyz.pages.dev"),
+			Type:    pulumi.String("CNAME"),
 			Proxied: pulumi.Bool(true),
 		})
 		if err != nil {
