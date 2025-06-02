@@ -21,7 +21,8 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.35.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.35.0
 	go.opentelemetry.io/otel/sdk v1.35.0
-	google.golang.org/api v0.233.0
+	go.opentelemetry.io/otel/trace v1.35.0
+	google.golang.org/api v0.235.0
 	pgregory.net/rapid v1.1.0
 )
 
@@ -49,7 +50,6 @@ require (
 	github.com/samber/lo v1.50.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/otel/metric v1.35.0 // indirect
-	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.6.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.38.0 // indirect
