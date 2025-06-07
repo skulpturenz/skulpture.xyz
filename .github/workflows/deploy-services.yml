@@ -42,7 +42,7 @@ jobs:
       - name: "Install dependencies: infrastructure"
         run: go mod download
         working-directory: infrastructure
-        
+
       - name: "Deploy stack: skulpture/landing/prod"
         uses: pulumi/actions@v5
         with:
@@ -60,7 +60,7 @@ jobs:
           CLOUDFLARE_ZONE_ID: ${{ vars.CLOUDFLARE_ZONE_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           GOOGLE_SERVICE_ACCOUNT: ${{ vars.GOOGLE_SERVICE_ACCOUNT }}
-          GCP_SSH_PUBLIC_KEY: ${{ secrets.GCP_SSH_PUBLIC_KEY }}
+          GCP_SSH_PUBLIC_KEY: ${{ vars.GCP_SSH_PUBLIC_KEY }}
 
   build:
     if: ${{ always() }}
@@ -70,7 +70,7 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -91,7 +91,7 @@ jobs:
           tags: |
             skulpture/landing-api:${{ env.TAG }}
 
-  deploy:    
+  deploy:
     permissions:
       contents: read
       id-token: write
