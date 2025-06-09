@@ -45,7 +45,7 @@
 		"react-hook-form": "^7.56.4",
 		"react-snowfall": "^2.2.0",
 		"sharp": "^0.34.1",
-		"svg-path-commander": "^2.1.10",
+		"svg-path-commander": "^2.1.11",
 		"tailwind-merge": "^3.3.0",
 		"tailwindcss": "^4.1.7",
 		"tailwindcss-animate": "^1.0.7",
