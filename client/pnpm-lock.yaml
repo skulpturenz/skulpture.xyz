@@ -102,8 +102,8 @@ importers:
         specifier: ^0.34.1
         version: 0.34.1
       svg-path-commander:
-        specifier: ^2.1.10
-        version: 2.1.10
+        specifier: ^2.1.11
+        version: 2.1.11
       tailwind-merge:
         specifier: ^3.3.0
         version: 3.3.0
@@ -1472,8 +1472,8 @@ packages:
   '@tanstack/virtual-core@3.13.8':
     resolution: {integrity: sha512-BT6w89Hqy7YKaWewYzmecXQzcJh6HTBbKYJIIkMaNU49DZ06LoTV3z32DWWEdUsgW6n1xTmwTLs4GtWrZC261w==}
 
-  '@thednp/dommatrix@2.0.11':
-    resolution: {integrity: sha512-e4X97qU68a4ycieaGiRgmeE4KltnV8GPE1pUxdtgvJQBe4VvzL4a6Xxb+X8dI1cQrUVAkl3uSe5nGRXrAmNpkQ==}
+  '@thednp/dommatrix@2.0.12':
+    resolution: {integrity: sha512-eOshhlSShBXLfrMQqqhA450TppJXhKriaQdN43mmniOCMn9sD60QKF1Axsj7bKl339WH058LuGFS6H84njYH5w==}
     engines: {node: '>=20', pnpm: '>=8.6.0'}
 
   '@types/babel__core@7.20.5':
@@ -1496,6 +1496,9 @@ packages:
 
   '@types/estree@1.0.7':
     resolution: {integrity: sha512-w28IoSUCJpidD/TGviZwwMJckNESJZXFu7NBZ5YJ4mEUnNraUn9Pm8HSZm/jDF1pDWYKspWE7oVphigUPRakIQ==}
+
+  '@types/estree@1.0.8':
+    resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
 
   '@types/fontkit@2.0.8':
     resolution: {integrity: sha512-wN+8bYxIpJf+5oZdrdtaX04qUuWHcKxcDEgRS9Qm9ZClSHjzEn13SxUC+5eRM+4yXIeTYk8mTzLAWGF64847ew==}
@@ -3582,8 +3585,8 @@ packages:
   svg-parser@2.0.4:
     resolution: {integrity: sha512-e4hG1hRwoOdRb37cIMSgzNsxyzKfayW6VOflrwvR+/bzrkyxY/31WkbgnQpgtrNp1SdpJvpUAGTa/ZoiPNDuRQ==}
 
-  svg-path-commander@2.1.10:
-    resolution: {integrity: sha512-ExltvdpY18rqpRp6PaWHNisB+Mugoeni0TbHcRNalt2fLs+i3eR6RMvLBsuN9YbKPl356DZgoT4FobRY7VQ+GQ==}
+  svg-path-commander@2.1.11:
+    resolution: {integrity: sha512-wmQ6QA3Od+HOcpIzLjPlbv59+x3yd3V5W6xitUOvAHmqZpP7wVrRM2CHqEm5viHUbZu6PjzFsjbTEFtIeUxaNA==}
     engines: {node: '>=16', pnpm: '>=8.6.0'}
 
   synckit@0.11.5:
@@ -5363,7 +5366,7 @@ snapshots:
 
   '@tanstack/virtual-core@3.13.8': {}
 
-  '@thednp/dommatrix@2.0.11': {}
+  '@thednp/dommatrix@2.0.12': {}
 
   '@types/babel__core@7.20.5':
     dependencies:
@@ -5392,11 +5395,14 @@ snapshots:
 
   '@types/eslint@9.6.1':
     dependencies:
-      '@types/estree': 1.0.7
+      '@types/estree': 1.0.8
       '@types/json-schema': 7.0.15
     optional: true
 
   '@types/estree@1.0.7': {}
+
+  '@types/estree@1.0.8':
+    optional: true
 
   '@types/fontkit@2.0.8':
     dependencies:
@@ -8083,9 +8089,9 @@ snapshots:
 
   svg-parser@2.0.4: {}
 
-  svg-path-commander@2.1.10:
+  svg-path-commander@2.1.11:
     dependencies:
-      '@thednp/dommatrix': 2.0.11
+      '@thednp/dommatrix': 2.0.12
 
   synckit@0.11.5:
     dependencies:
