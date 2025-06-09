@@ -28,7 +28,7 @@
 		"@radix-ui/react-tooltip": "^1.2.6",
 		"@tailwindcss/vite": "^4.1.7",
 		"@types/react": "^19.1.6",
-		"@types/react-dom": "^19.1.5",
+		"@types/react-dom": "^19.1.6",
 		"@zokki/astro-brotli": "^1.0.1",
 		"astro": "^5.7.13",
 		"astro-font": "^1.1.0",
