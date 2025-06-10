@@ -137,7 +137,7 @@ jobs:
 
     environment: "landing-${{ matrix.branch }}"
 
-    needs: [up, build]
+    needs: [up, docker-push]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
