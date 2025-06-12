@@ -1,9 +1,10 @@
 services:
   landing-api:
-    build:
-      context: .
+    image: golang:alpine
+    command: cd app && go install && landing
     volumes:
       - ${GOOGLE_APPLICATION_CREDENTIALS}:/credentials.json
+      - ./:/app
     environment:
       LOG_LEVEL: ${LOG_LEVEL}
       OTEL_SERVICE_NAME: landing-api
