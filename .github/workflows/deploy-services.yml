@@ -176,5 +176,5 @@ jobs:
 
             cd landing-${{ env.BRANCH_NAME }}/${{ matrix.service }}
 
-            docker stack deploy --compose-file ${{ env.SERVICES_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }}
             docker system prune -af
+            docker stack deploy --compose-file ${{ env.SERVICES_DOCKER_COMPOSE_FILE }} ${{ env.STACK_NAME }}
