@@ -52,7 +52,7 @@ jobs:
           TEST_POSTMARK_TEMPLATE="${{ secrets.POSTMARK_TEMPLATE }}" TEST_POSTMARK_SERVER_TOKEN="${{ secrets.POSTMARK_SERVER_TOKEN }}" \
           TEST_POSTMARK_ACCOUNT_TOKEN="${{ secrets.POSTMARK_ACCOUNT_TOKEN }}" GO_ENV="test" \
           GOOGLE_APPLICATION_CREDENTIALS="${{ steps.auth.outputs.credentials_file_path }}" \
-          docker compose -f docker-compose.test.yml up -d
+          docker compose -f docker-compose.test.yml up
           docker compose ps
 
           docker compose -f docker-compose.test.yml exec landing-api go test || \
