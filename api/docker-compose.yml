@@ -25,14 +25,15 @@ services:
     command: >
       --providers.swarm
       --providers.swarm.exposedByDefault=false
+      --providers.file.directory=/traefik
+      --providers.file.watch=true
       --entryPoints.http.address=:80
       --entryPoints.https.address=:443
       --entryPoints.https.asDefault=true
       --entryPoints.http.redirect=https
-      --entryPoints.https.tls.certificates.certFile=/certs/fullchain.pem
-      --entryPoints.https.tls.certificates.keyFile=/certs/privkey.pem
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik:/traefik
     secrets:
       - source: proxy.certificate
         target: /certs/fullchain.pem
