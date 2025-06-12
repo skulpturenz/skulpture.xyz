@@ -23,7 +23,7 @@ services:
         constraints:
           - node.role == manager
     command: >
-      --providers.swarm
+      --providers.swarm.endpoint=unix:///var/run/docker.sock
       --providers.swarm.exposedByDefault=false
       --providers.file.directory=/traefik
       --providers.file.watch=true
@@ -65,9 +65,12 @@ services:
       labels:
         traefik.enable: "true"
         traefik.http.routers.landing-api-prod.rule: Host(`landing-api-master.skulpture.xyz`)
-        traefik.http.services.landing-api-prod.loadbalancer.server.port: 80
-        traefik.http.services.landing-api-prod.loadbalancer.healthcheck.path: /ping
-        traefik.http.services.landing-api-prod.loadbalancer.healthcheck.status: 200
+        traefik.http.routers.landing-api-prod.tls.domains.main: skulpture.xyz
+        traefik.http.routers.landing-api-prod.tls.domains.sans: "*.skulpture.xyz"
+        traefik.http.services.landing-api-prod-service.loadbalancer.server.port: 80
+        traefik.http.services.landing-api-prod-service.loadbalancer.server.scheme: http
+        traefik.http.services.landing-api-prod-service.loadbalancer.healthcheck.path: /ping
+        traefik.http.services.landing-api-prod-service.loadbalancer.healthcheck.status: 200
         traefik.swarm.lbswarm: "true"
     ulimits:
       nofile:
@@ -100,9 +103,12 @@ services:
       labels:
         traefik.enable: "true"
         traefik.http.routers.landing-api-dev.rule: Host(`landing-api-dev.skulpture.xyz`)
-        traefik.http.services.landing-api-dev.loadbalancer.server.port: 80
-        traefik.http.services.landing-api-dev.loadbalancer.healthcheck.path: /ping
-        traefik.http.services.landing-api-dev.loadbalancer.healthcheck.status: 200
+        traefik.http.routers.landing-api-dev.tls.domains.main: skulpture.xyz
+        traefik.http.routers.landing-api-dev.tls.domains.sans: "*.skulpture.xyz"
+        traefik.http.services.landing-api-dev-service.loadbalancer.server.port: 80
+        traefik.http.services.landing-api-dev-service.loadbalancer.server.scheme: http
+        traefik.http.services.landing-api-dev-service.loadbalancer.healthcheck.path: /ping
+        traefik.http.services.landing-api-dev-service.loadbalancer.healthcheck.status: 200
         traefik.swarm.lbswarm: "true"
     ulimits:
       nofile:
@@ -114,4 +120,3 @@ services:
       timeout: 1m
       retries: 5
       start_period: 30s
-
