@@ -27,10 +27,11 @@ services:
       --providers.swarm.exposedByDefault=false
       --providers.file.directory=/traefik
       --providers.file.watch=true
-      --entryPoints.http.address=:80
-      --entryPoints.https.address=:443
-      --entryPoints.https.asDefault=true
-      --entryPoints.http.redirect=https
+      --entryPoints.web.address=:80
+      --entryPoints.websecure.address=:443
+      --entryPoints.websecure.asDefault=true
+      --entryPoints.web.http.redirections.entryPoint.to=websecure
+      --entryPoints.web.http.redirections.entryPoint.scheme=https
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik:/traefik
