@@ -1,6 +1,13 @@
-FROM golang:alpine
+FROM golang:alpine AS build
+
+WORKDIR /build
 
 COPY . .
-RUN go install
+
+RUN go build
+
+FROM alpine
+
+COPY --from=build /build/landing /usr/local/bin
 
 ENTRYPOINT ["landing"]
