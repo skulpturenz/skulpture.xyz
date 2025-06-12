@@ -1,7 +1,7 @@
 services:
   landing-api:
     image: golang:alpine
-    command: ls -a && ls -a /app # go run /app
+    command: ls -R # go run /app
     volumes:
       - ${GOOGLE_APPLICATION_CREDENTIALS}:/credentials.json
       - ./.:/app
