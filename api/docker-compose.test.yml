@@ -4,7 +4,7 @@ services:
     command: ls -R # go run /app
     volumes:
       - ${GOOGLE_APPLICATION_CREDENTIALS}:/credentials.json
-      - ./.:/app
+      - ./:/app
     environment:
       LOG_LEVEL: ${LOG_LEVEL}
       OTEL_SERVICE_NAME: landing-api
