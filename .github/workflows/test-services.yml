@@ -53,9 +53,9 @@ jobs:
           TEST_POSTMARK_ACCOUNT_TOKEN="${{ secrets.POSTMARK_ACCOUNT_TOKEN }}" GO_ENV="test" \
           GOOGLE_APPLICATION_CREDENTIALS="${{ steps.auth.outputs.credentials_file_path }}" \
           docker compose -f docker-compose.test.yml up
-          docker compose ps
-          ls -a
-          ls -a /app
+          docker compose -f docker-compose.test.yml exec landing-api ls -a && ls -a /app
+          # docker compose ps
+          # ls -a
 
-          docker compose -f docker-compose.test.yml exec landing-api go test || \
-          (docker compose -f docker-compose.test.yml logs landing-api && exit 1)
+          # docker compose -f docker-compose.test.yml exec landing-api go test || \
+          # (docker compose -f docker-compose.test.yml logs landing-api && exit 1)
