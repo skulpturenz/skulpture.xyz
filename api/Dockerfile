@@ -8,6 +8,6 @@ RUN go build
 
 FROM alpine
 
-COPY --from=build /build/landing /usr/local/bin
+COPY --from=build /build/landing /usr/local/bin/
 
 ENTRYPOINT ["landing"]
