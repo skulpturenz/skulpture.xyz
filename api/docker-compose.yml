@@ -126,3 +126,6 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+      OTEL_EXPORTER_OTLP_AUTH_TOKEN: ${OTEL_EXPORTER_OTLP_AUTH_TOKEN}
