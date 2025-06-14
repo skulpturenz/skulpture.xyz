@@ -429,9 +429,7 @@ func initOtel(ctx context.Context, r *chi.Mux) func(context.Context) error {
 
 	exporter, err := otlptrace.New(
 		ctx,
-		otlptracehttp.NewClient(
-			// see: https://www.parseable.com/docs/OpenTelemetry/traces
-			otlptracehttp.WithInsecure()),
+		otlptracehttp.NewClient(),
 	)
 
 	if err != nil {
@@ -462,8 +460,7 @@ func initOtel(ctx context.Context, r *chi.Mux) func(context.Context) error {
 	logExporter, _ := otlplogs.NewExporter(ctx, otlplogs.WithClient(otlplogshttp.NewClient(
 		// parseable only supports json payloads
 		// see: https://www.parseable.com/docs/OpenTelemetry/logs
-		otlplogshttp.WithJsonProtocol(),
-		otlplogshttp.WithInsecure())))
+		otlplogshttp.WithJsonProtocol())))
 	loggerProvider := sdklog.NewLoggerProvider(
 		sdklog.WithBatcher(logExporter),
 		sdklog.WithResource(resources),
