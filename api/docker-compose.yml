@@ -97,7 +97,7 @@ services:
       GO_ENV: "development"
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 2
       labels:
         traefik.enable: "true"
         traefik.http.routers.landing-api-dev.rule: Host(`landing-api-dev.skulpture.xyz`)

@@ -12,12 +12,10 @@
 	"containerEnv": {
 		"SERVICE_NAME": "skulpture-landing",
 		"GO_ENV": "development"
-		// "GOOGLE_PROJECT": ""
-		// "OTEL_EXPORTER_OTLP_ENDPOINT": "",
-		// "OTEL_EXPORTER_OTLP_HEADERS": "",
-		// "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "",
-		// "OTEL_EXPORTER_OTLP_TRACES_HEADERS": ""
 	},
+	"mounts": [
+		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+	],
 	"customizations": {
 		"settings": {
 			"go.buildTags": "",
@@ -51,5 +49,8 @@
 		}
 	},
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "go version"
+	"postCreateCommand": {
+		// "configure-docker": "sudo chown $(whoami) /var/run/docker.sock",
+		"go-version": "go version"
+	}
 }
