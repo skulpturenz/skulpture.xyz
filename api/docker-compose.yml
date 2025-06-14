@@ -12,16 +12,29 @@ secrets:
 
 services:
   proxy:
-    image: nginx:alpine
-    restart: unless-stopped
+    image: traefik:v3.4
     ports:
       - target: 443
         published: 443
     deploy:
       mode: replicated
       replicas: 2
+      placement:
+        constraints:
+          - node.role == manager
+    command: >
+      --providers.swarm.endpoint=unix:///var/run/docker.sock
+      --providers.swarm.exposedByDefault=false
+      --providers.file.directory=/traefik
+      --providers.file.watch=true
+      --entryPoints.web.address=:80
+      --entryPoints.websecure.address=:443
+      --entryPoints.websecure.asDefault=true
+      --entryPoints.web.http.redirections.entryPoint.to=websecure
+      --entryPoints.web.http.redirections.entryPoint.scheme=https
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik:/traefik
     secrets:
       - source: proxy.certificate
         target: /certs/fullchain.pem
@@ -31,13 +44,9 @@ services:
       nofile:
         soft: 20000
         hard: 20000
-    depends_on:
-      - landing-api-prod
-      - landing-api-dev
 
   landing-api-prod:
     image: skulpture/landing-api:latest
-    restart: unless-stopped
     environment:
       LOG_LEVEL: ${LOG_LEVEL}
       OTEL_SERVICE_NAME: landing-api-prod
@@ -45,7 +54,25 @@ services:
       GSHEETS_SPREADSHEET_ID: ${GSHEETS_SPREADSHEET_ID}
       ENABLE_TELEMETRY: "${ENABLE_TELEMETRY}"
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
-      OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Bearer ${OTEL_EXPORTER_OTLP_AUTH_TOKEN}"
+      OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Basic ${OTEL_EXPORTER_OTLP_AUTH_TOKEN}"
+      OTEL_EXPORTER_OTLP_LOGS_HEADERS: >-
+        Authorization=Basic ${OTEL_EXPORTER_OTLP_AUTH_TOKEN},
+        X-P-Stream=otel-logs,
+        X-P-Log-Source=otel-logs,
+        Content-Type=application/json
+      OTEL_EXPORTER_OTLP_LOGS_PROTOCOL: http/json
+      OTEL_EXPORTER_OTLP_TRACES_HEADERS: >-
+        Authorization=Basic ${OTEL_EXPORTER_OTLP_AUTH_TOKEN},
+        X-P-Stream=otel-traces,
+        X-P-Log-Source=otel-traces,
+        Content-Type=application/json
+      OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: http/json
+      OTEL_EXPORTER_OTLP_METRICS_HEADERS: >-
+        Authorization=Basic ${OTEL_EXPORTER_OTLP_AUTH_TOKEN},
+        X-P-Stream=otel-metrics,
+        X-P-Log-Source=otel-metrics,
+        Content-Type=application/json
+      OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: http/json
       POSTMARK_TEMPLATE: ${POSTMARK_TEMPLATE}
       POSTMARK_SERVER_TOKEN: ${POSTMARK_SERVER_TOKEN}
       POSTMARK_ACCOUNT_TOKEN: ${POSTMARK_ACCOUNT_TOKEN}
@@ -53,21 +80,29 @@ services:
     deploy:
       mode: replicated
       replicas: 2
-      endpoint_mode: vip
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.landing-api-prod.rule: Host(`landing-api-master.skulpture.xyz`)
+        traefik.http.routers.landing-api-prod.tls.domains.main: skulpture.xyz
+        traefik.http.routers.landing-api-prod.tls.domains.sans: "*.skulpture.xyz"
+        traefik.http.services.landing-api-prod-service.loadbalancer.server.port: 80
+        traefik.http.services.landing-api-prod-service.loadbalancer.server.scheme: http
+        traefik.http.services.landing-api-prod-service.loadbalancer.healthcheck.path: /ping
+        traefik.http.services.landing-api-prod-service.loadbalancer.healthcheck.status: 200
+        traefik.swarm.lbswarm: "true"
     ulimits:
       nofile:
         soft: 20000
         hard: 20000
     healthcheck:
-      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost/ping || exit 1" ]
-      interval: 1m30s
-      timeout: 30s
-      retries: 5
-      start_period: 10s
+       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost/ping || exit 1" ]
+       interval: 1m30s
+       timeout: 1m
+       retries: 5
+       start_period: 30s
 
   landing-api-dev:
     image: skulpture/landing-api:dev
-    restart: unless-stopped
     environment:
       LOG_LEVEL: ${LOG_LEVEL}
       OTEL_SERVICE_NAME: landing-api-dev
@@ -75,7 +110,25 @@ services:
       GSHEETS_SPREADSHEET_ID: ${GSHEETS_SPREADSHEET_ID_DEV}
       ENABLE_TELEMETRY: "${ENABLE_TELEMETRY}"
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
-      OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Bearer ${OTEL_EXPORTER_OTLP_AUTH_TOKEN}"
+      OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Basic ${OTEL_EXPORTER_OTLP_AUTH_TOKEN}"
+      OTEL_EXPORTER_OTLP_LOGS_HEADERS: >-
+        Authorization=Basic ${OTEL_EXPORTER_OTLP_AUTH_TOKEN},
+        X-P-Stream=otel-logs,
+        X-P-Log-Source=otel-logs,
+        Content-Type=application/json
+      OTEL_EXPORTER_OTLP_LOGS_PROTOCOL: http/json
+      OTEL_EXPORTER_OTLP_TRACES_HEADERS: >-
+        Authorization=Basic ${OTEL_EXPORTER_OTLP_AUTH_TOKEN},
+        X-P-Stream=otel-traces,
+        X-P-Log-Source=otel-traces,
+        Content-Type=application/json
+      OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: http/json
+      OTEL_EXPORTER_OTLP_METRICS_HEADERS: >-
+        Authorization=Basic ${OTEL_EXPORTER_OTLP_AUTH_TOKEN},
+        X-P-Stream=otel-metrics,
+        X-P-Log-Source=otel-metrics,
+        Content-Type=application/json
+      OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: http/json
       POSTMARK_TEMPLATE: ${POSTMARK_TEMPLATE_DEV}
       POSTMARK_SERVER_TOKEN: ${POSTMARK_SERVER_TOKEN}
       POSTMARK_ACCOUNT_TOKEN: ${POSTMARK_ACCOUNT_TOKEN}
@@ -83,14 +136,23 @@ services:
     deploy:
       mode: replicated
       replicas: 1
-      endpoint_mode: vip
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.landing-api-dev.rule: Host(`landing-api-dev.skulpture.xyz`)
+        traefik.http.routers.landing-api-dev.tls.domains.main: skulpture.xyz
+        traefik.http.routers.landing-api-dev.tls.domains.sans: "*.skulpture.xyz"
+        traefik.http.services.landing-api-dev-service.loadbalancer.server.port: 80
+        traefik.http.services.landing-api-dev-service.loadbalancer.server.scheme: http
+        traefik.http.services.landing-api-dev-service.loadbalancer.healthcheck.path: /ping
+        traefik.http.services.landing-api-dev-service.loadbalancer.healthcheck.status: 200
+        traefik.swarm.lbswarm: "true"
     ulimits:
       nofile:
         soft: 20000
         hard: 20000
     healthcheck:
-      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost/ping || exit 1" ]
-      interval: 1m30s
-      timeout: 30s
-      retries: 5
-      start_period: 10s
+       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost/ping || exit 1" ]
+       interval: 1m30s
+       timeout: 1m
+       retries: 5
+       start_period: 30s

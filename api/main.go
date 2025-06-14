@@ -451,13 +451,16 @@ func initOtel(ctx context.Context, r *chi.Mux) func(context.Context) error {
 
 	otel.SetTracerProvider(
 		sdktrace.NewTracerProvider(
-			sdktrace.WithSampler(sdktrace.AlwaysSample()),
+			sdktrace.WithSampler(sdktrace.ParentBased(sdktrace.AlwaysSample())),
 			sdktrace.WithBatcher(exporter),
 			sdktrace.WithResource(resources),
 		),
 	)
 
-	logExporter, _ := otlplogs.NewExporter(ctx, otlplogs.WithClient(otlplogshttp.NewClient()))
+	logExporter, _ := otlplogs.NewExporter(ctx, otlplogs.WithClient(otlplogshttp.NewClient(
+		// parseable only supports json payloads
+		// see: https://www.parseable.com/docs/OpenTelemetry/logs
+		otlplogshttp.WithJsonProtocol())))
 	loggerProvider := sdklog.NewLoggerProvider(
 		sdklog.WithBatcher(logExporter),
 		sdklog.WithResource(resources),

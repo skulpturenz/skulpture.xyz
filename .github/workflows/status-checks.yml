@@ -1,0 +1,17 @@
+name: Status checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  allchecks:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: read
+      contents: read
+    steps:
+      - uses: wechuli/allcheckspassed@v1
+        with:
+          fail_fast: true
+          show_job_summary: false
