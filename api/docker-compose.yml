@@ -54,7 +54,19 @@ services:
       GSHEETS_SPREADSHEET_ID: ${GSHEETS_SPREADSHEET_ID}
       ENABLE_TELEMETRY: "${ENABLE_TELEMETRY}"
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
-      OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Bearer ${OTEL_EXPORTER_OTLP_AUTH_TOKEN}"
+      OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Basic ${OTEL_EXPORTER_OTLP_AUTH_TOKEN}"
+      OTEL_EXPORTER_OTLP_LOGS_HEADERES: >
+        X-P-Stream=otel-logs,
+        X-P-Log-Source=otel-logs,
+        Content-Type=application/json
+      OTEL_EXPORTER_OTLP_TRACES_HEADERES: >
+        X-P-Stream=otel-traces,
+        X-P-Log-Source=otel-traces,
+        Content-Type=application/json
+      OTEL_EXPORTER_OTLP_METRICS_HEADERES: >
+        X-P-Stream=otel-metrics,
+        X-P-Log-Source=otel-metrics,
+        Content-Type=application/json
       POSTMARK_TEMPLATE: ${POSTMARK_TEMPLATE}
       POSTMARK_SERVER_TOKEN: ${POSTMARK_SERVER_TOKEN}
       POSTMARK_ACCOUNT_TOKEN: ${POSTMARK_ACCOUNT_TOKEN}
@@ -92,7 +104,19 @@ services:
       GSHEETS_SPREADSHEET_ID: ${GSHEETS_SPREADSHEET_ID_DEV}
       ENABLE_TELEMETRY: "${ENABLE_TELEMETRY}"
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
-      OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Bearer ${OTEL_EXPORTER_OTLP_AUTH_TOKEN}"
+      OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Basic ${OTEL_EXPORTER_OTLP_AUTH_TOKEN}"
+      OTEL_EXPORTER_OTLP_LOGS_HEADERES: >
+        X-P-Stream=otel-logs,
+        X-P-Log-Source=otel-logs,
+        Content-Type=application/json
+      OTEL_EXPORTER_OTLP_TRACES_HEADERES: >
+        X-P-Stream=otel-traces,
+        X-P-Log-Source=otel-traces,
+        Content-Type=application/json
+      OTEL_EXPORTER_OTLP_METRICS_HEADERES: >
+        X-P-Stream=otel-metrics,
+        X-P-Log-Source=otel-metrics,
+        Content-Type=application/json
       POSTMARK_TEMPLATE: ${POSTMARK_TEMPLATE_DEV}
       POSTMARK_SERVER_TOKEN: ${POSTMARK_SERVER_TOKEN}
       POSTMARK_ACCOUNT_TOKEN: ${POSTMARK_ACCOUNT_TOKEN}
