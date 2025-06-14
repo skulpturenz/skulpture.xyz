@@ -12,7 +12,7 @@ RUN go build
 FROM scratch
 
 COPY --from=build /build/landing /landing
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=build /usr/share/zoneinfo /usr/share/zoneinfo
 
 ENTRYPOINT [ "/landing" ]
