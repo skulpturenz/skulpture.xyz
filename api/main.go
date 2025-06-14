@@ -427,6 +427,7 @@ func initOtel(ctx context.Context, r *chi.Mux) func(context.Context) error {
 		}
 	}
 
+	// TODO: json payload
 	exporter, err := otlptrace.New(
 		ctx,
 		otlptracehttp.NewClient(),
@@ -457,7 +458,9 @@ func initOtel(ctx context.Context, r *chi.Mux) func(context.Context) error {
 		),
 	)
 
-	logExporter, _ := otlplogs.NewExporter(ctx, otlplogs.WithClient(otlplogshttp.NewClient()))
+	logExporter, _ := otlplogs.NewExporter(ctx, otlplogs.WithClient(otlplogshttp.NewClient(
+		// parseable only supports json payloads
+		otlplogshttp.WithJsonProtocol())))
 	loggerProvider := sdklog.NewLoggerProvider(
 		sdklog.WithBatcher(logExporter),
 		sdklog.WithResource(resources),
