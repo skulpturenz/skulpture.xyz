@@ -1,0 +1,41 @@
+receivers:
+  otlp:
+
+exporters:
+  otlphttp/parseablelogs:
+    endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+    headers:
+      Authorization: "Basic ${env:OTEL_EXPORTER_OTLP_AUTH_TOKEN}"
+      X-P-Stream: otel-logs
+      X-P-Log-Source: otel-logs
+      Content-Type: application/json
+    encoding: json
+
+  otlphttp/parseablemetrics:
+    endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+    headers:
+      Authorization: "Basic ${env:OTEL_EXPORTER_OTLP_AUTH_TOKEN}"
+      X-P-Stream: otel-metrics
+      X-P-Log-Source: otel-metrics
+      Content-Type: application/json
+    encoding: json
+
+  otlphttp/parseabletraces:
+    endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+    headers:
+      Authorization: "Basic ${env:OTEL_EXPORTER_OTLP_AUTH_TOKEN}"
+      X-P-Stream: otel-traces
+      X-P-Log-Source: otel-traces
+      Content-Type: application/json
+    encoding: json
+
+service:
+  pipelines:
+    logs:
+      exporters: [otlphttp/parseablelogs]
+
+    metrics:
+      exporters: [otlphttp/parseablemetrics]
+
+    traces:
+      exporters: [otlphttp/parseabletraces]
