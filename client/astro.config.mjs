@@ -18,7 +18,7 @@ export default defineConfig({
 		robotsTxt(),
 		brotli(),
 		sentry({
-			clientInitPath: "sentryClientInit.js",
+			clientInitPath: "sentryClientInit.mjs",
 		}),
 	],
 	vite: {
