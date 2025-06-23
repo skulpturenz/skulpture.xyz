@@ -442,7 +442,8 @@ func initOtel(ctx context.Context, r *chi.Mux) func(context.Context) error {
 
 	otel.SetTracerProvider(
 		sdktrace.NewTracerProvider(
-			sdktrace.WithSampler(sdktrace.ParentBased(sdktrace.AlwaysSample())),
+			// TODO: reconsider later
+			sdktrace.WithSampler(sdktrace.ParentBased(sdktrace.TraceIDRatioBased(0.25))),
 			sdktrace.WithBatcher(exporter),
 			sdktrace.WithResource(resources),
 		),
