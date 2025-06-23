@@ -48,7 +48,7 @@ services:
   landing-api-prod:
     image: skulpture/landing-api:latest
     environment:
-      LOG_LEVEL: ${LOG_LEVEL}
+      LOG_LEVEL: ${LOG_LEVEL:-ERROR}
       OTEL_SERVICE_NAME: landing-api-prod
       GDRIVE_FOLDER_ID: ${GDRIVE_FOLDER_ID}
       GSHEETS_SPREADSHEET_ID: ${GSHEETS_SPREADSHEET_ID}
@@ -97,7 +97,7 @@ services:
       GO_ENV: "development"
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 2
       labels:
         traefik.enable: "true"
         traefik.http.routers.landing-api-dev.rule: Host(`landing-api-dev.skulpture.xyz`)
