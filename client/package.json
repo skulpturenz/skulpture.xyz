@@ -43,7 +43,7 @@
 		"lucide-react": "^0.513.0",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
-		"react-hook-form": "^7.56.4",
+		"react-hook-form": "^7.59.0",
 		"react-snowfall": "^2.2.0",
 		"sharp": "^0.34.1",
 		"svg-path-commander": "^2.1.11",
