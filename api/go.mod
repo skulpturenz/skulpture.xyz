@@ -7,7 +7,7 @@ require (
 	github.com/agoda-com/opentelemetry-logs-go v0.6.0
 	github.com/dogmatiq/ferrite v1.5.1
 	github.com/go-chi/chi/v5 v5.2.2
-	github.com/go-chi/cors v1.2.1
+	github.com/go-chi/cors v1.2.2
 	github.com/go-chi/httplog/v2 v2.1.1
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/google/uuid v1.6.0
