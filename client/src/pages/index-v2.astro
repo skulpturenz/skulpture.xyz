@@ -1,0 +1,58 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { constants } from "@/components/constants";
+import { cn } from "@/lib/utils";
+import { Topography } from "@/components/assets";
+import { Flicker } from "./flicker";
+import { Christmas } from "./christmas";
+
+const TITLE = "Skulpture";
+const DESCRIPTION = "Software, Delivery, Advisory";
+
+const resources = {
+	ui: {
+		sectionHeader:
+			"text-primary font-bold text-base sm:text-sm md:text-xs tracking-wide uppercase",
+		sectionSubtitle: "font-bold text-2xl lg:text-4xl tracking-tight",
+		sectionContainer: "flex flex-col items-center justify-center gap-12",
+		sectionHeaderContainer: "flex flex-col gap-6",
+	},
+	intro: {
+		header: "We build.",
+		subtitle:
+			"Collaborate with us to find simple, reliable software solutions to your complex business problems.",
+		flicker: ["Ideas", "Processes", "Systems", "Change", "Communities"],
+		doContactUs: "Talk to us",
+	},
+};
+---
+
+<BaseLayout title={TITLE} description={DESCRIPTION}>
+	<Christmas client:load />
+
+	<div class={cn(constants.pageContainer, "py-0", "bg-cover", "min-h-full")}>
+		<Topography
+			className="dark:text-primary/5 absolute -z-10 h-[calc(100vh)] w-full object-cover text-black/5"
+		/>
+
+		<div
+			class={cn(
+				constants.contentContainer,
+				// h-[calc(100vh-6rem)] = 100vh - navigation bar height - padding from below + padding from pageContainer
+				"flex flex-col items-center justify-center h-[calc(100vh)]",
+			)}>
+			<div
+				class="bg-background/25 flex flex-col items-center justify-center rounded-md">
+				<h1
+					class="text-center text-8xl font-bold tracking-tight lg:text-[10rem]">
+					{resources.intro.header}
+				</h1>
+
+				<p
+					class="relative inline-flex max-w-lg items-center justify-center pt-10 text-center text-5xl font-bold uppercase lg:max-w-3xl lg:text-6xl">
+					<Flicker content={resources.intro.flicker} client:only />
+				</p>
+			</div>
+		</div>
+	</div>
+</BaseLayout>
