@@ -10,17 +10,8 @@ const TITLE = "Skulpture";
 const DESCRIPTION = "Software, Delivery, Advisory";
 
 const resources = {
-	ui: {
-		sectionHeader:
-			"text-primary font-bold text-base sm:text-sm md:text-xs tracking-wide uppercase",
-		sectionSubtitle: "font-bold text-2xl lg:text-4xl tracking-tight",
-		sectionContainer: "flex flex-col items-center justify-center gap-12",
-		sectionHeaderContainer: "flex flex-col gap-6",
-	},
 	intro: {
 		header: "We build.",
-		subtitle:
-			"Collaborate with us to find simple, reliable software solutions to your complex business problems.",
 		flicker: ["Ideas", "Processes", "Systems", "Change", "Communities"],
 		doContactUs: "Talk to us",
 	},
@@ -42,14 +33,14 @@ const resources = {
 				"flex flex-col items-center justify-center h-[calc(100vh)]",
 			)}>
 			<div
-				class="bg-background/25 flex flex-col items-center justify-center rounded-md">
+				class="bg-background/25 flex flex-col items-center justify-center gap-7 rounded-md md:gap-8 lg:gap-10">
 				<h1
-					class="text-center text-8xl font-bold tracking-tight lg:text-[10rem]">
+					class="text-center text-6xl font-bold tracking-tight md:text-8xl lg:text-[10rem]">
 					{resources.intro.header}
 				</h1>
 
 				<p
-					class="relative inline-flex max-w-lg items-center justify-center pt-10 text-center text-5xl font-bold uppercase lg:max-w-3xl lg:text-6xl">
+					class="relative inline-flex max-w-lg items-center justify-center text-center text-2xl font-bold uppercase md:text-5xl lg:max-w-3xl lg:text-6xl">
 					<Flicker content={resources.intro.flicker} client:only />
 				</p>
 			</div>
