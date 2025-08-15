@@ -8,7 +8,7 @@ export const Flicker = ({ content = [] }) => {
 		const INTERVAL_MS = 2000;
 
 		const interval = setInterval(() => {
-			setIdx(idx => (idx + 1) % (content.length - 1));
+			setIdx(idx => (idx + 1) % content.length);
 		}, INTERVAL_MS);
 
 		return () => clearInterval(interval);
