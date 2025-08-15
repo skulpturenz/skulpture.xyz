@@ -11,7 +11,7 @@ require (
 	github.com/go-chi/httplog/v2 v2.1.1
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/google/uuid v1.6.0
-	github.com/mrz1836/postmark v1.7.3
+	github.com/mrz1836/postmark v1.7.4
 	github.com/samber/slog-multi v1.4.1
 	github.com/sethvargo/go-limiter v1.0.0
 	github.com/sourcegraph/conc v0.3.0
@@ -22,7 +22,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.37.0
 	go.opentelemetry.io/otel/sdk v1.37.0
 	go.opentelemetry.io/otel/trace v1.37.0
-	google.golang.org/api v0.240.0
+	google.golang.org/api v0.241.0
 	pgregory.net/rapid v1.1.0
 )
 
