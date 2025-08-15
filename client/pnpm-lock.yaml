@@ -102,8 +102,8 @@ importers:
         specifier: ^7.62.0
         version: 7.62.0(react@19.1.0)
       react-snowfall:
-        specifier: ^2.2.0
-        version: 2.2.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        specifier: ^2.3.0
+        version: 2.3.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       sharp:
         specifier: ^0.34.3
         version: 0.34.3
@@ -3945,11 +3945,11 @@ packages:
       '@types/react':
         optional: true
 
-  react-snowfall@2.2.0:
-    resolution: {integrity: sha512-dRk7vEHq/ZUOG+JHk2k/hH3HmliOWGXr4rKRDeW4mjWuHeI1r5h0Lc1r2jnTtUS1im702d6tCmNGymlNTdhXYg==}
+  react-snowfall@2.3.0:
+    resolution: {integrity: sha512-+ms0lEWz30GqfGdFGFIk5YNBya2lvFA9SWWJa6di0xVpgU7qnvLbMXrh0qzfge1xDxw+Gh0FZ1IVG3YEJ+vRNQ==}
     peerDependencies:
-      react: "^16.8 ||\_17.x || 18.x"
-      react-dom: ^16.8 || 17.x || 18.x
+      react: "^16.8 ||\_17.x || 18.x || 19.x"
+      react-dom: ^16.8 || 17.x || 18.x || 19.x
 
   react-style-singleton@2.2.3:
     resolution: {integrity: sha512-b6jSvxvVnyptAiLjbkWLE/lOnR4lfTtDAl+eUC7RZy+QQWc6wRzIV2CE6xBuMmDxc2qIihtDCZD5NPOFl7fRBQ==}
@@ -9110,7 +9110,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.1.8
 
-  react-snowfall@2.2.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+  react-snowfall@2.3.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
