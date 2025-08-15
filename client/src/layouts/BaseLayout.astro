@@ -7,6 +7,20 @@ import { Footer, FooterSection, ContactBlock } from "./footer";
 import { constants } from "@/components/constants";
 import { Cursor } from "@/components/ui/cursor";
 import { GoogleFontsOptimizer } from "astro-google-fonts-optimizer";
+import { FliptClient } from "@flipt-io/flipt-client-js";
+import { cn } from "@/lib/utils";
+
+const client = await FliptClient.init({
+	namespace: import.meta.env.FLIPT_NAMESPACE,
+	url: import.meta.env.FLIPT_URL,
+});
+
+// note: compile time so need to redeploy if conditions change
+const isLandingV2Enabled = client.evaluateBoolean({
+	flagKey: "landing-v2",
+	entityId: "default",
+	context: {},
+});
 
 interface Props {
 	title: string;
@@ -67,13 +81,29 @@ const navigationItems: NavigationItem[] = [
 			</div>
 			{
 				!isContactBlockHidden && (
-					<div class="relative">
-						<div class="absolute -top-20 w-full xl:-top-40">
+					<div
+						class={cn({
+							relative: !isLandingV2Enabled.enabled,
+							"relative mt-24 lg:mt-36":
+								isLandingV2Enabled.enabled,
+						})}>
+						<div
+							class={cn({
+								"absolute -top-20 w-full xl:-top-40":
+									!isLandingV2Enabled.enabled,
+								"absolute top-0 w-full":
+									isLandingV2Enabled.enabled,
+							})}>
 							<div class={constants.contentContainer}>
 								<ContactBlock client:load />
 							</div>
 						</div>
-						<Footer className="pt-20 xl:pt-40" client:load>
+						<Footer
+							className={cn({
+								"pt-20 xl:pt-40": !isLandingV2Enabled.enabled,
+								"pt-40 xl:pt-80": isLandingV2Enabled.enabled,
+							})}
+							client:load>
 							<FooterSection>
 								<span>{resources.footer.company.header}</span>
 								<a
