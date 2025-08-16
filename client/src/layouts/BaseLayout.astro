@@ -11,6 +11,7 @@ import { FliptClient } from "@flipt-io/flipt-client-js";
 import { cn } from "@/lib/utils";
 
 const client = await FliptClient.init({
+	environment: import.meta.env.PROD ? "master" : "dev",
 	namespace: import.meta.env.FLIPT_NAMESPACE,
 	url: import.meta.env.FLIPT_URL,
 });
