@@ -9,6 +9,8 @@ receivers:
 exporters:
   otlphttp/parseablelogs:
     endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+    tls:
+      insecure_skip_verify: true # ssl cert is for `telemetry.skulpture.xyz` not for internal ip
     headers:
       Authorization: "Basic ${env:OTEL_EXPORTER_OTLP_AUTH_TOKEN}"
       X-P-Stream: otel-logs
@@ -18,6 +20,8 @@ exporters:
 
   otlphttp/parseablemetrics:
     endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+    tls:
+      insecure_skip_verify: true # ssl cert is for `telemetry.skulpture.xyz` not for internal ip
     headers:
       Authorization: "Basic ${env:OTEL_EXPORTER_OTLP_AUTH_TOKEN}"
       X-P-Stream: otel-metrics
@@ -27,6 +31,8 @@ exporters:
 
   otlphttp/parseabletraces:
     endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+    tls:
+      insecure_skip_verify: true # ssl cert is for `telemetry.skulpture.xyz` not for internal ip
     headers:
       Authorization: "Basic ${env:OTEL_EXPORTER_OTLP_AUTH_TOKEN}"
       X-P-Stream: otel-traces
