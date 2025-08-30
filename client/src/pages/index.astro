@@ -4,6 +4,7 @@ import HomeV2 from "./index-v2.astro";
 import { FliptClient } from "@flipt-io/flipt-client-js";
 
 const client = await FliptClient.init({
+	environment: import.meta.env.PROD ? "master" : "dev",
 	namespace: import.meta.env.FLIPT_NAMESPACE,
 	url: import.meta.env.FLIPT_URL,
 });
