@@ -1,3 +1,8 @@
 #!/bin/bash
 
-docker run --rm -it skulpture/kryptos:dev $@
+docker run \
+	-e PROJECT=$KRYPTOS_PROJECT \
+	-e DB_DRIVER=$KRYPTOS_DB_DRIVER \
+	-e DB_CONNECTION_STRING=$KRYPTOS_DB_CONNECTION_STRING \
+	-e ENCRYPTION_KEY=$KRYPTOS_ENCRYPTION_KEY \
+	--rm -it skulpture/kryptos:dev $@
