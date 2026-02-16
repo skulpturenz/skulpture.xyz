@@ -11,7 +11,7 @@ require (
 	github.com/go-chi/httplog/v2 v2.1.1
 	github.com/go-playground/validator/v10 v10.28.0
 	github.com/google/uuid v1.6.0
-	github.com/mrz1836/postmark v1.8.2
+	github.com/mrz1836/postmark v1.8.3
 	github.com/samber/slog-multi v1.5.0
 	github.com/sethvargo/go-limiter v1.1.0
 	github.com/sourcegraph/conc v0.3.0
